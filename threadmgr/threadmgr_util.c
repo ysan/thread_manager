@@ -251,6 +251,10 @@ void deleteLF (char *p)
 		return;
 	}
 
+	if (strlen(p) == 0) {
+		return;
+	}
+
 	if (*(p + (strlen(p) -1)) == '\n') {
 
 		/* LF削除 */
