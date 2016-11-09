@@ -169,7 +169,7 @@ endif
 #
 #   Phony defines
 #
-.PHONY: all clean subdirs clean-subdirs pre_proc
+.PHONY: all clean subdirs clean-subdirs pre_proc post_proc
 
 
 #
