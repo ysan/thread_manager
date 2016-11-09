@@ -1,12 +1,12 @@
 #
 #   Defines
 #
-BASEDIR		:=	./
+BASEDIR		:=	../../
 
 SUBDIRS		:= \
-	src \
-	sample\
-
+	thread_a \
+	thread_b \
+	thread_c \
 
 #
 #   Configurations
