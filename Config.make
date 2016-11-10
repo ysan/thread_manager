@@ -9,7 +9,7 @@ RANLIB		:=	/usr/bin/ranlib
 MKDIR		:=	/bin/mkdir
 RM			:=	/bin/rm
 
-CFLAGS		:=	-Wall -MD
+CFLAGS		:=	-Wall -MD -g
 ifeq ($(TARGET_TYPE), SHARED)
 CFLAGS		+=	-shared -fPIC
 endif

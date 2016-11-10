@@ -154,9 +154,10 @@ static void cycleFunc (ST_THM_IF *pIf)
 		enAct = EN_THM_ACT_CONTINUE;
 		break;
 	case SECTID_CYCLE:
-		pIf->pSetTimeout (60000);
+		pIf->pSetTimeout (15000);
 		nSectId = SECTID_SEND_NOTIFY;
-		enAct = EN_THM_ACT_TIMEOUT;
+//		enAct = EN_THM_ACT_TIMEOUT;
+		enAct = EN_THM_ACT_WAIT;
 		break;
 	case SECTID_SEND_NOTIFY:
 		pIf->pNotify (gnClientId, (uint8_t*)"this is notify message...");
