@@ -10,7 +10,7 @@ enum {
 	EN_A_FUNC_00,
 	EN_A_FUNC_01,
 	EN_A_FUNC_02,
-	EN_A_FUNC_NUM,
+	EN_A_SEQ_NUM,
 };
 
 /*
@@ -21,7 +21,7 @@ enum {
 /*
  * External
  */
-extern const P_THM_FUNC gpThreadAfuncs[];
+extern const P_THM_SEQ gpSeqsThreadA[];
 extern void recvNotifyThreadA (ST_THM_IF *pIf);
 extern void reqAsyncThreadAstartup (void);
 extern void reqAsyncThreadAfunc00 (char *pszMsg);

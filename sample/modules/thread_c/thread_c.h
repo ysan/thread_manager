@@ -11,7 +11,7 @@ enum {
 	EN_C_UNREG_NOTIFY,
 	EN_C_CYCLE_FUNC,
 	EN_C_FUNC_00,
-	EN_C_FUNC_NUM,
+	EN_C_SEQ_NUM,
 };
 
 /*
@@ -22,7 +22,7 @@ enum {
 /*
  * External
  */
-extern const P_THM_FUNC gpThreadCfuncs[];
+extern const P_THM_SEQ gpSeqsThreadC[];
 extern void recvNotifyThreadC(ST_THM_IF *pIf);
 extern void reqAsyncThreadCstartup (void);
 extern void reqAsyncThreadCregNotify(void);

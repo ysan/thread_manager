@@ -32,7 +32,7 @@ void reqAsyncThreadCfunc00 (void); // extern
 /*
  * Variables
  */
-const P_THM_FUNC gpThreadCfuncs[ EN_C_FUNC_NUM ] = {
+const P_THM_SEQ gpSeqsThreadC[ EN_C_SEQ_NUM ] = {
 	startup,
 	regNotify,
 	unregNotify,
@@ -49,36 +49,36 @@ void recvNotifyThreadC (ST_THM_IF *pIf)
 
 static void startup (ST_THM_IF *pIf)
 {
-	uint8_t nSeqId;
-	EN_THM_SEQ enSeq;
+	uint8_t nSectId;
+	EN_THM_ACT enAct;
 	enum {
-		SEQID_ENTRY = 0,
-		SEQID_END,
+		SECTID_ENTRY = 0,
+		SECTID_END,
 	};
 
-	nSeqId = pIf->pGetSeqId();
-	THM_LOG_I ("nSeqId %d\n", nSeqId);
+	nSectId = pIf->pGetSectId();
+	THM_LOG_I ("nSectId %d\n", nSectId);
 
 	gpIf->pRequestAsync (EN_THREAD_C, EN_C_CYCLE_FUNC, NULL);
 
 	pIf->pReply (EN_THM_RSLT_SUCCESS, (uint8_t*)"threadC startup end.");
 
-	nSeqId = 0;
-	enSeq = EN_THM_SEQ_DONE;
-	pIf->pSetSeqId (nSeqId, enSeq);
+	nSectId = 0;
+	enAct = EN_THM_ACT_DONE;
+	pIf->pSetSectId (nSectId, enAct);
 }
 
 static void regNotify (ST_THM_IF *pIf)
 {
-	uint8_t nSeqId;
-	EN_THM_SEQ enSeq;
+	uint8_t nSectId;
+	EN_THM_ACT enAct;
 	enum {
-		SEQID_ENTRY = 0,
-		SEQID_END,
+		SECTID_ENTRY = 0,
+		SECTID_END,
 	};
 
-	nSeqId = pIf->pGetSeqId();
-	THM_LOG_I ("nSeqId %d\n", nSeqId);
+	nSectId = pIf->pGetSectId();
+	THM_LOG_I ("nSectId %d\n", nSectId);
 
 	// 複数クライアントがいるときはちゃんとid管理すること
 	bool rslt = pIf->pRegNotify (&gnClientId);
@@ -93,22 +93,22 @@ static void regNotify (ST_THM_IF *pIf)
 	// clientIdをmsgで返す
 	pIf->pReply (enRslt, (uint8_t*)&gnClientId);
 
-	nSeqId = 0;
-	enSeq = EN_THM_SEQ_DONE;
-	pIf->pSetSeqId (nSeqId, enSeq);
+	nSectId = 0;
+	enAct = EN_THM_ACT_DONE;
+	pIf->pSetSectId (nSectId, enAct);
 }
 
 static void unregNotify (ST_THM_IF *pIf)
 {
-	uint8_t nSeqId;
-	EN_THM_SEQ enSeq;
+	uint8_t nSectId;
+	EN_THM_ACT enAct;
 	enum {
-		SEQID_ENTRY = 0,
-		SEQID_END,
+		SECTID_ENTRY = 0,
+		SECTID_END,
 	};
 
-	nSeqId = pIf->pGetSeqId();
-	THM_LOG_I ("nSeqId %d\n", nSeqId);
+	nSectId = pIf->pGetSectId();
+	THM_LOG_I ("nSectId %d\n", nSectId);
 
 	EN_THM_RSLT enRslt;
 	// msgからidを取得
@@ -129,69 +129,69 @@ static void unregNotify (ST_THM_IF *pIf)
 
 	pIf->pReply (enRslt, NULL);
 
-	nSeqId = 0;
-	enSeq = EN_THM_SEQ_DONE;
-	pIf->pSetSeqId (nSeqId, enSeq);
+	nSectId = 0;
+	enAct = EN_THM_ACT_DONE;
+	pIf->pSetSectId (nSectId, enAct);
 }
 
 static void cycleFunc (ST_THM_IF *pIf)
 {
-	uint8_t nSeqId;
-	EN_THM_SEQ enSeq;
+	uint8_t nSectId;
+	EN_THM_ACT enAct;
 	enum {
-		SEQID_ENTRY = 0,
-		SEQID_CYCLE,
-		SEQID_SEND_NOTIFY,
-		SEQID_END,
+		SECTID_ENTRY = 0,
+		SECTID_CYCLE,
+		SECTID_SEND_NOTIFY,
+		SECTID_END,
 	};
 
-	nSeqId = pIf->pGetSeqId();
-	THM_LOG_I ("nSeqId %d\n", nSeqId);
+	nSectId = pIf->pGetSectId();
+	THM_LOG_I ("nSectId %d\n", nSectId);
 
-	switch (nSeqId) {
-	case SEQID_ENTRY:
-		nSeqId = SEQID_CYCLE;
-		enSeq = EN_THM_SEQ_CONTINUE;
+	switch (nSectId) {
+	case SECTID_ENTRY:
+		nSectId = SECTID_CYCLE;
+		enAct = EN_THM_ACT_CONTINUE;
 		break;
-	case SEQID_CYCLE:
+	case SECTID_CYCLE:
 		pIf->pSetTimeout (60000);
-		nSeqId = SEQID_SEND_NOTIFY;
-		enSeq = EN_THM_SEQ_TIMEOUT;
+		nSectId = SECTID_SEND_NOTIFY;
+		enAct = EN_THM_ACT_TIMEOUT;
 		break;
-	case SEQID_SEND_NOTIFY:
+	case SECTID_SEND_NOTIFY:
 		pIf->pNotify (gnClientId, (uint8_t*)"this is notify message...");
 
-		nSeqId = SEQID_CYCLE;
-		enSeq = EN_THM_SEQ_CONTINUE;
+		nSectId = SECTID_CYCLE;
+		enAct = EN_THM_ACT_CONTINUE;
 		break;
-	case SEQID_END:
+	case SECTID_END:
 		break;
 	default:
 		break;
 	}
 
-	pIf->pSetSeqId (nSeqId, enSeq);
+	pIf->pSetSectId (nSectId, enAct);
 }
 
 static void func00 (ST_THM_IF *pIf)
 {
-	uint8_t nSeqId;
-	EN_THM_SEQ enSeq;
+	uint8_t nSectId;
+	EN_THM_ACT enAct;
 	enum {
-		SEQID_ENTRY = 0,
-		SEQID_END,
+		SECTID_ENTRY = 0,
+		SECTID_END,
 	};
 
-	nSeqId = pIf->pGetSeqId();
-	THM_LOG_I ("nSeqId %d\n", nSeqId);
+	nSectId = pIf->pGetSectId();
+	THM_LOG_I ("nSectId %d\n", nSectId);
 
 	sleep (60);
 	THM_LOG_I ("reply");
 	pIf->pReply (EN_THM_RSLT_SUCCESS, NULL);
 
-	nSeqId = 0;
-	enSeq = EN_THM_SEQ_DONE;
-	pIf->pSetSeqId (nSeqId, enSeq);
+	nSectId = 0;
+	enAct = EN_THM_ACT_DONE;
+	pIf->pSetSectId (nSectId, enAct);
 }
 
 

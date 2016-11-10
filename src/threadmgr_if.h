@@ -33,13 +33,13 @@ typedef enum {
 } EN_THM_RSLT;
 
 typedef enum {
-	EN_THM_SEQ_INIT = 0,
-	EN_THM_SEQ_CONTINUE,
-	EN_THM_SEQ_WAIT,
-	EN_THM_SEQ_TIMEOUT,
-	EN_THM_SEQ_DONE,
-	EN_THM_SEQ_MAX,
-} EN_THM_SEQ;
+	EN_THM_ACT_INIT = 0,
+	EN_THM_ACT_CONTINUE,
+	EN_THM_ACT_WAIT,
+	EN_THM_ACT_TIMEOUT,
+	EN_THM_ACT_DONE,
+	EN_THM_ACT_MAX,
+} EN_THM_ACT;
 
 
 typedef struct threadmgr_src_info {
@@ -51,8 +51,8 @@ typedef struct threadmgr_src_info {
 
 
 /*--- threadmgr_external_if ---*/
-typedef bool (*P_REQUEST_SYNC) (uint8_t nThreadIdx, uint8_t nFuncIdx, uint8_t *pszMsg);
-typedef bool (*P_REQUEST_ASYNC) (uint8_t nThreadIdx, uint8_t nFuncIdx, uint8_t *pszMsg);
+typedef bool (*P_REQUEST_SYNC) (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg);
+typedef bool (*P_REQUEST_ASYNC) (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg);
 typedef bool (*P_CREATE_EXTERNAL_CP) (void);
 typedef void (*P_DESTROY_EXTERNAL_CP) (void);
 typedef ST_THM_SRC_INFO* (*P_RECEIVE_EXTERNAL) (void);
@@ -74,8 +74,8 @@ typedef bool (*P_REPLY) (EN_THM_RSLT enRslt, uint8_t *pszMsg);
 typedef bool (*P_REG_NOTIFY) (uint8_t *pnClientId);
 typedef bool (*P_UNREG_NOTIFY) (uint8_t nClientId);
 typedef bool (*P_NOTIFY) (uint8_t nClientId, uint8_t *pszMsg);
-typedef void (*P_SET_SEQID) (uint8_t nSeqId, EN_THM_SEQ enSeq);
-typedef uint8_t (*P_GET_SEQID) (void);
+typedef void (*P_SET_SECTID) (uint8_t nSectId, EN_THM_ACT enAct);
+typedef uint8_t (*P_GET_SECTID) (void);
 typedef void (*P_SET_TIMEOUT) (uint32_t nTimeoutMsec);
 
 typedef struct threadmgr_if {
@@ -87,8 +87,8 @@ typedef struct threadmgr_if {
 	P_UNREG_NOTIFY pUnRegNotify;
 	P_NOTIFY pNotify;
 
-	P_SET_SEQID pSetSeqId;
-	P_GET_SEQID pGetSeqId;
+	P_SET_SECTID pSetSectId;
+	P_GET_SECTID pGetSectId;
 
 	P_SET_TIMEOUT pSetTimeout;
 
@@ -97,7 +97,7 @@ typedef struct threadmgr_if {
 
 /*--- threadmgr_reg_tbl ---*/
 typedef void (*P_SETUP) (void);
-typedef void (*P_THM_FUNC) (ST_THM_IF *pIf);
+typedef void (*P_THM_SEQ) (ST_THM_IF *pIf);
 typedef void (*P_RECV_ASYNC_REPLY) (ST_THM_IF *pIf);
 typedef void (*P_RECV_NOTIFY) (ST_THM_IF *pIf);
 
@@ -105,8 +105,8 @@ typedef struct threadmgr_reg_tbl {
 	const char *pszName;
 	const P_SETUP pSetup;
 	uint8_t nQueNum;
-	const P_THM_FUNC *pFuncArray; // double pointer
-	uint8_t nFuncNum;
+	const P_THM_SEQ *pSeqArray; // double pointer
+	uint8_t nSeqNum;
 	const P_RECV_ASYNC_REPLY pRecvAsyncReply;
 	const P_RECV_NOTIFY pRecvNotify;
 } ST_THM_REG_TBL;
