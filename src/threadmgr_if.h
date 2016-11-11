@@ -28,7 +28,8 @@ typedef enum {
 	EN_THM_RSLT_IGNORE = 0,
 	EN_THM_RSLT_SUCCESS,
 	EN_THM_RSLT_ERROR,
-	EN_THM_RSLT_TIMEOUT,
+	EN_THM_RSLT_REQ_TIMEOUT,
+	EN_THM_RSLT_SEQ_TIMEOUT,
 	EN_THM_RSLT_MAX,
 } EN_THM_RSLT;
 
@@ -77,6 +78,7 @@ typedef bool (*P_NOTIFY) (uint8_t nClientId, uint8_t *pszMsg);
 typedef void (*P_SET_SECTID) (uint8_t nSectId, EN_THM_ACT enAct);
 typedef uint8_t (*P_GET_SECTID) (void);
 typedef void (*P_SET_TIMEOUT) (uint32_t nTimeoutMsec);
+typedef void (*P_CLEAR_TIMEOUT) (void);
 
 typedef struct threadmgr_if {
 	ST_THM_SRC_INFO *pstSrcInfo;
@@ -91,6 +93,7 @@ typedef struct threadmgr_if {
 	P_GET_SECTID pGetSectId;
 
 	P_SET_TIMEOUT pSetTimeout;
+	P_CLEAR_TIMEOUT pClearTimeout;
 
 } ST_THM_IF;
 

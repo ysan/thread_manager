@@ -1,8 +1,14 @@
 /*
  * 簡易スレッドマネージャ
  */
+//TODO clearTimeout
+//TODO request １つづつの制約
+//TODO request timeoutの無限待ち
+//TODO enableOverwrite
+//TODO segv でbacktrace
+//TODO commander
 //TODO reqId類の配列は THREAD_IDX_MAX +1でもつのがわかりにくい
-//TODO commanderについて
+
 
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -31,11 +37,11 @@
 #define BASE_THREAD_NAME				"THMbase"
 #define SIGWAIT_THREAD_NAME				"THMsigwait"
 
-#define THREAD_IDX_MAX					(0x20) // 32  uint8の為 255以下の値で THREAD_IDX_BLANKより小さいの値
+#define THREAD_IDX_MAX					(0x20) // 32  uint8の為 255以下の値で THREAD_IDX_BLANKより小さい値
 #define THREAD_IDX_BLANK				(0x80) // 128 uint8の為 255以下の値
 #define THREAD_IDX_EXTERNAL				THREAD_IDX_MAX // reqId類の配列は THREAD_IDX_MAX +1で確保されます
 
-#define SEQ_IDX_MAX					(0x40) // 64  uint8の為 255以下の値で SEQ_IDX_BLANKより小さいの値
+#define SEQ_IDX_MAX						(0x40) // 64  uint8の為 255以下の値で SEQ_IDX_BLANKより小さい値
 #define SEQ_IDX_BLANK					(0x80) // 128 uint8の為 255以下の値
 
 #define QUE_BASE_NUM					(64)
@@ -56,8 +62,8 @@
 #define SECT_ID_MAX						(0x40) // 64  1sequenceあたりsection分割可能な最大数
 #define SECT_ID_INIT					(0)
 
-#define SEQUENCE_TIMEOUT_BLANK			(0)
-#define SEQUENCE_TIMEOUT_MAX			(0x05265C00) // 24時間
+#define SEQ_TIMEOUT_BLANK				(0)
+#define SEQ_TIMEOUT_MAX					(0x05265C00) // 24時間
 
 #define BASE_THREAD_LOOP_TIMEOUT_SEC	(10)
 
@@ -406,6 +412,8 @@ static bool enQueSeqTimeout (uint8_t nThreadIdx, uint8_t nSeqIdx);
 static ST_SEQ_INFO *searchNearestSeqTimeout (uint8_t nThreadIdx);
 static void checkSeqTimeoutFromCondTimedwait (uint8_t nThreadIdx);
 static void checkSeqTimeoutFromNotCondTimedwait (uint8_t nThreadIdx);
+static void clearTimeout (void);
+static void clearSeqTimeout (void);
 static void clearSeqTimeoutInfo (uint8_t nThreadIdx, uint8_t nSeqIdx);
 static ST_SEQ_INFO *getSeqInfo (uint8_t nThreadIdx, uint8_t nSeqIdx);
 static void clearSeqInfo (ST_SEQ_INFO *p);
@@ -1204,7 +1212,6 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 	for (i = 0; i < nQueWorkerNum; i ++) {
 
 		if (pstQueWorker->isUsed) {
-//THM_INNER_LOG_E( "use\n" );
 
 			if (pstQueWorker->enQueType == EN_QUE_TYPE_REQUEST) {
 				/* * -------------------- REQUEST_QUE -------------------- * */ 
@@ -1225,14 +1232,6 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 					 */
 					THM_INNER_LOG_N ("enAct is EN_THM_ACT_WAIT @REQUEST_QUE  ---> through\n");
 
-//DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-//				} else if (getSeqInfo(nThreadIdx, nSeqIdx)->enAct == EN_THM_ACT_TIMEOUT) {
-//					/*
-//					 * 対象のシーケンスがEN_THM_ACT_WAIT シーケンスの途中
-//					 * 見送り
-//					 */
-//					THM_INNER_LOG_N ("enAct is EN_THM_ACT_TIMEOUT @REQUEST_QUE  ---> through\n");
-
 				} else {
 					/* ありえない */
 					THM_INNER_LOG_E ("BUG: enAct is [%d] @REQUEST_QUE\n", getSeqInfo(nThreadIdx, nSeqIdx)->enAct);
@@ -1247,7 +1246,7 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 				if (getSeqInfo (nThreadIdx, nSeqIdx)->enAct == EN_THM_ACT_INIT) {
 					/* シーケンスによってはありえる */
 					/* リプライ待たずに進むようなシーケンスとか... */
-					THM_INNER_LOG_N ("enAct is EN_THM_ACT_INIT @REPLY_QUE  ---> drop\n");
+					THM_INNER_FORCE_LOG_N ("enAct is EN_THM_ACT_INIT @REPLY_QUE  ---> drop\n");
 
 					/* この場合キューは引き取る */
 					pstQueWorker->isDrop = true;
@@ -1258,6 +1257,10 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 					 * 対象のシーケンスがEN_THM_ACT_WAIT シーケンスの途中
 					 * requestIdを確認する
 					 */
+//DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+//TODO 複数requestの場合があるので requestIdInfoで照合する
+// そんため ユーザがわでreqIdの判断が必要
+
 					if (pstQueWorker->nReqId == getSeqInfo (nThreadIdx,nSeqIdx)->nReqId) {
 						/*
 						 * requestIdが一致
@@ -1284,16 +1287,6 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 						pstQueWorker->isDrop = true;
 						releaseRequestId (nThreadIdx, pstQueWorker->nReqId);
 					}
-
-//DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-//				} else if (getSeqInfo (nThreadIdx, nSeqIdx)->enAct == EN_THM_ACT_TIMEOUT) {
-//					/* シーケンスによってはありえる */
-//					/* リプライ待たずに進むようなシーケンスとか... */
-//					THM_INNER_LOG_N ("enAct is EN_THM_ACT_TIMEOUT @REPLY_QUE  ---> drop\n");
-//
-//					/* この場合キューは引き取る */
-//					pstQueWorker->isDrop = true;
-//					releaseRequestId (nThreadIdx, pstQueWorker->nReqId);
 
 				} else {
 					/* ありえない */
@@ -1324,6 +1317,10 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 						 * 対象のシーケンスがEN_THM_ACT_WAIT
 						 * reqIdの一致を確認する
 						 */
+//DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+//TODO 複数requestの場合があるので requestIdInfoで照合する
+// そんため ユーザがわでreqIdの判断が必要
+
 						if (pstQueWorker->nReqId == getSeqInfo (nThreadIdx, nSeqIdx)->nReqId) {
 							/*
 							 * reqIdが一致した
@@ -1353,7 +1350,7 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 					} else {
 						/* シーケンスによってはありえる */
 						/* リプライ待たずに進むようなシーケンスとか... */
-						THM_INNER_LOG_N ("enAct is not EN_THM_ACT_WAIT  @REQ_TIMEOUT_QUE  ---> drop\n");
+						THM_INNER_FORCE_LOG_N ("enAct is not EN_THM_ACT_WAIT  @REQ_TIMEOUT_QUE  ---> drop\n");
 
 						/* この場合キューは引き取る */
 						pstQueWorker->isDrop = true;
@@ -1371,8 +1368,6 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 				/* * -------------------- SEQ_TIMEOUT_QUE -------------------- * */
 
 				nSeqIdx = pstQueWorker->nDestSeqIdx;
-//DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-//				if (getSeqInfo (nThreadIdx, nSeqIdx)->enAct == EN_THM_ACT_TIMEOUT) {
 				if (getSeqInfo (nThreadIdx, nSeqIdx)->enAct == EN_THM_ACT_WAIT) {
 					/*
 					 * 対象のシーケンスがEN_THM_ACT_TIMEOUT
@@ -1389,7 +1384,7 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 					} else {
 						/* ありえるのか? ありえないはず... */
 						THM_INNER_LOG_E (
-							"BUG: enAct is EN_THM_ACT_TIMEOUT  unexpect timeout.enState:[%d]  @SEQ_TIMEOUT_QUE\n",
+							"BUG: enAct is EN_THM_ACT_WAIT  unexpect timeout.enState:[%d]  @SEQ_TIMEOUT_QUE\n",
 							getSeqInfo(nThreadIdx, nSeqIdx)->timeout.enState
 						);
 					}
@@ -1858,8 +1853,10 @@ static void *workerThread (void *pArg)
 
 					/* 引数gstThmSrcInfoセット */
 					pstThmSrcInfo->nReqId = stRtnQue.nReqId; /* getRequestId で生成した値 */
-					pstThmSrcInfo->enRslt = stRtnQue.enRslt; /* reqestの場合EN_THM_RSLT_IGNOREが入る 無効な値 / replyの場合その結果が入る /
-																						Reqタイムアウトの場合はEN_THM_RSLT_TIMEOUTが入る */
+					pstThmSrcInfo->enRslt = stRtnQue.enRslt; /* reqestの場合EN_THM_RSLT_IGNOREが入る 無効な値
+																replyの場合その結果が入る
+																Reqタイムアウトの場合はEN_THM_RSLT_REQ_TIMEOUTが入る
+																Seqタイムアウトの場合はEN_THM_RSLT_SEQ_TIMEOUTが入る */
 					pstThmSrcInfo->nClientId = stRtnQue.nClientId; /* NOTIFY_CLIENT_ID_BLANK が入る 無効な値 */
 					if (stRtnQue.msg.isUsed) {
 						pstThmSrcInfo->pszMsg = stRtnQue.msg.szMsg;
@@ -1874,6 +1871,7 @@ static void *workerThread (void *pArg)
 					stThmIf.pSetSectId = setSectId;
 					stThmIf.pGetSectId = getSectId;
 					stThmIf.pSetTimeout = setTimeout;
+					stThmIf.pClearTimeout = clearTimeout;
 
 
 					while (1) { // EN_THM_ACT_CONTINUE の為のloopです
@@ -1885,18 +1883,16 @@ static void *workerThread (void *pArg)
 						(void)(*((pTbl->pSeqArray)+stRtnQue.nDestSeqIdx)) (&stThmIf);
 
 						if (((pstInnerInfo->pstSeqInfo)+stRtnQue.nDestSeqIdx)->enAct == EN_THM_ACT_CONTINUE) {
-							/* Seqタイムアウト関係ないとこでは一応クリアする */
-							clearSeqTimeoutInfo (pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
+//TODO
+//							/* Seqタイムアウト関係ないとこでは一応クリアする */
+//							clearSeqTimeoutInfo (pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
 							continue;
 
-//DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-//						} else if (((pstInnerInfo->pstSeqInfo)+stRtnQue.nDestSeqIdx)->enAct == EN_THM_ACT_TIMEOUT) {
 						} else if (((pstInnerInfo->pstSeqInfo)+stRtnQue.nDestSeqIdx)->enAct == EN_THM_ACT_WAIT) {
 
-							if (((pstInnerInfo->pstSeqInfo)+stRtnQue.nDestSeqIdx)->timeout.nVal == SEQUENCE_TIMEOUT_BLANK) {
-								/* Seqタイムアウト関係ないとこでは一応クリアする */
+							if (((pstInnerInfo->pstSeqInfo)+stRtnQue.nDestSeqIdx)->timeout.nVal == SEQ_TIMEOUT_BLANK) {
+								/* 一応クリア */
 								clearSeqTimeoutInfo (pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
-//								continue;
 
 								/* this while loop break */
 								break;
@@ -2040,6 +2036,7 @@ static void clearThmIf (ST_THM_IF *pIf)
 	pIf->pSetSectId = NULL;
 	pIf->pGetSectId = NULL;
 	pIf->pSetTimeout = NULL;
+	pIf->pClearTimeout = NULL;
 }
 
 /**
@@ -2481,7 +2478,7 @@ static bool replyOuter (
 	pthread_mutex_lock (&(pstExtInfo->mutex));
 
 	/* 結果を入れます */
-	if (enRslt == EN_THM_RSLT_TIMEOUT) {
+	if (enRslt == EN_THM_RSLT_REQ_TIMEOUT) {
 		/* タイムアウトだったら extInfoのreqIdクリア */
 		pstExtInfo->nReqId = REQUEST_ID_BLANK;
 		pstExtInfo->stThmSrcInfo.nReqId = REQUEST_ID_BLANK;
@@ -2784,7 +2781,7 @@ static void enableReqTimeout (uint8_t nThreadIdx, uint32_t nReqId)
  * checkReqTimeout
  * タイムアウトしたかどうかの確認して キュー入れる
  *
- * 一連の登録関数実行後にチェック
+ * 一連の登録シーケンス実行後にチェック
  * 外部スレッドは baseThreadでチェック
  */
 static void checkReqTimeout (uint8_t nThreadIdx)
@@ -2804,7 +2801,7 @@ static void checkReqTimeout (uint8_t nThreadIdx)
 					 * 外部スレッドのReqタイムアウト
 					 * ここでreplyして reqId解放します
 					 */
-					replyOuter (i, &stContext, EN_THM_RSLT_TIMEOUT, NULL);
+					replyOuter (i, &stContext, EN_THM_RSLT_REQ_TIMEOUT, NULL);
 					releaseRequestId (THREAD_IDX_EXTERNAL, i);
 
 				} else {
@@ -2889,8 +2886,8 @@ static bool enQueReqTimeout (uint8_t nThreadIdx, uint32_t nReqId)
 	uint8_t nSeqIdx = gstRequestIdInfo[ nThreadIdx ][ nReqId ].nSrcSeqIdx;
 
 	if (!enQueWorker (nThreadIdx, nSeqIdx, EN_QUE_TYPE_REQ_TIMEOUT,
-							&stContext, nReqId, EN_THM_RSLT_TIMEOUT, NOTIFY_CLIENT_ID_BLANK, NULL)) {
-		THM_INNER_LOG_E( "enQueWorker() is failure.\n" );
+							&stContext, nReqId, EN_THM_RSLT_REQ_TIMEOUT, NOTIFY_CLIENT_ID_BLANK, NULL)) {
+		THM_INNER_LOG_E ("enQueWorker() is failure.\n");
 
 		/* unlock */
 		pthread_mutex_unlock (&gMutexOpeRequestId[ nThreadIdx ]);
@@ -3409,6 +3406,8 @@ static uint8_t getSectId (void)
 /**
  * setTimeout
  * 公開用
+ * 登録シーケンスがreturn してから時間計測開始します
+ * クリアされるタイミングは 実際にタイムアウトした時と ユーザ自身iがclearTimeoutした時です
  */
 static void setTimeout (uint32_t nTimeoutMsec)
 {
@@ -3420,7 +3419,7 @@ static void setTimeout (uint32_t nTimeoutMsec)
  */
 static void setSeqTimeout (uint32_t nTimeoutMsec)
 {
-	if ((nTimeoutMsec < SEQUENCE_TIMEOUT_BLANK) || (nTimeoutMsec >= SEQUENCE_TIMEOUT_MAX)) {
+	if ((nTimeoutMsec < SEQ_TIMEOUT_BLANK) || (nTimeoutMsec >= SEQ_TIMEOUT_MAX)) {
 		THM_INNER_LOG_E ("arg is invalid.\n");
 		return;
 	}
@@ -3440,7 +3439,11 @@ static void setSeqTimeout (uint32_t nTimeoutMsec)
 static void enableSeqTimeout (uint8_t nThreadIdx, uint8_t nSeqIdx)
 {
 	if (getSeqInfo (nThreadIdx, nSeqIdx)->timeout.enState != EN_TIMEOUT_STATE_INIT) {
-		THM_INNER_LOG_E ("BUG: timeout.enState != EN_TIMEOUT_STATE_INIT\n");
+		/*
+		 * setTimeoutしてsectionまたいでWAITしている時とかは
+		 * 既に設定済なので何もしない よって上書きされない
+		 * 1seq内では seqTimeout1つのみ設定可能です
+		 */
 		return;
 	}
 
@@ -3468,7 +3471,7 @@ static void enableSeqTimeout (uint8_t nThreadIdx, uint8_t nSeqIdx)
  * checkSeqTimeout
  * タイムアウトしたかどうかの確認して キュー入れる
  * 
- * 一連の登録関数実行後にチェック
+ * 一連の登録シーケンス実行後にチェック
  */
 static void checkSeqTimeout (uint8_t nThreadIdx)
 {
@@ -3545,7 +3548,7 @@ static bool enQueSeqTimeout (uint8_t nThreadIdx, uint8_t nSeqIdx)
 	ST_CONTEXT stContext = getContext();
 
 	if (!enQueWorker( nThreadIdx, nSeqIdx, EN_QUE_TYPE_SEQ_TIMEOUT,
-							&stContext, REQUEST_ID_BLANK, EN_THM_RSLT_IGNORE, NOTIFY_CLIENT_ID_BLANK, NULL )) {
+							&stContext, REQUEST_ID_BLANK, EN_THM_RSLT_SEQ_TIMEOUT, NOTIFY_CLIENT_ID_BLANK, NULL )) {
 		THM_INNER_LOG_E( "enQueWorker() is failure.\n" );
 		return false;
 	}
@@ -3661,6 +3664,26 @@ static void checkSeqTimeoutFromNotCondTimedwait (uint8_t nThreadIdx)
 }
 
 /**
+ * clearTimeout
+ * 公開用
+ */
+static void clearTimeout (void)
+{
+	clearSeqTimeout ();
+}
+
+/**
+ * clearSeqTimeout
+ */
+static void clearSeqTimeout (void)
+{
+	ST_CONTEXT stContext = getContext();
+	if (stContext.isValid) {
+		clearSeqTimeoutInfo (stContext.nThreadIdx, stContext.nSeqIdx);
+	}
+}
+
+/**
  * clearSeqTimeoutInfo
  */
 static void clearSeqTimeoutInfo (uint8_t nThreadIdx, uint8_t nSeqIdx)
@@ -3668,7 +3691,7 @@ static void clearSeqTimeoutInfo (uint8_t nThreadIdx, uint8_t nSeqIdx)
 	ST_SEQ_INFO *pstSeqInfo = getSeqInfo (nThreadIdx, nSeqIdx);
 
 	pstSeqInfo->timeout.enState = EN_TIMEOUT_STATE_INIT;
-	pstSeqInfo->timeout.nVal = SEQUENCE_TIMEOUT_BLANK;
+	pstSeqInfo->timeout.nVal = SEQ_TIMEOUT_BLANK;
 	memset (&(pstSeqInfo->timeout.stTime), 0x00, sizeof(struct timespec));
 }
 
@@ -3699,7 +3722,7 @@ static void clearSeqInfo (ST_SEQ_INFO *p)
 	clearQueWorker (&(p->stSeqInitQueWorker));
 
 	p->timeout.enState = EN_TIMEOUT_STATE_INIT;
-	p->timeout.nVal = SEQUENCE_TIMEOUT_BLANK;
+	p->timeout.nVal = SEQ_TIMEOUT_BLANK;
 	memset (&(p->timeout.stTime), 0x00, sizeof(struct timespec));
 }
 

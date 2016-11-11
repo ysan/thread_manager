@@ -60,6 +60,7 @@ static void startup (ST_THM_IF *pIf)
 	THM_LOG_I ("nSectId %d\n", nSectId);
 
 	gpIf->pRequestAsync (EN_THREAD_C, EN_C_CYCLE_FUNC, NULL);
+	// このrequestはWAITしてないの自身ではタイムアウトになる
 
 	pIf->pReply (EN_THM_RSLT_SUCCESS, (uint8_t*)"threadC startup end.");
 
@@ -150,6 +151,9 @@ static void cycleFunc (ST_THM_IF *pIf)
 
 	switch (nSectId) {
 	case SECTID_ENTRY:
+		// 先にreplyしておく
+		pIf->pReply (EN_THM_RSLT_SUCCESS, NULL);
+
 		nSectId = SECTID_CYCLE;
 		enAct = EN_THM_ACT_CONTINUE;
 		break;

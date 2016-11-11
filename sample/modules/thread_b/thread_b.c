@@ -121,8 +121,8 @@ static void func00 (ST_THM_IF *pIf)
 	nSectId = pIf->pGetSectId();
 	THM_LOG_I ("nSectId %d\n", nSectId);
 
-	THM_LOG_I ("execute. sleep 1sec.\n");
-	sleep (1);
+	THM_LOG_I ("execute. sleep 2sec.\n");
+	sleep (2);
 
 	pIf->pReply (EN_THM_RSLT_SUCCESS, (uint8_t*)"thread_b func00 end.");
 
@@ -186,7 +186,7 @@ static void func02 (ST_THM_IF *pIf)
 			nSectId = SECTID_END;
 			enAct = EN_THM_ACT_CONTINUE;
 		} else {
-			if (enRslt == EN_THM_RSLT_TIMEOUT) {
+			if (enRslt == EN_THM_RSLT_REQ_TIMEOUT) {
 				THM_LOG_W ("timeout");
 			}
 			nSectId = SECTID_ERR_END;

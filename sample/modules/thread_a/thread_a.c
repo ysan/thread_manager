@@ -199,7 +199,8 @@ static void func02 (ST_THM_IF *pIf)
 	EN_THM_ACT enAct;
 	enum {
 		SECTID_ENTRY = 0,
-		SECTID_A,
+		SECTID_REQ_THREAD_B_FUNC00,
+		SECTID_WAIT_THREAD_B_FUNC00,
 		SECTID_B,
 		SECTID_C,
 		SECTID_REQ_THREAD_B_FUNC01,
@@ -214,15 +215,35 @@ static void func02 (ST_THM_IF *pIf)
 		char *pszMsg = (char*)(pIf->pstSrcInfo->pszMsg);
 		THM_LOG_I ("msg:[%s]\n", pszMsg);
 
-		nSectId = SECTID_A;
+		nSectId = SECTID_REQ_THREAD_B_FUNC00;
 		enAct = EN_THM_ACT_CONTINUE;
 
 		} break;
 
-	case SECTID_A:
+	case SECTID_REQ_THREAD_B_FUNC00:
+
+		THM_LOG_I ("timeout 7sec\n");
+		pIf->pSetTimeout (7000);
+
+		// スレッドBのfunc00にリクエスト
+		reqAsyncThreadBfunc00();
+
+		nSectId = SECTID_WAIT_THREAD_B_FUNC00;
+		enAct = EN_THM_ACT_WAIT;
+		break;
+
+	case SECTID_WAIT_THREAD_B_FUNC00: {
+		EN_THM_RSLT enRslt = pIf->pstSrcInfo->enRslt;
+		THM_LOG_I ("reqAsyncThreadBfunc00 return [%d] msg:[%s]\n", enRslt, pIf->pstSrcInfo->pszMsg);
+
+		if (pIf->pstSrcInfo->enRslt != EN_THM_RSLT_SEQ_TIMEOUT) {
+			THM_LOG_I ("clearTimeout\n");
+			pIf->pClearTimeout();
+		}
+
 		nSectId = SECTID_B;
 		enAct = EN_THM_ACT_CONTINUE;
-		break;
+		} break;
 
 	case SECTID_B:
 		nSectId = SECTID_C;
