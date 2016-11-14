@@ -55,7 +55,7 @@ void deleteLF (char *p); // extern
  */
 void putsSysTime (void)
 {
-	char szTime[ SYSTIME_STRING_SIZE ];
+	char szTime [SYSTIME_STRING_SIZE];
 	memset (szTime, 0x00, SYSTIME_STRING_SIZE);
 	getSysTime (szTime, sizeof (szTime));
 	fprintf (stdout, "%s", szTime);
@@ -92,7 +92,7 @@ static void getSysTime (char *pszOut, size_t nSize)
  */
 void putsThreadName (void)
 {
-	char szPutName[ THREAD_NAME_STRING_SIZE ];
+	char szPutName [THREAD_NAME_STRING_SIZE];
 	memset (szPutName, 0x00, THREAD_NAME_STRING_SIZE);
 	getThreadName (szPutName, THREAD_NAME_STRING_SIZE);
 	fprintf (stdout, "%s", szPutName);
@@ -103,7 +103,7 @@ void putsThreadName (void)
  */
 static void getThreadName (char *pszOut, size_t nSize)
 {
-	char szName[ 16 ];
+	char szName[16];
 	memset (szName, 0x00, sizeof(szName));
 	pthread_getname_np (pthread_self(), szName, sizeof(szName));
 
@@ -144,12 +144,12 @@ void putsLog (
 	...
 )
 {
-	char szBufVa[ LOG_STRING_SIZE ];
-	char szTime[ SYSTIME_STRING_SIZE ];
-    char szThreadName[ THREAD_NAME_STRING_SIZE ];
+	char szBufVa [LOG_STRING_SIZE];
+	char szTime [SYSTIME_STRING_SIZE];
+    char szThreadName [THREAD_NAME_STRING_SIZE];
 	va_list va;
 	char type;
-	char szPerror[ 32 ];
+	char szPerror[32];
 
 	memset (szBufVa, 0x00, sizeof (szBufVa));
 	memset (szTime, 0x00, sizeof (szTime));
