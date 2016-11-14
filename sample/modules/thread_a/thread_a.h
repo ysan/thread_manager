@@ -23,9 +23,9 @@ enum {
  */
 extern const P_THM_SEQ gpSeqsThreadA[];
 extern void recvNotifyThreadA (ST_THM_IF *pIf);
-extern void reqAsyncThreadAstartup (void);
-extern void reqAsyncThreadAfunc00 (char *pszMsg);
-extern void reqAsyncThreadAfunc01 (void);
-extern void reqAsyncThreadAfunc02 (char *pszMsg);
+extern void reqStartupThreadA (uint32_t *pnReqId);
+extern void reqFunc00ThreadA (char *pszMsg, uint32_t *pnReqId);
+extern void reqFunc01ThreadA (uint32_t *pnReqId);
+extern void reqFunc02ThreadA (char *pszMsg, uint32_t *pnReqId);
 
 #endif

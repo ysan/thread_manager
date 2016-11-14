@@ -24,10 +24,10 @@ static void regNotify (ST_THM_IF *pIf);
 static void unregNotify (ST_THM_IF *pIf);
 static void cycleFunc (ST_THM_IF *pIf);
 static void func00 (ST_THM_IF *pIf);
-void reqAsyncThreadCstartup (void); // extern
-void reqAsyncThreadCregNotify (void); // extern
-void reqAsyncThreadCunRegNotify (uint8_t nClientId); // extern
-void reqAsyncThreadCfunc00 (void); // extern
+void reqStartupThreadC (uint32_t *pnReqId); // extern
+void reqRegNotifyThreadC (uint32_t *pnReqId); // extern
+void reqUnRegNotifyThreadC (uint8_t nClientId, uint32_t *pnReqId); // extern
+void reqFunc00ThreadC (uint32_t *pnReqId); // extern
 
 /*
  * Variables
@@ -59,7 +59,7 @@ static void startup (ST_THM_IF *pIf)
 	nSectId = pIf->pGetSectId();
 	THM_LOG_I ("nSectId %d\n", nSectId);
 
-	gpIf->pRequestAsync (EN_THREAD_C, EN_C_CYCLE_FUNC, NULL);
+	gpIf->pRequestAsync (EN_THREAD_C, EN_C_CYCLE_FUNC, NULL, NULL);
 	// このrequestはWAITしてないの自身ではタイムアウトになる
 
 	pIf->pReply (EN_THM_RSLT_SUCCESS, (uint8_t*)"threadC startup end.");
@@ -202,22 +202,22 @@ static void func00 (ST_THM_IF *pIf)
 
 // 以下公開用
 
-void reqAsyncThreadCstartup (void )
+void reqStartupThreadC (uint32_t *pnReqId)
 {
-	gpIf->pRequestAsync (EN_THREAD_C, EN_C_STARTUP, NULL);
+	gpIf->pRequestAsync (EN_THREAD_C, EN_C_STARTUP, NULL, pnReqId);
 }
 
-void reqAsyncThreadCregNotify (void)
+void reqRegNotifyThreadC (uint32_t *pnReqId)
 {
-	gpIf->pRequestAsync (EN_THREAD_C, EN_C_REG_NOTIFY, NULL);
+	gpIf->pRequestAsync (EN_THREAD_C, EN_C_REG_NOTIFY, NULL, pnReqId);
 }
 
-void reqAsyncThreadCunRegNotify (uint8_t nClientId)
+void reqUnRegNotifyThreadC (uint8_t nClientId, uint32_t *pnReqId)
 {
-	gpIf->pRequestAsync (EN_THREAD_C, EN_C_UNREG_NOTIFY, (uint8_t*)&nClientId);
+	gpIf->pRequestAsync (EN_THREAD_C, EN_C_UNREG_NOTIFY, (uint8_t*)&nClientId, pnReqId);
 }
 
-void reqAsyncThreadCfunc00 (void)
+void reqFunc00ThreadC (uint32_t *pnReqId)
 {
-	gpIf->pRequestAsync (EN_THREAD_C, EN_C_FUNC_00, NULL);
+	gpIf->pRequestAsync (EN_THREAD_C, EN_C_FUNC_00, NULL, pnReqId);
 }

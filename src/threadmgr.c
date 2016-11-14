@@ -352,7 +352,7 @@ static bool requestInner (
 	uint8_t *pszMsg
 );
 bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg); // extern
-bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg); // extern
+bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_t *pnReqId); // extern
 static bool replyInner (
 	uint8_t nThreadIdx,
 	uint8_t nSeqIdx,
@@ -1245,7 +1245,7 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 				if (getSeqInfo (nThreadIdx, nSeqIdx)->enAct == EN_THM_ACT_INIT) {
 					/* シーケンスによってはありえる */
 					/* リプライ待たずに進むようなシーケンスとか... */
-					THM_INNER_FORCE_LOG_N ("enAct is EN_THM_ACT_INIT @REPLY_QUE  ---> drop\n");
+					THM_INNER_FORCE_LOG_N ("enAct is EN_THM_ACT_INIT(nSeqIdx=%d) @REPLY_QUE  ---> drop\n", nSeqIdx);
 
 					/* この場合キューは引き取る */
 					pstQueWorker->isDrop = true;
@@ -1260,7 +1260,8 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 //TODO 複数requestの場合があるので requestIdInfoで照合する
 // そんため ユーザがわでreqIdの判断が必要
 
-					if (pstQueWorker->nReqId == getSeqInfo (nThreadIdx,nSeqIdx)->nReqId) {
+//					if (pstQueWorker->nReqId == getSeqInfo (nThreadIdx,nSeqIdx)->nReqId) {
+					if (pstQueWorker->nReqId == getRequestIdInfo (nThreadIdx, pstQueWorker->nReqId)->nId) {
 						/*
 						 * requestIdが一致
 						 * 実行してok
@@ -1320,7 +1321,8 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 //TODO 複数requestの場合があるので requestIdInfoで照合する
 // そんため ユーザがわでreqIdの判断が必要
 
-						if (pstQueWorker->nReqId == getSeqInfo (nThreadIdx, nSeqIdx)->nReqId) {
+//						if (pstQueWorker->nReqId == getSeqInfo (nThreadIdx, nSeqIdx)->nReqId) {
+						if (pstQueWorker->nReqId == getRequestIdInfo (nThreadIdx, pstQueWorker->nReqId)->nId) {
 							/*
 							 * reqIdが一致した
 							 * 実行してok
@@ -2300,12 +2302,13 @@ bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
  * Request(非同期)
  *
  * 引数 nThreadIdx, nSeqIdx は宛先です
+ * pReqIdはout引数です
  *
  * 外部のスレッドからリクエストした場合はリプライは来ない
  *
  * 公開用 external_if
  */
-bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
+bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_t *pnReqId)
 {
 	if ((nThreadIdx < 0) || (nThreadIdx >= getTotalWorkerThreadNum())) {
 		THM_INNER_LOG_E ("invalid arument\n");
@@ -2341,7 +2344,15 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
 			return false;
 		}
 
-		/* reqIdをextInfoにセット (上書きします) */
+		/* 引数pReqIdに返却 */
+		if (pnReqId) {
+			*pnReqId = reqId;
+		}
+
+		/*
+		 * reqIdをextInfoにセット
+		 * 上書きなので 外部スレッドからは1つづつのrequestしかできません
+		 */
 		pstExtInfo->nReqId = reqId;
 
 		/* リクエスト投げる */
@@ -2358,6 +2369,14 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
 
 	/* requestId */
 	reqId = getRequestId (stContext.nThreadIdx, stContext.nSeqIdx);
+	if (reqId == REQUEST_ID_BLANK) {
+		return false;
+	}
+
+	/* 引数pReqIdに返却 */
+	if (pnReqId) {
+		*pnReqId = reqId;
+	}
 
 	/*
 	 * reqIdを自身のseqInfoに保存

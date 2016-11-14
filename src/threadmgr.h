@@ -21,7 +21,7 @@
  */
 bool setup (const ST_THM_REG_TBL *pTbl, uint8_t nTblMax);
 bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg);
-bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg);
+bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_t *pReqId);
 bool createExternalCp (void);
 void destroyExternalCp (void);
 ST_THM_SRC_INFO *receiveExternal (void);

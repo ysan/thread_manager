@@ -29,7 +29,7 @@ int main( void )
 	gpIf->pCreateExternalCp();
 
 
-	reqAsyncThreadAstartup();
+	reqStartupThreadA(NULL);
 	res = gpIf-> pReceiveExternal();
 	if (res) {
 		THM_LOG_I ("dddddddddddddddddd res [%d][%s]", res->enRslt, res->pszMsg);
@@ -37,7 +37,7 @@ int main( void )
 		THM_LOG_E ("dddddddddddddddddd res null");
 	}
 
-	reqAsyncThreadBstartup();
+	reqStartupThreadB(NULL);
 	res = gpIf-> pReceiveExternal();
 	if (res) {
 		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->enRslt, res->pszMsg);
@@ -45,7 +45,7 @@ int main( void )
 		THM_LOG_E ("dddddddddddddddddd res null");
 	}
 
-	reqAsyncThreadCstartup();
+	reqStartupThreadC(NULL);
 	res = gpIf-> pReceiveExternal();
 	if (res) {
 		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->enRslt, res->pszMsg);
@@ -71,19 +71,19 @@ int main( void )
 			(strlen(szIn) == strlen("a0")) &&
 			(!strncmp(szIn, "a0", strlen("a0")))
 		) {
-			reqAsyncThreadAfunc00 (szIn);
+			reqFunc00ThreadA (szIn, NULL);
 
 		} else if (
 			(strlen(szIn) == strlen("a2")) &&
 			(!strncmp(szIn, "a2", strlen("a2")))
 		) {
-			reqAsyncThreadAfunc02 (szIn);
+			reqFunc02ThreadA (szIn, NULL);
 
 		} else if (
 			(strlen(szIn) == strlen("b2")) &&
 			(!strncmp(szIn, "b2", strlen("b2")))
 		) {
-			reqAsyncThreadBfunc02 ();
+			reqFunc02ThreadB (NULL);
 		}
 
 		memset (szIn, 0x00, sizeof(szIn));

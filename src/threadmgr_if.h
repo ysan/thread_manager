@@ -37,7 +37,6 @@ typedef enum {
 	EN_THM_ACT_INIT = 0,
 	EN_THM_ACT_CONTINUE,
 	EN_THM_ACT_WAIT,
-//	EN_THM_ACT_TIMEOUT,
 	EN_THM_ACT_DONE,
 	EN_THM_ACT_MAX,
 } EN_THM_ACT;
@@ -53,7 +52,7 @@ typedef struct threadmgr_src_info {
 
 /*--- threadmgr_external_if ---*/
 typedef bool (*P_REQUEST_SYNC) (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg);
-typedef bool (*P_REQUEST_ASYNC) (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg);
+typedef bool (*P_REQUEST_ASYNC) (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_t *pnReqId);
 typedef bool (*P_CREATE_EXTERNAL_CP) (void);
 typedef void (*P_DESTROY_EXTERNAL_CP) (void);
 typedef ST_THM_SRC_INFO* (*P_RECEIVE_EXTERNAL) (void);

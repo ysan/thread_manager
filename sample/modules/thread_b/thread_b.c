@@ -24,10 +24,10 @@ static void startup (ST_THM_IF *pIf);
 static void func00 (ST_THM_IF *pIf);
 static void func01 (ST_THM_IF *pIf);
 static void func02 (ST_THM_IF *pIf);
-void reqAsyncThreadBstartup (void); // extern
-void reqAsyncThreadBfunc00 (void); // extern
-void reqSyncThreadBfunc01 (void); // extern
-void reqAsyncThreadBfunc02 (void); // extern
+void reqStartupThreadB (uint32_t *pnReqId); // extern
+void reqFunc00ThreadB (uint32_t *pnReqId); // extern
+void func01ThreadB (void); // extern
+void reqFunc02ThreadB (uint32_t *pnReqId); // extern
 
 /*
  * Variables
@@ -70,7 +70,7 @@ static void startup (ST_THM_IF *pIf)
 		break;
 
 	case SECTID_REQ_REG_NOTIFY_THC:
-		reqAsyncThreadCregNotify();
+		reqRegNotifyThreadC (NULL);
 		nSectId = SECTID_WAIT_REG_NOTIFY_THC;
 		enAct = EN_THM_ACT_WAIT;
 		break;
@@ -78,7 +78,7 @@ static void startup (ST_THM_IF *pIf)
 	case SECTID_WAIT_REG_NOTIFY_THC: {
 		EN_THM_RSLT enRslt = pIf->pstSrcInfo->enRslt;
 		gnClientId = *(pIf->pstSrcInfo->pszMsg);
-		THM_LOG_I ("return reqAsyncThreadCregNotify [%d] gnClientId:[%d]\n", enRslt, gnClientId);
+		THM_LOG_I ("return reqRegNotifyThreadC [%d] gnClientId:[%d]\n", enRslt, gnClientId);
 
 		if (enRslt == EN_THM_RSLT_SUCCESS) {
 			nSectId = SECTID_END;
@@ -157,8 +157,8 @@ static void func02 (ST_THM_IF *pIf)
 	EN_THM_ACT enAct;
 	enum {
 		SECTID_ENTRY = 0,
-		SECTID_REQ_THREAD_C_FUNC00,
-		SECTID_WAIT_THREAD_C_FUNC00,
+		SECTID_REQ_FUNC00_THREAD_C,
+		SECTID_WAIT_FUNC00_THREAD_C,
 		SECTID_END,
 		SECTID_ERR_END,
 	};
@@ -168,29 +168,34 @@ static void func02 (ST_THM_IF *pIf)
 
 	switch (nSectId) {
 	case SECTID_ENTRY:
-		nSectId = SECTID_REQ_THREAD_C_FUNC00;
+		nSectId = SECTID_REQ_FUNC00_THREAD_C;
 		enAct = EN_THM_ACT_CONTINUE;
 		break;
 
-	case SECTID_REQ_THREAD_C_FUNC00:
-		reqAsyncThreadCfunc00();
-		nSectId = SECTID_WAIT_THREAD_C_FUNC00;
+	case SECTID_REQ_FUNC00_THREAD_C:
+		reqFunc00ThreadC (NULL);
+		nSectId = SECTID_WAIT_FUNC00_THREAD_C;
 		enAct = EN_THM_ACT_WAIT;
 		break;
 
-	case SECTID_WAIT_THREAD_C_FUNC00: {
+	case SECTID_WAIT_FUNC00_THREAD_C: {
 		EN_THM_RSLT enRslt = pIf->pstSrcInfo->enRslt;
-		THM_LOG_I ("return reqAsyncThreadCfunc00 [%d] msg:[%s]\n", enRslt, (char*)pIf->pstSrcInfo->pszMsg);
-
-		if (enRslt == EN_THM_RSLT_SUCCESS) {
+		switch ((int)enRslt) {
+		case EN_THM_RSLT_SUCCESS:
+			THM_LOG_I ("return success reqFunc00ThreadC [%d] msg:[%s]\n", enRslt, (char*)pIf->pstSrcInfo->pszMsg);
 			nSectId = SECTID_END;
 			enAct = EN_THM_ACT_CONTINUE;
-		} else {
-			if (enRslt == EN_THM_RSLT_REQ_TIMEOUT) {
-				THM_LOG_W ("timeout");
-			}
+			break;
+		case EN_THM_RSLT_ERROR:
+			THM_LOG_E ("return error reqFunc00ThreadC [%d] msg:[%s]\n", enRslt, (char*)pIf->pstSrcInfo->pszMsg);
 			nSectId = SECTID_ERR_END;
 			enAct = EN_THM_ACT_CONTINUE;
+			break;
+		case EN_THM_RSLT_REQ_TIMEOUT:
+			THM_LOG_E ("timeout reqFunc00ThreadC");
+			nSectId = SECTID_ERR_END;
+			enAct = EN_THM_ACT_CONTINUE;
+			break;
 		}
 
 		} break;
@@ -218,22 +223,22 @@ static void func02 (ST_THM_IF *pIf)
 
 // 以下公開用
 
-void reqAsyncThreadBstartup (void)
+void reqStartupThreadB (uint32_t *pnReqId)
 {
-	gpIf->pRequestAsync (EN_THREAD_B, EN_B_STARTUP, NULL);
+	gpIf->pRequestAsync (EN_THREAD_B, EN_B_STARTUP, NULL, pnReqId);
 }
 
-void reqAsyncThreadBfunc00 (void)
+void reqFunc00ThreadB (uint32_t *pnReqId)
 {
-	gpIf->pRequestAsync (EN_THREAD_B, EN_B_FUNC_00, NULL);
+	gpIf->pRequestAsync (EN_THREAD_B, EN_B_FUNC_00, NULL, pnReqId);
 }
 
-void reqSyncThreadBfunc01 (void)
+void func01ThreadB (void)
 {
 	gpIf->pRequestSync (EN_THREAD_B, EN_B_FUNC_01, NULL);
 }
 
-void reqAsyncThreadBfunc02 (void)
+void reqFunc02ThreadB (uint32_t *pnReqId)
 {
-	gpIf->pRequestAsync (EN_THREAD_B, EN_B_FUNC_02, NULL);
+	gpIf->pRequestAsync (EN_THREAD_B, EN_B_FUNC_02, NULL, pnReqId);
 }
