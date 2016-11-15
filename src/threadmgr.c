@@ -1,7 +1,6 @@
 /*
  * 簡易スレッドマネージャ
  */
-//TODO request １つづつの制約
 //TODO request timeoutの無限待ち
 //TODO enableOverwrite
 //TODO segv でbacktrace
@@ -160,7 +159,9 @@ typedef struct seq_info {
 
 	uint8_t nSectId;
 	EN_THM_ACT enAct;
+#ifndef _MULTI_REQUESTING
 	uint32_t nReqId; // シーケンス中にrequestしたときのreqId  replyが返ってきたとき照合する
+#endif
 	ST_QUE_WORKER stSeqInitQueWorker; // このシーケンスを開始させたrequestキューを保存します
 
 	/* Seqタイムアウト情報 */
@@ -1256,12 +1257,12 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 					 * 対象のシーケンスがEN_THM_ACT_WAIT シーケンスの途中
 					 * requestIdを確認する
 					 */
-//DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-//TODO 複数requestの場合があるので requestIdInfoで照合する
-// そんため ユーザがわでreqIdの判断が必要
-
-//					if (pstQueWorker->nReqId == getSeqInfo (nThreadIdx,nSeqIdx)->nReqId) {
+#ifndef _MULTI_REQUESTING
+					if (pstQueWorker->nReqId == getSeqInfo (nThreadIdx,nSeqIdx)->nReqId) {
+#else
+					/* 複数requestの場合があるので requestIdInfoで照合する そのため ユーザがわでreqIdの判断が必要 */
 					if (pstQueWorker->nReqId == getRequestIdInfo (nThreadIdx, pstQueWorker->nReqId)->nId) {
+#endif
 						/*
 						 * requestIdが一致
 						 * 実行してok
@@ -1274,15 +1275,17 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 						break;
 
 					} else {
-//TODO ここはユーザ側で判断する仕組みでもいい
 						/* シーケンスによってはありえる */
 						/* リプライ待たずに進むようなシーケンスとか... */
+#ifndef _MULTI_REQUESTING
 						THM_INNER_LOG_N (
 							"enAct is EN_THM_ACT_WAIT  reqId unmatch:[%d:%d] @REPLY_QUE  ---> drop\n",
 							pstQueWorker->nReqId,
 							getSeqInfo (nThreadIdx, nSeqIdx)->nReqId
 						);
-
+#else
+						THM_INNER_LOG_N ("enAct is EN_THM_ACT_WAIT  reqId unmatch @REPLY_QUE  ---> drop\n");
+#endif
 						/* この場合キューは引き取る */
 						pstQueWorker->isDrop = true;
 						releaseRequestId (nThreadIdx, pstQueWorker->nReqId);
@@ -1317,12 +1320,12 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 						 * 対象のシーケンスがEN_THM_ACT_WAIT
 						 * reqIdの一致を確認する
 						 */
-//DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-//TODO 複数requestの場合があるので requestIdInfoで照合する
-// そんため ユーザがわでreqIdの判断が必要
-
-//						if (pstQueWorker->nReqId == getSeqInfo (nThreadIdx, nSeqIdx)->nReqId) {
+#ifndef _MULTI_REQUESTING
+						if (pstQueWorker->nReqId == getSeqInfo (nThreadIdx, nSeqIdx)->nReqId) {
+#else
+						/* 複数requestの場合があるので requestIdInfoで照合する そのため ユーザがわでreqIdの判断が必要 */
 						if (pstQueWorker->nReqId == getRequestIdInfo (nThreadIdx, pstQueWorker->nReqId)->nId) {
+#endif
 							/*
 							 * reqIdが一致した
 							 * 実行してok
@@ -1337,11 +1340,15 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 						} else {
 							/* シーケンスによってはありえる */
 							/* リプライ待たずに進むようなシーケンスとか... */
+#ifndef _MULTI_REQUESTING
 							THM_INNER_LOG_N (
 								"enAct is EN_THM_ACT_WAIT  reqId unmatch:[%d:%d] @REQ_TIMEOUT_QUE  ---> drop\n",
 								pstQueWorker->nReqId,
 								getSeqInfo (nThreadIdx, nSeqIdx)->nReqId
 							);
+#else
+							THM_INNER_LOG_N ("enAct is EN_THM_ACT_WAIT  reqId unmatch:[%d:%d] @REQ_TIMEOUT_QUE  ---> drop\n");
+#endif
 
 							/* この場合キューは引き取る */
 							pstQueWorker->isDrop = true;
@@ -2378,6 +2385,7 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_
 		*pnReqId = reqId;
 	}
 
+#ifndef _MULTI_REQUESTING
 	/*
 	 * reqIdを自身のseqInfoに保存
 	 * replyが返ってきたとき check2deQueWorker()で照合するため
@@ -2386,7 +2394,7 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_
 		uint8_t nContextSeqIdx = stContext.nSeqIdx;
 		getSeqInfo (stContext.nThreadIdx, nContextSeqIdx)->nReqId = reqId;
 	}
-
+#endif
 
 	/* リクエスト投げる */
 	if (!requestInner(nThreadIdx, nSeqIdx, reqId, &stContext, pszMsg)) {
@@ -3736,7 +3744,9 @@ static void clearSeqInfo (ST_SEQ_INFO *p)
 
 	p->nSectId = SECT_ID_INIT;
 	p->enAct = EN_THM_ACT_INIT;
+#ifndef _MULTI_REQUESTING
 	p->nReqId = REQUEST_ID_BLANK;
+#endif
 	clearQueWorker (&(p->stSeqInitQueWorker));
 
 	p->timeout.enState = EN_TIMEOUT_STATE_INIT;

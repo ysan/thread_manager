@@ -9,6 +9,7 @@ INCLUDES	:= \
 LIBS		:= \
 	-lpthread \
 
+USERDEFS	:=	-D_MULTI_REQUESTING
 
 #
 #   Target object
