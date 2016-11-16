@@ -15,6 +15,9 @@ LIBS		:= \
 	-lpthread \
 	-L$(BASEDIR)/src -lthreadmgr \
 
+USERDEFS	:= \
+	-D_LOG_SIMPLE \
+
 
 #
 #   Target object

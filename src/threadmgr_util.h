@@ -36,120 +36,59 @@ typedef enum {
  * log macro
  */
 /* --- Information --- */
-#if 0
-#if defined (_THM_LOG_OFF)
-#define THM_LOG_I(fmt, ...) {}
-#else
+#ifdef _LOG_SIMPLE
 #define THM_LOG_I(fmt, ...) {\
-	fprintf (stdout, "[");\
-	putsThreadName();\
-	fprintf (stdout, "] ");\
-	putsSysTime();\
-	fprintf (stdout, " I ");\
-	fprintf (stdout, "[%s,%s(),%d] ", __FILE__, __func__, __LINE__);\
-	fprintf (stdout, fmt, ##__VA_ARGS__);\
-	fflush (stdout);\
+	putsLogLW (stdout, EN_LOG_TYPE_I, fmt, ##__VA_ARGS__);\
 }
-#endif
-#endif
-
+#else
 #define THM_LOG_I(fmt, ...) {\
 	putsLog (stdout, EN_LOG_TYPE_I, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
+#endif
 
 /* --- Notice --- */
-#if 0
-#if defined (_THM_LOG_OFF)
-#define THM_LOG_N(fmt, ...) {}
-#else
+#ifdef _LOG_SIMPLE
 #define THM_LOG_N(fmt, ...) {\
-	fprintf (stdout, THM_TEXT_GREEN);\
-	fprintf (stdout, "[");\
-	putsThreadName();\
-	fprintf (stdout, "] ");\
-	putsSysTime();\
-	fprintf (stdout, " N ");\
-	fprintf (stdout, "[%s,%s(),%d] ", __FILE__, __func__, __LINE__);\
-	fprintf (stdout, fmt, ##__VA_ARGS__);\
-	fprintf (stdout, THM_TEXT_ATTR_RESET);\
-	fflush (stdout);\
+	putsLogLW (stdout, EN_LOG_TYPE_N, fmt, ##__VA_ARGS__);\
 }
-#endif
-#endif
-
+#else
 #define THM_LOG_N(fmt, ...) {\
 	putsLog (stdout, EN_LOG_TYPE_N, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
+#endif
 
 /* --- Warning --- */
-#if 0
-#if defined (_THM_LOG_OFF)
-#define THM_LOG_W(fmt, ...) {}
-#else
+#ifdef _LOG_SIMPLE
 #define THM_LOG_W(fmt, ...) {\
-	fprintf (stdout, THM_TEXT_BOLD_TYPE);\
-	fprintf (stdout, THM_TEXT_YELLOW);\
-	fprintf (stdout, "[");\
-	putsThreadName();\
-	fprintf (stdout, "] ");\
-	putsSysTime();\
-	fprintf (stdout, " W ");\
-	fprintf (stdout, "[%s,%s(),%d] ", __FILE__, __func__, __LINE__);\
-	fprintf (stdout, fmt, ##__VA_ARGS__);\
-	fprintf (stdout, THM_TEXT_ATTR_RESET);\
-	fflush (stdout);\
+	putsLogLW (stdout, EN_LOG_TYPE_W, fmt, ##__VA_ARGS__);\
 }
-#endif
-#endif
-
+#else
 #define THM_LOG_W(fmt, ...) {\
 	putsLog (stdout, EN_LOG_TYPE_W, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
-
-/* --- Error --- */
-#if 0
-#define THM_LOG_E(fmt, ...) {\
-	fprintf (stdout, THM_TEXT_UNDER_LINE);\
-	fprintf (stdout, THM_TEXT_BOLD_TYPE);\
-	fprintf (stdout, THM_TEXT_RED);\
-	fprintf (stdout, "[");\
-	putsThreadName();\
-	fprintf (stdout, "] ");\
-	putsSysTime();\
-	fprintf (stdout, " E ");\
-	fprintf (stdout, "[%s,%s(),%d] ", __FILE__, __func__, __LINE__);\
-	fprintf (stdout, fmt, ##__VA_ARGS__);\
-	fprintf (stdout, THM_TEXT_ATTR_RESET);\
-	fflush (stdout);\
-}
 #endif
 
+/* --- Error --- */
+#ifdef _LOG_SIMPLE
+#define THM_LOG_E(fmt, ...) {\
+	putsLogLW (stdout, EN_LOG_TYPE_E, fmt, ##__VA_ARGS__);\
+}
+#else
 #define THM_LOG_E(fmt, ...) {\
 	putsLog (stdout, EN_LOG_TYPE_E, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
-
-/* --- perror --- */
-#if 0
-#define THM_PERROR(fmt) {\
-	fprintf (stdout, THM_TEXT_REVERSE);\
-	fprintf (stdout, THM_TEXT_BOLD_TYPE);\
-	fprintf (stdout, THM_TEXT_MAGENTA);\
-	fprintf (stdout, "[");\
-	putsThreadName();\
-	fprintf (stdout, "] ");\
-	putsSysTime();\
-	fprintf (stdout, " E ");\
-	fprintf (stdout, "[%s,%s(),%d] ", __FILE__, __func__, __LINE__);\
-	char thm_perror_s[ 32 ] = {0};\
-	fprintf (stdout, "%s: %s\n", fmt, strerror_r(errno, thm_perror_s, sizeof (thm_perror_s)));\
-	fprintf (stdout, THM_TEXT_ATTR_RESET);\
-	fflush (stdout);\
-}
 #endif
 
+/* --- perror --- */
+#ifdef _LOG_SIMPLE
+#define THM_PERROR(fmt, ...) {\
+	putsLogLW (stdout, EN_LOG_TYPE_PE, fmt, ##__VA_ARGS__);\
+}
+#else
 #define THM_PERROR(fmt, ...) {\
 	putsLog (stdout, EN_LOG_TYPE_PE, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
+#endif
 
 
 /*
@@ -167,6 +106,16 @@ extern void putsLog (
 	const char *pszFormat,
 	...
 );
-void deleteLF (char *p);
+/**
+ * putsLW
+ * ÉçÉOèoóÕ src lineÇ»Çµ
+ */
+extern void putsLogLW (
+	FILE *pFp,
+	EN_LOG_TYPE enLogType,
+	const char *pszFormat,
+	...
+);
+extern void deleteLF (char *p);
 
 #endif

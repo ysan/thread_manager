@@ -46,6 +46,12 @@ void putsLog (
 	const char *pszFormat,
 	...
 );
+void putsLogLW (
+	FILE *pFp,
+	EN_LOG_TYPE enLogType,
+	const char *pszFormat,
+	...
+);
 void deleteLF (char *p); // extern
 
 
@@ -232,6 +238,107 @@ void putsLog (
 			pszFile,
 			pszFunc,
 			nLine
+		);
+		break;
+	}
+
+	fprintf (stdout, THM_TEXT_ATTR_RESET);
+	fflush (pFp);
+}
+
+/**
+ * putsLW
+ * ログ出力 src lineなし
+ */
+void putsLogLW (
+	FILE *pFp,
+	EN_LOG_TYPE enLogType,
+	const char *pszFormat,
+	...
+)
+{
+	char szBufVa [LOG_STRING_SIZE];
+	char szTime [SYSTIME_STRING_SIZE];
+    char szThreadName [THREAD_NAME_STRING_SIZE];
+	va_list va;
+	char type;
+	char szPerror[32];
+
+	memset (szBufVa, 0x00, sizeof (szBufVa));
+	memset (szTime, 0x00, sizeof (szTime));
+    memset (szThreadName, 0x00, sizeof (szThreadName));
+	memset (szPerror, 0x00, sizeof (szPerror));
+
+	switch (enLogType) {
+	case EN_LOG_TYPE_I:
+		type = 'I';
+		break;
+
+	case EN_LOG_TYPE_N:
+		type = 'N';
+		fprintf (stdout, THM_TEXT_GREEN);
+		break;
+
+	case EN_LOG_TYPE_W:
+		type = 'W';
+		fprintf (stdout, THM_TEXT_BOLD_TYPE);
+		fprintf (stdout, THM_TEXT_YELLOW);
+		break;
+
+	case EN_LOG_TYPE_E:
+		type = 'E';
+		fprintf (stdout, THM_TEXT_UNDER_LINE);
+		fprintf (stdout, THM_TEXT_BOLD_TYPE);
+		fprintf (stdout, THM_TEXT_RED);
+		break;
+
+	case EN_LOG_TYPE_PE:
+		type = 'E';
+		fprintf (stdout, THM_TEXT_REVERSE);
+		fprintf (stdout, THM_TEXT_BOLD_TYPE);
+		fprintf (stdout, THM_TEXT_MAGENTA);
+		strerror_r(errno, szPerror, sizeof (szPerror));
+		break;
+
+	default:
+		type = 'I';
+		break;
+	}
+
+	va_start (va, pszFormat);
+	vsnprintf (szBufVa, sizeof(szBufVa), pszFormat, va);
+	va_end (va);
+
+	getSysTime (szTime, SYSTIME_STRING_SIZE);
+	getThreadName (szThreadName, THREAD_NAME_STRING_SIZE);
+
+	deleteLF (szBufVa);
+
+	switch (enLogType) {
+	case EN_LOG_TYPE_PE:
+		fprintf (
+			pFp,
+			"[%s] %c %s  %s: %s\n",
+			szThreadName,
+			type,
+			szTime,
+			szBufVa,
+			szPerror
+		);
+		break;
+
+	case EN_LOG_TYPE_I:
+	case EN_LOG_TYPE_N:
+	case EN_LOG_TYPE_W:
+	case EN_LOG_TYPE_E:
+	default:
+		fprintf (
+			pFp,
+			"[%s] %c %s  %s\n",
+			szThreadName,
+			type,
+			szTime,
+			szBufVa
 		);
 		break;
 	}
