@@ -60,7 +60,7 @@ static void startup (ST_THM_IF *pIf)
 	THM_LOG_I ("nSectId %d\n", nSectId);
 
 	gpIf->pRequestAsync (EN_THREAD_C, EN_C_CYCLE_FUNC, NULL, NULL);
-	// このrequestはWAITしてないの自身ではタイムアウトになる
+	// このrequestはWAITしてないのでreply queはdropする
 
 	pIf->pReply (EN_THM_RSLT_SUCCESS, (uint8_t*)"threadC startup end.");
 
