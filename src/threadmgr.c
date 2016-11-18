@@ -1,6 +1,7 @@
 /*
  * 簡易スレッドマネージャ
  */
+//TODO 1requestごとにtimeoutあり/なし
 //TODO enableOverwrite
 //TODO segv でbacktrace
 //TODO commander
@@ -1110,9 +1111,9 @@ static void dumpQueWorker (uint8_t nThreadIdx)
 	/* lock */
 	pthread_mutex_lock (&gMutexOpeQueWorker [nThreadIdx]);
 
-	THM_INNER_FORCE_LOG_N ("####  dumpQue [%s]  ####\n", gstInnerInfo [nThreadIdx].pszName);
+	THM_LOG_N ("####  dumpQue [%s]  ####\n", gstInnerInfo [nThreadIdx].pszName);
 	for (i = 0; i < nQueWorkerNum; i ++) {
-		THM_INNER_FORCE_LOG_N (
+		THM_LOG_N (
 			" %d: %s (%s %d-%d) -> %d-%d 0x%x %s 0x%x %s\n",
 			i,
 			gpszQueType [pstQueWorker->enQueType],
@@ -2808,22 +2809,22 @@ static void dumpRequestIdInfo (void)
 
 //TODO 参照だけだからmutexしない
 
-	THM_INNER_FORCE_LOG_N ("####  dump requestIdInfo  ####\n");
+	THM_LOG_N ("####  dump requestIdInfo  ####\n");
 
 	for (i = 0; i < getTotalWorkerThreadNum(); i ++) {
-		THM_INNER_FORCE_LOG_N (" --- thread:[%s]\n", gstInnerInfo [i].pszName);
+		THM_LOG_N (" --- thread:[%s]\n", gstInnerInfo [i].pszName);
 		for (j = 0; j < REQUEST_ID_MAX; j ++) {
 			if (gstRequestIdInfo [i][j].nId != REQUEST_ID_BLANK) {
-				THM_INNER_FORCE_LOG_N ("  0x%x\n", gstRequestIdInfo [i][j].nId);
+				THM_LOG_N ("  0x%x\n", gstRequestIdInfo [i][j].nId);
 			}
 		}
 	}
 
 	/* 外部スレッド */
-	THM_INNER_FORCE_LOG_N (" --- external\n");
+	THM_LOG_N (" --- external\n");
 	for (j = 0; j < REQUEST_ID_MAX; j ++) {
 		if (gstRequestIdInfo [THREAD_IDX_EXTERNAL][j].nId != REQUEST_ID_BLANK) {
-			THM_INNER_FORCE_LOG_N ("  0x%x\n", gstRequestIdInfo [THREAD_IDX_EXTERNAL][j].nId);
+			THM_LOG_N ("  0x%x\n", gstRequestIdInfo [THREAD_IDX_EXTERNAL][j].nId);
 		}
 	}
 }
@@ -4145,12 +4146,12 @@ static void dumpExtInfoList (void)
 	/* lock */
 	pthread_mutex_lock (&gMutexOpeExtInfoList);
 
-	THM_INNER_FORCE_LOG_N ("####  dump externalInfoList  ####\n");
+	THM_LOG_N ("####  dump externalInfoList  ####\n");
 
 	pstExtInfoTmp = gpstExtInfoListTop;
 	while (pstExtInfoTmp) {
 
-		THM_INNER_FORCE_LOG_N (" %d: %lu 0x%x  (%p -> %p)\n", n, pstExtInfoTmp->nPthreadId, pstExtInfoTmp->nReqId, pstExtInfoTmp, pstExtInfoTmp->pNext);
+		THM_LOG_N (" %d: %lu 0x%x  (%p -> %p)\n", n, pstExtInfoTmp->nPthreadId, pstExtInfoTmp->nReqId, pstExtInfoTmp, pstExtInfoTmp->pNext);
 
 		// next set
 		pstExtInfoTmp = pstExtInfoTmp->pNext;
