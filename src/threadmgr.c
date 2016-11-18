@@ -1,11 +1,14 @@
 /*
  * 簡易スレッドマネージャ
  */
+//TODO SIGTERMで終了 EN_QUE_TYPE_TERMがきたら今やってるsectionが終わったらthread return
+//     ついでに終了前に全threadのbacktrace
 //TODO 1requestごとにtimeoutあり/なし
 //TODO enableOverwrite
-//TODO segv でbacktrace
+//TODO segv でbacktrace  thread毎sighandler
 //TODO commander
 //TODO reqId類の配列は THREAD_IDX_MAX +1でもつのがわかりにくい
+//TODO baseThreadで workerキューの状態check
 
 
 #define _GNU_SOURCE
@@ -1580,7 +1583,6 @@ static void clearQueWorker (ST_QUE_WORKER *p)
 /**
  * baseThread -- main loop
  */
-//TODO workerスレッドのキューの状態
 static void *baseThread (void *pArg)
 {
 	int nRtn = 0;
