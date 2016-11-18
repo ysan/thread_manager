@@ -483,7 +483,7 @@ static void disableLog (void);
 bool setup (const ST_THM_REG_TBL *pTbl, uint8_t nTblMax)
 {
 	if ((!pTbl) || (nTblMax == 0)) {
-		THM_INNER_LOG_E( "invalid argument.\n" );
+		THM_INNER_LOG_E ("invalid argument.\n");
 		return false;
 	}
 
@@ -637,8 +637,8 @@ static void setupSignal (void)
 {
 	sigemptyset (&gSigset);
 
-//TODO SIGQUIT (ctrl + \)
-	sigaddset (&gSigset, SIGQUIT);
+	sigaddset (&gSigset, SIGQUIT); //TODO terminal (ctrl + \)
+	sigaddset (&gSigset, SIGTERM);
 	sigprocmask (SIG_BLOCK, &gSigset, NULL);
 }
 
@@ -940,7 +940,7 @@ static bool enQueBase (EN_MONI_TYPE enType)
 
 	if (i == QUE_BASE_NUM) {
 		/* 全部埋まってる */
-		THM_INNER_LOG_E( "que is full. (base)\n" );
+		THM_INNER_LOG_E ("que is full. (base)\n");
 		return false;
 	}
 
@@ -1502,7 +1502,7 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 
 	if (i == nQueWorkerNum) {
 		/* not found */
-		THM_INNER_LOG_I( "not found. thIdx:[%d]\n", nThreadIdx );
+		THM_INNER_LOG_I ("not found. thIdx:[%d]\n", nThreadIdx);
 
 	} else {
 		if (isGetOut) {
@@ -1695,7 +1695,7 @@ createExternalCp();
 		if (sigwait(&gSigset, &nSig) == SYS_RETURN_NORMAL) {
 			switch (nSig) {
 			case SIGQUIT:
-				THM_INNER_LOG_I ("catch SIGQUIT\n");
+				THM_INNER_FORCE_LOG_I ("catch SIGQUIT\n");
 				requestBaseThread (EN_MONI_TYPE_DEBUG);
 				break;
 			default:
@@ -2740,7 +2740,7 @@ static void clearContext (ST_CONTEXT *p)
 static uint32_t getRequestId (uint8_t nThreadIdx, uint8_t nSeqIdx)
 {
 	if ((nThreadIdx < 0) || (nThreadIdx >= getTotalWorkerThreadNum())) {
-//DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 引数チェックおかしい?
+//TODO 引数チェックおかしい?
 		/* 外部スレッドを考慮 */
 		THM_INNER_LOG_N ("external request\n");
 		nThreadIdx = THREAD_IDX_EXTERNAL;
@@ -2859,7 +2859,7 @@ static void enableReqTimeout (uint8_t nThreadIdx, uint32_t nReqId)
 	}
 
 	if ((nThreadIdx < 0) || (nThreadIdx >= getTotalWorkerThreadNum())) {
-//DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 引数チェックおかしい?
+//TODO 引数チェックおかしい?
 		/* 外部スレッドを考慮 */
 		THM_INNER_LOG_N ("external\n");
 		nThreadIdx = THREAD_IDX_EXTERNAL;
@@ -3133,7 +3133,7 @@ static void disableInfiniteRequesting (void)
 static void releaseRequestId (uint8_t nThreadIdx, uint32_t nReqId)
 {
 	if ((nThreadIdx < 0) || (nThreadIdx >= getTotalWorkerThreadNum())) {
-//DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 引数チェックおかしい?
+//TODO 引数チェックおかしい?
 		/* 外部スレッドを考慮 */
 		THM_INNER_LOG_N ("external\n");
 		nThreadIdx = THREAD_IDX_EXTERNAL;
@@ -3488,7 +3488,7 @@ static bool notify (uint8_t nClientId, uint8_t *pszMsg)
 
 
 	/* Notify投げる */
-	if (notifyInner (nClientThreadIdx, nClientId, &stContext, pszMsg)) {
+	if (!notifyInner (nClientThreadIdx, nClientId, &stContext, pszMsg)) {
 		return false;
 	}
 

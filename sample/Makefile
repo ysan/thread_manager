@@ -11,7 +11,7 @@ LIBS		:= \
 	-L$(BASEDIR)/src -lthreadmgr \
 
 LDFLAGS		:= \
-	-Wl,-rpath=$(BASEDIR)/src \
+	-Wl,-rpath=`pwd`/$(BASEDIR)/src \
 
 APPEND_OBJS	:= \
 	$(BASEDIR)/sample/main/main.o \

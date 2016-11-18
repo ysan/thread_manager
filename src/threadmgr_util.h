@@ -117,5 +117,6 @@ extern void putsLogLW (
 	...
 );
 extern void deleteLF (char *p);
+extern void putsBackTrace (void);
 
 #endif

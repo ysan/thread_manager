@@ -9,6 +9,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <stdarg.h>
+#include <sys/syscall.h>
 
 #include "threadmgr.h"
 #include "threadmgr_util.h"
@@ -20,6 +21,7 @@
 #define SYSTIME_STRING_SIZE			(2+1+2+1+2+1+2+1+2 +1)
 #define THREAD_NAME_STRING_SIZE		(10+1)
 #define LOG_STRING_SIZE				(128)
+#define BACKTRACE_BUFF_SIZE			(20)
 
 /*
  * Type define
@@ -371,5 +373,42 @@ void deleteLF (char *p)
 		if (*(p + (strlen(p) -1)) == '\r') {
 			*(p + (strlen(p) -1)) = '\0';
 		}
+	}
+}
+
+/**
+ * putsBackTrace
+ *
+ * libc のbacktrace
+ */
+extern int backtrace(void **array, int size) __attribute__ ((weak));
+extern char **backtrace_symbols(void *const *array, int size) __attribute__ ((weak));
+void putsBackTrace (void)
+{
+	int i;
+	int n;
+	void *pBuff [BACKTRACE_BUFF_SIZE];
+	char **pRtn;
+
+	if (backtrace) {
+		n = backtrace (pBuff, BACKTRACE_BUFF_SIZE);
+		pRtn = backtrace_symbols (pBuff, n);
+		if (!pRtn) {
+			THM_PERROR ("backtrace_symbols()");
+			return;
+		}
+
+		THM_LOG_W ("============================================================\n");
+		THM_LOG_W ("----- pid=%d tid=%ld -----\n", getpid(), syscall(SYS_gettid));
+		for (i = 0; i < n; i ++) {
+			THM_LOG_W ("%s\n", pRtn[i]);
+		}
+		THM_LOG_W ("============================================================\n");
+		free (pRtn);
+
+	} else {
+		THM_LOG_W ("============================================================\n");
+		THM_LOG_W ("----- pid=%d tid=%ld ----- backtrace symbol not found\n", getpid(), syscall(SYS_gettid));
+		THM_LOG_W ("============================================================\n");
 	}
 }

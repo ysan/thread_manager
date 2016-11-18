@@ -8,6 +8,7 @@ INCLUDES	:= \
 
 LIBS		:= \
 	-lpthread \
+	-rdynamic \
 
 USERDEFS	:= \
 	-D_MULTI_REQUESTING \
