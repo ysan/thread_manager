@@ -10,5 +10,9 @@ Linux (confirmed worked on Ubuntu, Fedora)
 
 big picture
 ------------
-![big picture](https://github.com/ysan/thread_manager/blob/master/etc/thread_manager.gif)
+![big picture](https://github.com/ysan/thread_manager/blob/master/etc/big_picture.gif)
+
+about sequence
+------------
+![about sequence](https://github.com/ysan/thread_manager/blob/master/etc/about_sequence.gif)
 
