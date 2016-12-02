@@ -2,13 +2,16 @@
  * 簡易スレッドマネージャ
  */
 //TODO SIGTERMで終了 EN_QUE_TYPE_TERMがきたら今やってるsectionが終わったらthread return
-//     ついでに終了前に全threadのbacktrace
+//		ついでに終了前に全threadのbacktrace
 //TODO 1requestごとにtimeoutあり/なし
 //TODO enableOverwrite
 //TODO segv でbacktrace  thread毎sighandler
 //TODO commander
 //TODO reqId類の配列は THREAD_IDX_MAX +1でもつのがわかりにくい
 //TODO baseThreadで workerキューの状態check
+//TODO receiveExternalで reqtimeout考慮 ->baseThreadでのチェック廃止
+//TODO checkWaitWorkerThread ここでque getoutリターンしてしまえばいいのでは
+//		check2deQueWorkerのgetout falseチェックはいらない
 
 
 #define _GNU_SOURCE
@@ -40,7 +43,7 @@
 
 #define THREAD_IDX_MAX					(0x20) // 32  uint8の為 255以下の値で THREAD_IDX_BLANKより小さい値
 #define THREAD_IDX_BLANK				(0x80) // 128 uint8の為 255以下の値
-#define THREAD_IDX_EXTERNAL				THREAD_IDX_MAX // reqId類の配列は THREAD_IDX_MAX +1で確保されます
+#define THREAD_IDX_EXTERNAL				THREAD_IDX_MAX // reqId類の配列は THREAD_IDX_MAX +1で確保します
 
 #define SEQ_IDX_MAX						(0x40) // 64  uint8の為 255以下の値で SEQ_IDX_BLANKより小さい値
 #define SEQ_IDX_BLANK					(0x80) // 128 uint8の為 255以下の値
@@ -51,9 +54,13 @@
 
 #define REQUEST_ID_MAX					(0x40) // REQUEST_ID_BLANK 以下の値で 2のべき乗の値
 #define REQUEST_ID_BLANK				(0x80)
-//TODO debug
-//#define REQUEST_TIMEOUT_SEC			(300) // 5分
-#define REQUEST_TIMEOUT_SEC				(30)
+
+#define REQUEST_TIMEOUT_MAX				(0x05265C00) // 24時間 msec
+// for debug
+#define REQUEST_TIMEOUT_10				(10000) // msec
+#define REQUEST_TIMEOUT_30				(30000) // msec
+#define REQUEST_TIMEOUT_60				(60000) // msec
+#define REQUEST_TIMEOUT_FIX				REQUEST_TIMEOUT_30
 
 #define MSG_SIZE						(0x80) // 128
 
@@ -64,9 +71,9 @@
 #define SECT_ID_INIT					(0)
 
 #define SEQ_TIMEOUT_BLANK				(0)
-#define SEQ_TIMEOUT_MAX					(0x05265C00) // 24時間
+#define SEQ_TIMEOUT_MAX					(0x05265C00) // 24時間 msec
 
-#define BASE_THREAD_LOOP_TIMEOUT_SEC	(10)
+#define BASE_THREAD_LOOP_TIMEOUT_SEC	(5)
 
 
 
@@ -102,6 +109,7 @@ typedef enum {
 	EN_TIMEOUT_STATE_MEAS,
 	EN_TIMEOUT_STATE_MEAS_COND_TIMEDWAIT,
 	EN_TIMEOUT_STATE_PASSED,
+	EN_TIMEOUT_STATE_NOT_SET,
 	EN_TIMEOUT_STATE_MAX,
 } EN_TIMEOUT_STATE;
 
@@ -281,7 +289,6 @@ static sigset_t gSigset; // プロセス全体のシグナルセット
 static sem_t gSem;
 
 static bool gIsEnableLog = false;
-static bool gIsInfiniteRequesting = false;
 
 static const char *gpszQueType [EN_QUE_TYPE_MAX] = {
 	// for debug log
@@ -379,15 +386,13 @@ static void clearContext (ST_CONTEXT *p);
 static uint32_t getRequestId (uint8_t nThreadIdx, uint8_t nSeqIdx);
 static void dumpRequestIdInfo (void);
 static ST_REQUEST_ID_INFO *getRequestIdInfo (uint8_t nThreadIdx, uint32_t nReqId);
-static void enableReqTimeout (uint8_t nThreadIdx, uint32_t nReqId);
+static bool isActiveRequestId (uint8_t nThreadIdx, uint32_t nReqId);
+static void enableReqTimeout (uint8_t nThreadIdx, uint32_t nReqId, uint32_t nTimeoutMsec);
 static void checkReqTimeout (uint8_t nThreadIdx);
 static bool isReqTimeoutFromRequestId (uint8_t nThreadIdx, uint32_t nReqId);
 static bool enQueReqTimeout (uint8_t nThreadIdx, uint32_t nReqId);
 static EN_TIMEOUT_STATE getReqTimeoutState (uint8_t nThreadIdx, uint32_t nReqId);
 static ST_REQUEST_ID_INFO *searchNearestReqTimeout (uint8_t nThreadIdx);
-static bool isInfiniteRequesting (void);
-static void enableInfiniteRequesting (void);
-static void disableInfiniteRequesting (void);
 static void releaseRequestId (uint8_t nThreadIdx, uint32_t nReqId);
 static void clearRequestIdInfo (ST_REQUEST_ID_INFO *p);
 static bool isSyncReplyFromRequestId (uint8_t nThreadIdx, uint32_t nReqId);
@@ -420,8 +425,7 @@ static ST_SEQ_INFO *searchNearestSeqTimeout (uint8_t nThreadIdx);
 static void checkSeqTimeoutFromCondTimedwait (uint8_t nThreadIdx);
 static void checkSeqTimeoutFromNotCondTimedwait (uint8_t nThreadIdx);
 static void clearTimeout (void);
-static void clearSeqTimeout (void);
-static void clearSeqTimeoutInfo (uint8_t nThreadIdx, uint8_t nSeqIdx);
+static void clearSeqTimeout (uint8_t nThreadIdx, uint8_t nSeqIdx);
 static ST_SEQ_INFO *getSeqInfo (uint8_t nThreadIdx, uint8_t nSeqIdx);
 static void clearSeqInfo (ST_SEQ_INFO *p);
 static EN_NEAREST_TIMEOUT searchNearestTimeout (
@@ -1921,7 +1925,7 @@ static void *workerThread (void *pArg)
 			switch (stRtnQue.enQueType) {
 			case EN_QUE_TYPE_SEQ_TIMEOUT:
 				/* Seqタイムアウトが無事終わったので タイムアウト情報クリア */
-				clearSeqTimeoutInfo (pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
+				clearSeqTimeout (pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
 
 			case EN_QUE_TYPE_REQ_TIMEOUT:
 			case EN_QUE_TYPE_REQUEST:
@@ -1981,14 +1985,14 @@ static void *workerThread (void *pArg)
 						if (((pstInnerInfo->pstSeqInfo)+stRtnQue.nDestSeqIdx)->enAct == EN_THM_ACT_CONTINUE) {
 //TODO
 //							/* Seqタイムアウト関係ないとこでは一応クリアする */
-//							clearSeqTimeoutInfo (pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
+//							clearSeqTimeout (pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
 							continue;
 
 						} else if (((pstInnerInfo->pstSeqInfo)+stRtnQue.nDestSeqIdx)->enAct == EN_THM_ACT_WAIT) {
 
 							if (((pstInnerInfo->pstSeqInfo)+stRtnQue.nDestSeqIdx)->timeout.nVal == SEQ_TIMEOUT_BLANK) {
 								/* 一応クリア */
-								clearSeqTimeoutInfo (pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
+								clearSeqTimeout (pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
 
 								/* this while loop break */
 								break;
@@ -2002,7 +2006,7 @@ static void *workerThread (void *pArg)
 
 						} else {
 							/* Seqタイムアウト関係ないとこでは一応クリアする */
-							clearSeqTimeoutInfo (pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
+							clearSeqTimeout (pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
 
 							/* this while loop break */
 							break;
@@ -2237,6 +2241,7 @@ bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
 		return false;
 	}
 	if ((nSeqIdx < 0) || (nSeqIdx >= SEQ_IDX_MAX)) {
+//TODO ???
 		/*
 		 * 外部のスレッドから呼ぶこともできるから SEQ_IDX_MAX 未満にする
 		 * (内部からのみだったら gstInnerInfo [nThreadIdx].nSeqNum未満でいい)
@@ -2280,7 +2285,9 @@ bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
 			return false;
 		}
 
-		enableReqTimeout (THREAD_IDX_EXTERNAL, reqId);
+#ifdef _REQUEST_TIMEOUT
+		enableReqTimeout (THREAD_IDX_EXTERNAL, reqId, REQUEST_TIMEOUT_FIX);
+#endif
 
 		return true;
 	}
@@ -2320,36 +2327,34 @@ bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
 		return false;
 	}
 
-	/* pthread_cond_timedwait or pthread_cond_wait */
-	if (isInfiniteRequesting()) {
-		THM_INNER_LOG_I ("requestSync... cond wait\n");
+#ifndef _REQUEST_TIMEOUT
+	THM_INNER_LOG_I ("requestSync... cond wait\n");
 
-		/* 自分はcond wait して固まる(Reply待ち) */
-		nRtn = pthread_cond_wait (
-			&gCondSyncReply [stContext.nThreadIdx],
-			&gMutexSyncReply [stContext.nThreadIdx]
-		);
+	/* 自分はcond wait して固まる(Reply待ち) */
+	nRtn = pthread_cond_wait (
+		&gCondSyncReply [stContext.nThreadIdx],
+		&gMutexSyncReply [stContext.nThreadIdx]
+	);
+#else
+	enableReqTimeout (stContext.nThreadIdx, reqId, REQUEST_TIMEOUT_FIX);
+	pstTmpReqIdInfo = getRequestIdInfo (stContext.nThreadIdx, reqId);
+	if (!pstTmpReqIdInfo) {
+		/* gMutexSyncReply unlock */
+		pthread_mutex_unlock (&gMutexSyncReply[stContext.nThreadIdx]);
 
-	} else {
-		enableReqTimeout (stContext.nThreadIdx, reqId);
-		pstTmpReqIdInfo = getRequestIdInfo (stContext.nThreadIdx, reqId);
-		if (!pstTmpReqIdInfo) {
-			/* gMutexSyncReply unlock */
-			pthread_mutex_unlock (&gMutexSyncReply[stContext.nThreadIdx]);
-
-			releaseRequestId (stContext.nThreadIdx, reqId);
-			return false;
-		}
-
-		THM_INNER_LOG_I ("requestSync... cond timedwait\n");
-
-		/* 自分はcond wait して固まる(Reply待ち) */
-		nRtn = pthread_cond_timedwait (
-			&gCondSyncReply [stContext.nThreadIdx],
-			&gMutexSyncReply [stContext.nThreadIdx],
-			&(pstTmpReqIdInfo->timeout.stTime)
-		);
+		releaseRequestId (stContext.nThreadIdx, reqId);
+		return false;
 	}
+
+	THM_INNER_LOG_I ("requestSync... cond timedwait\n");
+
+	/* 自分はcond wait して固まる(Reply待ち) */
+	nRtn = pthread_cond_timedwait (
+		&gCondSyncReply [stContext.nThreadIdx],
+		&gMutexSyncReply [stContext.nThreadIdx],
+		&(pstTmpReqIdInfo->timeout.stTime)
+	);
+#endif
 
 	pstTmpSyncReplyInfo = getSyncReplyInfo (stContext.nThreadIdx);
 
@@ -2412,8 +2417,6 @@ bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
  * 引数 nThreadIdx, nSeqIdx は宛先です
  * pReqIdはout引数です
  *
- * 外部のスレッドからリクエストした場合はリプライは来ない
- *
  * 公開用 external_if
  */
 bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_t *pnReqId)
@@ -2423,9 +2426,10 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_
 		return false;
 	}
 	if ((nSeqIdx < 0) || (nSeqIdx >= SEQ_IDX_MAX)) {
+//TODO ???
 		/*
 		 * 外部のスレッドから呼ぶこともできるから SEQ_IDX_MAX 未満にする
-		 * (内部だったら gstInnerInfo [nThreadIdx].nSeqNum未満でいい)
+		 * (内部からのみだったら gstInnerInfo [nThreadIdx].nSeqNum未満でいい)
 		 */
 		THM_INNER_LOG_E ("invalid arument\n");
 		return false;
@@ -2469,7 +2473,9 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_
 			return false;
 		}
 
-		enableReqTimeout (THREAD_IDX_EXTERNAL, reqId);
+#ifdef _REQUEST_TIMEOUT
+		enableReqTimeout (THREAD_IDX_EXTERNAL, reqId, REQUEST_TIMEOUT_FIX);
+#endif
 
 		return true;
 	}
@@ -2503,8 +2509,9 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_
 		return false;
 	}
 
-	enableReqTimeout (stContext.nThreadIdx, reqId);
-
+#ifdef _REQUEST_TIMEOUT
+	enableReqTimeout (stContext.nThreadIdx, reqId, REQUEST_TIMEOUT_FIX);
+#endif
 
 	return true;
 }
@@ -2546,18 +2553,20 @@ static bool replyInner (
 	pthread_mutex_lock (&gMutexWorker [nThreadIdx]);
 
 
-	if (!isInfiniteRequesting()) {
-		/* Reqタイムアウトしてないか確認する */
-		EN_TIMEOUT_STATE enState = getReqTimeoutState (nThreadIdx, nReqId);
-		if ((enState != EN_TIMEOUT_STATE_MEAS) && (enState != EN_TIMEOUT_STATE_MEAS_COND_TIMEDWAIT)) {
-			THM_INNER_LOG_E ("getReqTimeoutState() is unexpected. [%d]   maybe timeout occured. not reply...\n", enState);
+#if 0
+#ifdef _REQUEST_TIMEOUT
+	/* Reqタイムアウトしてないか確認する */
+	EN_TIMEOUT_STATE enState = getReqTimeoutState (nThreadIdx, nReqId);
+	if ((enState != EN_TIMEOUT_STATE_MEAS) && (enState != EN_TIMEOUT_STATE_MEAS_COND_TIMEDWAIT)) {
+		THM_INNER_LOG_E ("getReqTimeoutState() is unexpected. [%d]   maybe timeout occured. not reply...\n", enState);
 
-			/* unlock */
-			pthread_mutex_unlock (&gMutexWorker [nThreadIdx]);
+		/* unlock */
+		pthread_mutex_unlock (&gMutexWorker [nThreadIdx]);
 
-			return false;
-		}
+		return false;
 	}
+#endif
+#endif
 
 	/* キューに入れる */
 	if (!enQueWorker (nThreadIdx, nSeqIdx, EN_QUE_TYPE_REPLY,
@@ -2598,7 +2607,7 @@ static bool replyOuter (
 
 	pstExtInfo = searchExtInfoListFromRequestId (nReqId);
 	if (!pstExtInfo) {
-		/* createExternalCp してない or  別のrequestで書き換わった or タイムアウト */
+		/* createExternalCp してない or  別のrequestで書き換わった or すでにタイムアウト */
 		THM_INNER_LOG_W ("extInfo is not found.  not reply...\n");
 		return false;
 	}
@@ -2658,6 +2667,10 @@ static bool reply (EN_THM_RSLT enRslt, uint8_t *pszMsg)
 		/* 返送先がわからない --> 外部のスレッドに返します */
 
 		nReqId = getSeqInfo (stContext.nThreadIdx, stContext.nSeqIdx)->stSeqInitQueWorker.nReqId;
+		if (!isActiveRequestId (THREAD_IDX_EXTERNAL, nReqId)) {
+			THM_INNER_LOG_E ("reqId is inActive. maybe timeout occured. not reply...\n");
+			return false;
+		}
 
 		/* リプライ投げる */
 		if (!replyOuter (nReqId, &stContext, enRslt, pszMsg)) {
@@ -2670,6 +2683,10 @@ static bool reply (EN_THM_RSLT enRslt, uint8_t *pszMsg)
 		nThreadIdx = getSeqInfo (stContext.nThreadIdx, stContext.nSeqIdx)->stSeqInitQueWorker.nSrcThreadIdx;
 		nSeqIdx = getSeqInfo (stContext.nThreadIdx, stContext.nSeqIdx)->stSeqInitQueWorker.nSrcSeqIdx;
 		nReqId = getSeqInfo (stContext.nThreadIdx, stContext.nSeqIdx)->stSeqInitQueWorker.nReqId;
+		if (!isActiveRequestId (nThreadIdx, nReqId)) {
+			THM_INNER_LOG_E ("reqId is inActive. maybe timeout occured. not reply...\n");
+			return false;
+		}
 
 		isSync = isSyncReplyFromRequestId (nThreadIdx, nReqId);
 
@@ -2747,7 +2764,7 @@ static uint32_t getRequestId (uint8_t nThreadIdx, uint8_t nSeqIdx)
 		THM_INNER_LOG_N ("external request\n");
 		nThreadIdx = THREAD_IDX_EXTERNAL;
 	} else {
-		// inner
+		// 内部から呼ばれた
 		if ((nSeqIdx < 0) || (nSeqIdx >= gstInnerInfo [nThreadIdx].nSeqNum)) {
 			THM_INNER_LOG_E ("invalid arument\n");
 			return REQUEST_ID_BLANK;
@@ -2839,7 +2856,7 @@ static ST_REQUEST_ID_INFO *getRequestIdInfo (uint8_t nThreadIdx, uint32_t nReqId
 	ST_REQUEST_ID_INFO *pInfo = NULL;
 
 	/* lock */
-//TODO 同スレッドからのみ呼ばれる 参照のみなのでmutexいらないかも
+//TODO 参照のみなのでmutexいらないかも
 	pthread_mutex_lock (&gMutexOpeRequestId [nThreadIdx]);
 
 	pInfo = &gstRequestIdInfo [nThreadIdx][nReqId];
@@ -2851,15 +2868,33 @@ static ST_REQUEST_ID_INFO *getRequestIdInfo (uint8_t nThreadIdx, uint32_t nReqId
 }
 
 /**
+ * isActiveRequestId
+ * reqIdが生きているか
+ * ここは参照のみだが他スレッドからも呼ばれるところなのでmutex reply時のチェック
+ */
+static bool isActiveRequestId (uint8_t nThreadIdx, uint32_t nReqId)
+{
+	bool rtn = false;
+
+	/* lock */
+	pthread_mutex_lock (&gMutexOpeRequestId [nThreadIdx]);
+
+	if (gstRequestIdInfo [nThreadIdx][nReqId].nId != REQUEST_ID_BLANK) {
+		rtn = true;
+	}
+
+	/* unlock */
+	pthread_mutex_unlock (&gMutexOpeRequestId [nThreadIdx]);
+
+	return rtn;
+}
+
+/**
  * enableReqTimeout
  * Reqタイムアウトを仕掛ける
  */
-static void enableReqTimeout (uint8_t nThreadIdx, uint32_t nReqId)
+static void enableReqTimeout (uint8_t nThreadIdx, uint32_t nReqId, uint32_t nTimeoutMsec)
 {
-	if (isInfiniteRequesting()) {
-		return;
-	}
-
 	if ((nThreadIdx < 0) || (nThreadIdx >= getTotalWorkerThreadNum())) {
 //TODO 引数チェックおかしい?
 		/* 外部スレッドを考慮 */
@@ -2868,6 +2903,14 @@ static void enableReqTimeout (uint8_t nThreadIdx, uint32_t nReqId)
 	}
 	if ((nReqId < 0) || (nReqId >= REQUEST_ID_MAX)) {
 		THM_INNER_LOG_E ("invalid arg reqId.\n");
+		return;
+	}
+	if (nTimeoutMsec < 0) {
+		nTimeoutMsec = 0;
+	} else if (nTimeoutMsec > REQUEST_TIMEOUT_MAX) {
+		nTimeoutMsec = REQUEST_TIMEOUT_MAX;
+	}
+	if (nTimeoutMsec == 0) {
 		return;
 	}
 
@@ -2885,9 +2928,17 @@ static void enableReqTimeout (uint8_t nThreadIdx, uint32_t nReqId)
 
 	struct timeval stNowTimeval = { 0 };
 	getTimeOfDay (&stNowTimeval);
+
+	long usec = stNowTimeval.tv_usec + (nTimeoutMsec % 1000) * 1000;
+	if ((usec / 1000000) > 0) {
+		gstRequestIdInfo [nThreadIdx][nReqId].timeout.stTime.tv_sec = stNowTimeval.tv_sec + (nTimeoutMsec / 1000) + (usec / 1000000);
+		gstRequestIdInfo [nThreadIdx][nReqId].timeout.stTime.tv_nsec = (usec % 1000000) * 1000; // nsec
+
+	} else {
+		gstRequestIdInfo [nThreadIdx][nReqId].timeout.stTime.tv_sec = stNowTimeval.tv_sec + (nTimeoutMsec / 1000);
+		gstRequestIdInfo [nThreadIdx][nReqId].timeout.stTime.tv_nsec = usec * 1000; // nsec
+	}
 	gstRequestIdInfo [nThreadIdx][nReqId].timeout.enState = EN_TIMEOUT_STATE_MEAS;
-	gstRequestIdInfo [nThreadIdx][nReqId].timeout.stTime.tv_sec = stNowTimeval.tv_sec + REQUEST_TIMEOUT_SEC;
-	gstRequestIdInfo [nThreadIdx][nReqId].timeout.stTime.tv_nsec = stNowTimeval.tv_usec * 1000;
 
 	/* unlock */
 	pthread_mutex_unlock (&gMutexOpeRequestId [nThreadIdx]);
@@ -2908,7 +2959,7 @@ static void checkReqTimeout (uint8_t nThreadIdx)
 	/* lock */
 	pthread_mutex_lock (&gMutexOpeRequestId [nThreadIdx]);
 
-	int i = 0;
+	uint32_t i = 0; //reqId
 	for (i = 0; i < REQUEST_ID_MAX; i ++) {
 		if (gstRequestIdInfo [nThreadIdx][i].timeout.enState == EN_TIMEOUT_STATE_MEAS) {
 			if (isReqTimeoutFromRequestId (nThreadIdx, i)) {
@@ -3103,30 +3154,6 @@ static ST_REQUEST_ID_INFO *searchNearestReqTimeout (uint8_t nThreadIdx)
 }
 
 /**
- * isInfiniteRequesting
- */
-static bool isInfiniteRequesting (void)
-{
-	return gIsInfiniteRequesting;
-}
-
-/**
- * enableInfiniteRequesting
- */
-static void enableInfiniteRequesting (void)
-{
-	gIsInfiniteRequesting = true;
-}
-
-/**
- * disableInfiniteRequesting
- */
-static void disableInfiniteRequesting (void)
-{
-	gIsInfiniteRequesting = false;
-}
-
-/**
  * releaseRequestId
  * reqIdを解放します
  *
@@ -3141,7 +3168,11 @@ static void releaseRequestId (uint8_t nThreadIdx, uint32_t nReqId)
 		nThreadIdx = THREAD_IDX_EXTERNAL;
 	}
 	if ((nReqId < 0) || (nReqId >= REQUEST_ID_MAX)) {
-		THM_INNER_LOG_E ("invalid arg reqId.\n");
+		if (nReqId == REQUEST_ID_BLANK) {
+			THM_INNER_FORCE_LOG_N ("arg reqId is REQUEST_ID_BLANK.\n");
+		} else {
+			THM_INNER_LOG_E ("invalid arg reqId. reqId:[0x%x]\n", nReqId);
+		}
 		return;
 	}
 
@@ -3149,7 +3180,7 @@ static void releaseRequestId (uint8_t nThreadIdx, uint32_t nReqId)
 	pthread_mutex_lock (&gMutexOpeRequestId [nThreadIdx]);
 
 	if (gstRequestIdInfo [nThreadIdx][nReqId].nId == REQUEST_ID_BLANK) {
-		THM_INNER_LOG_E ("reqId:[0x%x] is already released ???\n", nReqId);
+		THM_INNER_FORCE_LOG_N ("reqId:[0x%x] is already released ???\n", nReqId);
 	} else {
 		clearRequestIdInfo (&gstRequestIdInfo [nThreadIdx][nReqId]);
 //		THM_INNER_FORCE_LOG_W ("reqId:[0x%x] is released.\n", nReqId);
@@ -3831,26 +3862,21 @@ static void checkSeqTimeoutFromNotCondTimedwait (uint8_t nThreadIdx)
  */
 static void clearTimeout (void)
 {
-	clearSeqTimeout ();
+	ST_CONTEXT stContext = getContext();
+	if (stContext.isValid) {
+		clearSeqTimeout (stContext.nThreadIdx, stContext.nSeqIdx);
+	}
 }
 
 /**
  * clearSeqTimeout
  */
-static void clearSeqTimeout (void)
-{
-	ST_CONTEXT stContext = getContext();
-	if (stContext.isValid) {
-		clearSeqTimeoutInfo (stContext.nThreadIdx, stContext.nSeqIdx);
-	}
-}
-
-/**
- * clearSeqTimeoutInfo
- */
-static void clearSeqTimeoutInfo (uint8_t nThreadIdx, uint8_t nSeqIdx)
+static void clearSeqTimeout (uint8_t nThreadIdx, uint8_t nSeqIdx)
 {
 	ST_SEQ_INFO *pstSeqInfo = getSeqInfo (nThreadIdx, nSeqIdx);
+	if (!pstSeqInfo) {
+		return;
+	}
 
 	pstSeqInfo->timeout.enState = EN_TIMEOUT_STATE_INIT;
 	pstSeqInfo->timeout.nVal = SEQ_TIMEOUT_BLANK;
