@@ -4,6 +4,7 @@
 
 #CC			:=	/bin/gcc
 CC			:=	/usr/bin/gcc
+CPP			:=	/usr/bin/g++
 AR			:=	/usr/bin/ar
 RANLIB		:=	/usr/bin/ranlib
 MKDIR		:=	/bin/mkdir
@@ -17,12 +18,19 @@ ifneq ($(USERDEFS),)
 CFLAGS		+=	$(USERDEFS)
 endif
 
+EXIST_SRCS		:=	FALSE
 ifneq ($(SRCS),)
-OBJDIR		:=	./objs/
-OBJS		:=	$(SRCS:%.c=$(OBJDIR)/%.o)
-DEPENDS		:=	$(OBJS:%.o=%.d)
+EXIST_SRCS		:=	TRUE
+else ifneq ($(SRCS_CPP),)
+EXIST_SRCS		:=	TRUE
 endif
 
+ifeq ($(EXIST_SRCS), TRUE)
+OBJDIR		:=	./objs/
+OBJS		:=	$(SRCS:%.c=$(OBJDIR)/%.o)
+OBJS		+=	$(SRCS_CPP:%.cpp=$(OBJDIR)/%.o)
+DEPENDS		:=	$(OBJS:%.o=%.d)
+endif
 
 ifneq ($(TARGET_NAME),)
 ifeq ($(TARGET_TYPE), EXEC)
@@ -59,11 +67,19 @@ all: pre_proc subdirs target post_proc
 target: $(TARGET_OBJ)
 
 $(TARGET_OBJ): $(OBJS) $(APPEND_OBJS)
+ifneq ($(SRCS_CPP),)
+	$(CPP) -o $@ $^ $(CFLAGS) $(INCLUDES) $(LIBS) $(LDFLAGS)
+else
 	$(CC) -o $@ $^ $(CFLAGS) $(INCLUDES) $(LIBS) $(LDFLAGS)
+endif
 
 $(OBJDIR)/%.o: %.c
 	$(MKDIR) -p -m 775 $(OBJDIR)
 	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES)
+
+$(OBJDIR)/%.o: %.cpp
+	$(MKDIR) -p -m 775 $(OBJDIR)
+	$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
 # TARGET_TYPE = SHARED -----------------------------------
 else ifeq ($(TARGET_TYPE), SHARED)
@@ -76,11 +92,19 @@ all: pre_proc subdirs target post_proc
 target: $(TARGET_OBJ)
 
 $(TARGET_OBJ): $(OBJS) $(APPEND_OBJS)
+ifneq ($(SRCS_CPP),)
+	$(CPP) -o $@ $^ $(CFLAGS) $(INCLUDES) $(LIBS) $(LDFLAGS)
+else
 	$(CC) -o $@ $^ $(CFLAGS) $(INCLUDES) $(LIBS) $(LDFLAGS)
+endif
 
 $(OBJDIR)/%.o: %.c
 	$(MKDIR) -p -m 775 $(OBJDIR)
 	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES)
+
+$(OBJDIR)/%.o: %.cpp
+	$(MKDIR) -p -m 775 $(OBJDIR)
+	$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
 # TARGET_TYPE = STATIC -----------------------------------
 else ifeq ($(TARGET_TYPE), STATIC)
@@ -100,6 +124,10 @@ $(OBJDIR)/%.o: %.c
 	$(MKDIR) -p -m 775 $(OBJDIR)
 	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
+$(OBJDIR)/%.o: %.cpp
+	$(MKDIR) -p -m 775 $(OBJDIR)
+	$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES)
+
 # TARGET_TYPE = OBJECT -----------------------------------
 else ifeq ($(TARGET_TYPE), OBJECT)
 all: pre_proc subdirs target post_proc
@@ -116,6 +144,10 @@ $(TARGET_OBJ): $(OBJS) $(APPEND_OBJS)
 $(OBJDIR)/%.o: %.c
 	$(MKDIR) -p -m 775 $(OBJDIR)
 	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES)
+
+$(OBJDIR)/%.o: %.cpp
+	$(MKDIR) -p -m 775 $(OBJDIR)
+	$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
 #---------------------------------------------------------
 else
