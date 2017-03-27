@@ -158,6 +158,7 @@ void putsLog (
 	va_list va;
 	char type;
 	char szPerror[32];
+	char *pszPerror = NULL;
 
 	memset (szBufVa, 0x00, sizeof (szBufVa));
 	memset (szTime, 0x00, sizeof (szTime));
@@ -192,7 +193,7 @@ void putsLog (
 		fprintf (stdout, THM_TEXT_REVERSE);
 		fprintf (stdout, THM_TEXT_BOLD_TYPE);
 		fprintf (stdout, THM_TEXT_MAGENTA);
-		strerror_r(errno, szPerror, sizeof (szPerror));
+		pszPerror = strerror_r(errno, szPerror, sizeof (szPerror));
 		break;
 
 	default:
@@ -218,7 +219,7 @@ void putsLog (
 			type,
 			szTime,
 			szBufVa,
-			szPerror,
+			pszPerror,
 			pszFile,
 			pszFunc,
 			nLine
@@ -265,6 +266,7 @@ void putsLogLW (
 	va_list va;
 	char type;
 	char szPerror[32];
+	char *pszPerror = NULL;
 
 	memset (szBufVa, 0x00, sizeof (szBufVa));
 	memset (szTime, 0x00, sizeof (szTime));
@@ -299,7 +301,7 @@ void putsLogLW (
 		fprintf (stdout, THM_TEXT_REVERSE);
 		fprintf (stdout, THM_TEXT_BOLD_TYPE);
 		fprintf (stdout, THM_TEXT_MAGENTA);
-		strerror_r(errno, szPerror, sizeof (szPerror));
+		pszPerror = strerror_r(errno, szPerror, sizeof (szPerror));
 		break;
 
 	default:
@@ -325,7 +327,7 @@ void putsLogLW (
 			type,
 			szTime,
 			szBufVa,
-			szPerror
+			pszPerror
 		);
 		break;
 
