@@ -74,11 +74,13 @@ else
 endif
 
 $(OBJDIR)/%.o: %.c
-	$(MKDIR) -p -m 775 $(OBJDIR)
+#	$(MKDIR) -p -m 775 $(OBJDIR)
+	$(MKDIR) -p -m 775 $(dir $@)
 	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
 $(OBJDIR)/%.o: %.cpp
-	$(MKDIR) -p -m 775 $(OBJDIR)
+#	$(MKDIR) -p -m 775 $(OBJDIR)
+	$(MKDIR) -p -m 775 $(dir $@)
 	$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
 # TARGET_TYPE = SHARED -----------------------------------
@@ -99,11 +101,13 @@ else
 endif
 
 $(OBJDIR)/%.o: %.c
-	$(MKDIR) -p -m 775 $(OBJDIR)
+#	$(MKDIR) -p -m 775 $(OBJDIR)
+	$(MKDIR) -p -m 775 $(dir $@)
 	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
 $(OBJDIR)/%.o: %.cpp
-	$(MKDIR) -p -m 775 $(OBJDIR)
+#	$(MKDIR) -p -m 775 $(OBJDIR)
+	$(MKDIR) -p -m 775 $(dir $@)
 	$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
 # TARGET_TYPE = STATIC -----------------------------------
@@ -121,11 +125,13 @@ $(TARGET_OBJ): $(OBJS) $(APPEND_OBJS)
 	$(RANLIB) $@
 
 $(OBJDIR)/%.o: %.c
-	$(MKDIR) -p -m 775 $(OBJDIR)
+#	$(MKDIR) -p -m 775 $(OBJDIR)
+	$(MKDIR) -p -m 775 $(dir $@)
 	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
 $(OBJDIR)/%.o: %.cpp
-	$(MKDIR) -p -m 775 $(OBJDIR)
+#	$(MKDIR) -p -m 775 $(OBJDIR)
+	$(MKDIR) -p -m 775 $(dir $@)
 	$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
 # TARGET_TYPE = OBJECT -----------------------------------
@@ -142,11 +148,13 @@ $(TARGET_OBJ): $(OBJS) $(APPEND_OBJS)
 	$(AR) rvs $@ $^
 
 $(OBJDIR)/%.o: %.c
-	$(MKDIR) -p -m 775 $(OBJDIR)
+#	$(MKDIR) -p -m 775 $(OBJDIR)
+	$(MKDIR) -p -m 775 $(dir $@)
 	$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
 $(OBJDIR)/%.o: %.cpp
-	$(MKDIR) -p -m 775 $(OBJDIR)
+#	$(MKDIR) -p -m 775 $(OBJDIR)
+	$(MKDIR) -p -m 775 $(dir $@)
 	$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
 #---------------------------------------------------------
