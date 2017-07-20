@@ -5,16 +5,16 @@ BASEDIR		:=	../
 
 LIBS		:= \
 	-lpthread \
-	-L$(BASEDIR)/sample/modules/thread_a -lthread_a \
-	-L$(BASEDIR)/sample/modules/thread_b -lthread_b \
-	-L$(BASEDIR)/sample/modules/thread_c -lthread_c\
+	-L$(BASEDIR)/example/modules/thread_a -lthread_a \
+	-L$(BASEDIR)/example/modules/thread_b -lthread_b \
+	-L$(BASEDIR)/example/modules/thread_c -lthread_c\
 	-L$(BASEDIR)/src -lthreadmgr \
 
 LDFLAGS		:= \
 	-Wl,-rpath=`pwd`/$(BASEDIR)/src \
 
 APPEND_OBJS	:= \
-	$(BASEDIR)/sample/main/main.o \
+	$(BASEDIR)/example/main/main.o \
 
 
 SUBDIRS		:= \
@@ -25,7 +25,7 @@ SUBDIRS		:= \
 #
 #   Target object
 #
-TARGET_NAME	:=	sample
+TARGET_NAME	:=	example
 
 #
 #   Target type

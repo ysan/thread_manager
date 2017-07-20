@@ -5,7 +5,7 @@ BASEDIR		:=	./
 
 SUBDIRS		:= \
 	src \
-	sample\
+	example\
 
 
 #

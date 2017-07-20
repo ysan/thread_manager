@@ -6,10 +6,10 @@ BASEDIR		:=	../../../
 INCLUDES	:= \
 	-I./ \
 	-I$(BASEDIR)/src \
-	-I$(BASEDIR)/sample/main \
-	-I$(BASEDIR)/sample/modules/thread_a \
-	-I$(BASEDIR)/sample/modules/thread_b \
-	-I$(BASEDIR)/sample/modules/thread_c \
+	-I$(BASEDIR)/example/main \
+	-I$(BASEDIR)/example/modules/thread_a \
+	-I$(BASEDIR)/example/modules/thread_b \
+	-I$(BASEDIR)/example/modules/thread_c \
 
 LIBS		:= \
 	-lpthread \
@@ -22,7 +22,7 @@ USERDEFS	:= \
 #
 #   Target object
 #
-TARGET_NAME	:=	thread_b
+TARGET_NAME	:=	thread_c
 
 #
 #   Target type
@@ -34,11 +34,10 @@ TARGET_TYPE	:=	STATIC
 #   Compile sources
 #
 SRCS		:= \
-	thread_b.c \
+	thread_c.c \
 
 
 #
 #   Configurations
 #
 include $(BASEDIR)/Config.make
-
