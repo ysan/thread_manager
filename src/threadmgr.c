@@ -4042,11 +4042,10 @@ static ST_EXTERNAL_CONTROL_INFO *searchExtInfoList (pthread_t key)
 			if (pthread_equal (pstExtInfoTmp->nPthreadId, key)) {
 				// keyが一致
 				break;
-
-			} else {
-				// next set
-				pstExtInfoTmp = pstExtInfoTmp->pNext;
 			}
+
+			// next set
+			pstExtInfoTmp = pstExtInfoTmp->pNext;
 		}
 	}
 
@@ -4076,11 +4075,10 @@ static ST_EXTERNAL_CONTROL_INFO *searchExtInfoListFromRequestId (uint32_t nReqId
 			if (pstExtInfoTmp->nReqId == nReqId) {
 				// reqIdが一致
 				break;
-
-			} else {
-				// next set
-				pstExtInfoTmp = pstExtInfoTmp->pNext;
 			}
+
+			// next set
+			pstExtInfoTmp = pstExtInfoTmp->pNext;
 		}
 	}
 
@@ -4146,13 +4144,12 @@ static void deleteExtInfoList (pthread_t key)
 				break;
 
 			} else {
-				// next set
-				pstExtInfoTmp = pstExtInfoTmp->pNext;
-
 				// ひとつ前のアドレス保存
 				pstExtInfoBef = pstExtInfoTmp;
 			}
 
+			// next set
+			pstExtInfoTmp = pstExtInfoTmp->pNext;
 		}
 
 		free (pstExtInfoDel);
