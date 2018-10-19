@@ -37,5 +37,5 @@ TARGET_TYPE	:=	EXEC
 #
 #   Configurations
 #
-include $(BASEDIR)/Config.make
+include $(BASEDIR)/Config.mak
 

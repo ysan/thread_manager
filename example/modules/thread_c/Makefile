@@ -40,4 +40,4 @@ SRCS		:= \
 #
 #   Configurations
 #
-include $(BASEDIR)/Config.make
+include $(BASEDIR)/Config.mak
