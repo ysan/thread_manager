@@ -4,8 +4,8 @@
 BASEDIR		:=	./
 
 SUBDIRS		:= \
-	src \
-	example\
+	threadmgr \
+	test \
 
 
 #
