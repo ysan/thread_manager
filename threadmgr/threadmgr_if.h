@@ -6,7 +6,7 @@
 /*
  * Constant define
  */
-
+#define THM_SECT_ID_INIT	(0)
 
 /*
  * Type define
@@ -81,6 +81,8 @@ typedef void (*PFN_SET_SECTID) (uint8_t nSectId, EN_THM_ACT enAct);
 typedef uint8_t (*PFN_GET_SECTID) (void);
 typedef void (*PFN_SET_TIMEOUT) (uint32_t nTimeoutMsec);
 typedef void (*PFN_CLEAR_TIMEOUT) (void);
+typedef void (*PFN_ENABLE_OVERWRITE) (void);
+typedef void (*PFN_DISABLE_OVERWRITE) (void);
 
 typedef struct threadmgr_if {
 	ST_THM_SRC_INFO *pstSrcInfo;
@@ -96,6 +98,9 @@ typedef struct threadmgr_if {
 
 	PFN_SET_TIMEOUT pfnSetTimeout;
 	PFN_CLEAR_TIMEOUT pfnClearTimeout;
+
+	PFN_ENABLE_OVERWRITE pfnEnableOverwrite;
+	PFN_DISABLE_OVERWRITE pfnDisableOverwrite;
 
 } ST_THM_IF;
 

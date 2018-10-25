@@ -10,6 +10,7 @@ enum {
 	EN_A_FUNC_00,
 	EN_A_FUNC_01,
 	EN_A_FUNC_02,
+	EN_A_FUNC_03,
 	EN_A_SEQ_NUM,
 };
 
@@ -27,5 +28,6 @@ extern void reqStartupThreadA (uint32_t *pnReqId);
 extern void reqFunc00ThreadA (char *pszMsg, uint32_t *pnReqId);
 extern void reqFunc01ThreadA (uint32_t *pnReqId);
 extern void reqFunc02ThreadA (char *pszMsg, uint32_t *pnReqId);
+extern void reqFunc03ThreadA (uint32_t *pnReqId);
 
 #endif

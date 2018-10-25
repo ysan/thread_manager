@@ -68,7 +68,7 @@
 #define NOTIFY_CLIENT_ID_BLANK			(0x80) // 128
 
 #define SECT_ID_MAX						(0x40) // 64  1sequenceあたりsection分割可能な最大数
-#define SECT_ID_INIT					(0)
+#define SECT_ID_INIT					THM_SECT_ID_INIT
 
 #define SEQ_TIMEOUT_BLANK				(0)
 #define SEQ_TIMEOUT_MAX					(0x05265C00) // 24時間 msec
@@ -162,7 +162,7 @@ typedef struct context {
 	uint8_t nSeqIdx;
 } ST_CONTEXT;
 
-/* 登録したシーケンスごとの情報 */
+/* 登録したシーケンスごとに紐つく情報 */
 typedef struct seq_info {
 	uint8_t nSeqIdx;
 
@@ -174,6 +174,7 @@ typedef struct seq_info {
 	uint32_t nReqId; // シーケンス中にrequestしたときのreqId  replyが返ってきたとき照合する
 #endif
 	ST_QUE_WORKER stSeqInitQueWorker; // このシーケンスを開始させたrequestキューを保存します
+	bool isOverwrite;
 
 	/* Seqタイムアウト情報 */
 	struct {
@@ -216,6 +217,7 @@ typedef struct sync_reply_info {
 
 } ST_SYNC_REPLY_INFO;
 
+/* request_id 1つごとに紐つく情報 */
 typedef struct request_id_info {
 	uint32_t nId;
 
@@ -414,6 +416,8 @@ static bool notifyInner (
 static bool notify (uint8_t nClientId, uint8_t *pszMsg);
 static void clearNotifyClientInfo (ST_NOTIFY_CLIENT_INFO *p);
 static void setSectId (uint8_t nSectId, EN_THM_ACT enAct);
+static void setSectIdInner (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t nSectId, EN_THM_ACT enAct);
+static void clearSectId (uint8_t nThreadIdx, uint8_t nSeqIdx);
 static uint8_t getSectId (void);
 static void setTimeout (uint32_t nTimeoutMsec);
 static void setSeqTimeout (uint32_t nTimeoutMsec);
@@ -427,6 +431,9 @@ static void checkSeqTimeoutFromNotCondTimedwait (uint8_t nThreadIdx);
 static void clearTimeout (void);
 static void clearSeqTimeout (uint8_t nThreadIdx, uint8_t nSeqIdx);
 static ST_SEQ_INFO *getSeqInfo (uint8_t nThreadIdx, uint8_t nSeqIdx);
+static void enableOverwrite (void);
+static void disableOverwrite (void);
+static void setOverwrite (uint8_t nThreadIdx, uint8_t nSeqIdx, bool isOverwrite);
 static void clearSeqInfo (ST_SEQ_INFO *p);
 static EN_NEAREST_TIMEOUT searchNearestTimeout (
 	uint8_t nThreadIdx,
@@ -1228,39 +1235,58 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 				/* * -------------------- REQUEST_QUE -------------------- * */ 
 
 				nSeqIdx = pstQueWorker->nDestSeqIdx;
-				if (getSeqInfo (nThreadIdx, nSeqIdx)->enAct == EN_THM_ACT_INIT) {
+				if (getSeqInfo (nThreadIdx, nSeqIdx)->isOverwrite) {
 					/*
-					 * 対象のシーケンスがEN_THM_ACT_INIT
-					 * 実行してok
+					 * overwrite有効中
+					 * 強制実行します
 					 */
 					memcpy (&rtn, pstQueWorker, sizeof(ST_QUE_WORKER));
+
+					/* sectid関係を強制クリア */
+					clearSectId (nThreadIdx, nSeqIdx);
+
+					/* Seqタイムアウトを強制クリア */
+					clearSeqTimeout (nThreadIdx, nSeqIdx);
+
 					break;
 
-				} else if (getSeqInfo (nThreadIdx, nSeqIdx)->enAct == EN_THM_ACT_WAIT) {
-					/*
-					 * 対象のシーケンスがEN_THM_ACT_WAIT シーケンスの途中
-					 * 見送り
-					 */
-					THM_INNER_LOG_N (
-						"enAct is EN_THM_ACT_WAIT @REQUEST_QUE (from[%d:%d] to[%d:%d] reqId[0x%x]) ---> through\n",
-						pstQueWorker->nSrcThreadIdx,
-						pstQueWorker->nSrcSeqIdx,
-						pstQueWorker->nDestThreadIdx,
-						pstQueWorker->nDestSeqIdx,
-						pstQueWorker->nReqId
-					);
-
 				} else {
-					/* ありえない */
-					THM_INNER_LOG_E (
-						"BUG: enAct is [%d] @REQUEST_QUE (from[%d:%d] to[%d:%d] reqId[0x%x])\n",
-						getSeqInfo(nThreadIdx, nSeqIdx)->enAct,
-						pstQueWorker->nSrcThreadIdx,
-						pstQueWorker->nSrcSeqIdx,
-						pstQueWorker->nDestThreadIdx,
-						pstQueWorker->nDestSeqIdx,
-						pstQueWorker->nReqId
-					);
+					/* overwrite無効 */
+
+					if (getSeqInfo (nThreadIdx, nSeqIdx)->enAct == EN_THM_ACT_INIT) {
+						/*
+						 * 対象のシーケンスがEN_THM_ACT_INIT
+						 * 実行してok
+						 */
+						memcpy (&rtn, pstQueWorker, sizeof(ST_QUE_WORKER));
+						break;
+
+					} else if (getSeqInfo (nThreadIdx, nSeqIdx)->enAct == EN_THM_ACT_WAIT) {
+						/*
+						 * 対象のシーケンスがEN_THM_ACT_WAIT シーケンスの途中
+						 * 見送り
+						 */
+						THM_INNER_LOG_N (
+							"enAct is EN_THM_ACT_WAIT @REQUEST_QUE (from[%d:%d] to[%d:%d] reqId[0x%x]) ---> through\n",
+							pstQueWorker->nSrcThreadIdx,
+							pstQueWorker->nSrcSeqIdx,
+							pstQueWorker->nDestThreadIdx,
+							pstQueWorker->nDestSeqIdx,
+							pstQueWorker->nReqId
+						);
+
+					} else {
+						/* ありえない */
+						THM_INNER_LOG_E (
+							"BUG: enAct is [%d] @REQUEST_QUE (from[%d:%d] to[%d:%d] reqId[0x%x])\n",
+							getSeqInfo(nThreadIdx, nSeqIdx)->enAct,
+							pstQueWorker->nSrcThreadIdx,
+							pstQueWorker->nSrcSeqIdx,
+							pstQueWorker->nDestThreadIdx,
+							pstQueWorker->nDestSeqIdx,
+							pstQueWorker->nReqId
+						);
+					}
 				}
 
 
@@ -1293,7 +1319,11 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 #ifndef _MULTI_REQUESTING
 					if (pstQueWorker->nReqId == getSeqInfo (nThreadIdx,nSeqIdx)->nReqId) {
 #else
-					/* 複数requestの場合があるので requestIdInfoで照合する そのため ユーザがわでreqIdの判断が必要 */
+					/*
+					 * 複数requestの場合があるので requestIdInfoで照合する
+					 * requestIdInfoで照合するといことは当スレッドの全リクエストが対象になります
+					 * ただし過去に複数リクエストしている場合があるので 今待ち受けたリプライが本物かどうかはユーザがわでreqIdの判定が必要
+					 */
 					if (pstQueWorker->nReqId == getRequestIdInfo (nThreadIdx, pstQueWorker->nReqId)->nId) {
 #endif
 						/*
@@ -1376,7 +1406,11 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 #ifndef _MULTI_REQUESTING
 						if (pstQueWorker->nReqId == getSeqInfo (nThreadIdx, nSeqIdx)->nReqId) {
 #else
-						/* 複数requestの場合があるので requestIdInfoで照合する そのため ユーザがわでreqIdの判断が必要 */
+						/*
+						 * 複数requestの場合があるので requestIdInfoで照合する
+						 * requestIdInfoで照合するといことは当スレッドの全リクエストが対象になります
+						 * ただし過去に複数リクエストしている場合があるので 今待ち受けたリプライが本物かどうかはユーザがわでreqIdの判定が必要
+						 */
 						if (pstQueWorker->nReqId == getRequestIdInfo (nThreadIdx, pstQueWorker->nReqId)->nId) {
 #endif
 							/*
@@ -1732,7 +1766,7 @@ static void checkWaitWorkerThread (ST_INNER_INFO *pstInnerInfo)
 	pthread_mutex_lock (&gMutexWorker [pstInnerInfo->nThreadIdx]);
 
 	/*
-	 * キューに入っているかチェック
+	 * 実行すべきキューがあるかチェック
 	 * なければキューを待つ
 	 */
 //	if (!deQueWorker( pstInnerInfo->nThreadIdx, false ).isUsed) {
@@ -1972,6 +2006,8 @@ static void *workerThread (void *pArg)
 					stThmIf.pfnGetSectId = getSectId;
 					stThmIf.pfnSetTimeout = setTimeout;
 					stThmIf.pfnClearTimeout = clearTimeout;
+					stThmIf.pfnEnableOverwrite = enableOverwrite;
+					stThmIf.pfnDisableOverwrite = disableOverwrite;
 
 
 					while (1) { // EN_THM_ACT_CONTINUE の為のloopです
@@ -2083,6 +2119,9 @@ static void *workerThread (void *pArg)
 					stThmIf.pfnSetSectId = NULL;
 					stThmIf.pfnGetSectId = NULL;
 					stThmIf.pfnSetTimeout = NULL;
+					stThmIf.pfnClearTimeout = NULL;
+					stThmIf.pfnEnableOverwrite = NULL;
+					stThmIf.pfnDisableOverwrite = NULL;
 
 					/*
 					 * 主処理
@@ -2137,6 +2176,8 @@ static void clearThmIf (ST_THM_IF *pIf)
 	pIf->pfnGetSectId = NULL;
 	pIf->pfnSetTimeout = NULL;
 	pIf->pfnClearTimeout = NULL;
+	pIf->pfnEnableOverwrite = NULL;
+	pIf->pfnDisableOverwrite = NULL;
 }
 
 /**
@@ -3559,21 +3600,36 @@ static void setSectId (uint8_t nSectId, EN_THM_ACT enAct)
 	}
 
 	if (enAct == EN_THM_ACT_INIT) {
-		/* 自分でEN_THM_ACT_INITに設定はできない */
+		/* ユーザ自身でEN_THM_ACT_INITに設定はできない */
 		THM_INNER_LOG_E ("set EN_THM_ACT_INIT can not on their own.\n");
 		return;
 	}
 
+	if (enAct == EN_THM_ACT_DONE) {
+		enAct = EN_THM_ACT_INIT;
+	}
+
 	ST_CONTEXT stContext = getContext();
 	if (stContext.isValid) {
-		uint8_t nSeqIdx = stContext.nSeqIdx;
-		getSeqInfo (stContext.nThreadIdx, nSeqIdx)->nSectId = nSectId;
-
-		if (enAct == EN_THM_ACT_DONE) {
-			enAct = EN_THM_ACT_INIT;
-		}
-		getSeqInfo (stContext.nThreadIdx, nSeqIdx)->enAct = enAct;
+		setSectIdInner (stContext.nThreadIdx, stContext.nSeqIdx, nSectId, enAct);
 	}
+}
+
+/**
+ * setSectIdInner
+ */
+static void setSectIdInner (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t nSectId, EN_THM_ACT enAct)
+{
+	getSeqInfo (nThreadIdx, nSeqIdx)->nSectId = nSectId;
+	getSeqInfo (nThreadIdx, nSeqIdx)->enAct = enAct;
+}
+
+/**
+ * clearSectId
+ */
+static void clearSectId (uint8_t nThreadIdx, uint8_t nSeqIdx)
+{
+	setSectIdInner (nThreadIdx, nSeqIdx, SECT_ID_INIT, EN_THM_ACT_INIT);
 }
 
 /**
@@ -3584,12 +3640,11 @@ static uint8_t getSectId (void)
 {
 	ST_CONTEXT stContext = getContext();
 	if (stContext.isValid) {
-		uint8_t nSeqIdx = stContext.nSeqIdx;
-		if (getSeqInfo (stContext.nThreadIdx, nSeqIdx)->enAct == EN_THM_ACT_INIT) {
-			getSeqInfo (stContext.nThreadIdx, nSeqIdx)->nSectId = SECT_ID_INIT;
+		if (getSeqInfo (stContext.nThreadIdx, stContext.nSeqIdx)->enAct == EN_THM_ACT_INIT) {
+			getSeqInfo (stContext.nThreadIdx, stContext.nSeqIdx)->nSectId = SECT_ID_INIT;
 			return SECT_ID_INIT;
 		} else {
-			return getSeqInfo (stContext.nThreadIdx, nSeqIdx)->nSectId;
+			return getSeqInfo (stContext.nThreadIdx, stContext.nSeqIdx)->nSectId;
 		}
 	} else {
 		return SECT_ID_INIT;
@@ -3894,6 +3949,43 @@ static ST_SEQ_INFO *getSeqInfo (uint8_t nThreadIdx, uint8_t nSeqIdx)
 }
 
 /**
+ * enableOverwrite
+ * 公開用
+ */
+static void enableOverwrite (void)
+{
+	ST_CONTEXT stContext = getContext();
+	if (stContext.isValid) {
+		setOverwrite (stContext.nThreadIdx, stContext.nSeqIdx, true);
+	}
+}
+
+/**
+ * disableOverwrite
+ * 公開用
+ */
+static void disableOverwrite (void)
+{
+	ST_CONTEXT stContext = getContext();
+	if (stContext.isValid) {
+		setOverwrite (stContext.nThreadIdx, stContext.nSeqIdx, false);
+	}
+}
+
+/*
+ * setOverwrite
+ */
+static void setOverwrite (uint8_t nThreadIdx, uint8_t nSeqIdx, bool isOverwrite)
+{
+	ST_SEQ_INFO *pstSeqInfo = getSeqInfo (nThreadIdx, nSeqIdx);
+	if (!pstSeqInfo) {
+		return;
+	}
+
+	pstSeqInfo->isOverwrite = isOverwrite;
+}
+
+/**
  * clearSeqInfo
  */
 static void clearSeqInfo (ST_SEQ_INFO *p)
@@ -3910,6 +4002,7 @@ static void clearSeqInfo (ST_SEQ_INFO *p)
 	p->nReqId = REQUEST_ID_BLANK;
 #endif
 	clearQueWorker (&(p->stSeqInitQueWorker));
+	p->isOverwrite = false;
 
 	p->timeout.enState = EN_TIMEOUT_STATE_INIT;
 	p->timeout.nVal = SEQ_TIMEOUT_BLANK;

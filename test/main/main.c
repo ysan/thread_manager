@@ -80,6 +80,12 @@ int main( void )
 			reqFunc02ThreadA (szIn, NULL);
 
 		} else if (
+			(strlen(szIn) == strlen("a3")) &&
+			(!strncmp(szIn, "a3", strlen("a3")))
+		) {
+			reqFunc03ThreadA (NULL);
+
+		} else if (
 			(strlen(szIn) == strlen("b2")) &&
 			(!strncmp(szIn, "b2", strlen("b2")))
 		) {

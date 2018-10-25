@@ -23,10 +23,12 @@ static void startup (ST_THM_IF *pIf);
 static void func00 (ST_THM_IF *pIf);
 static void func01 (ST_THM_IF *pIf);
 static void func02 (ST_THM_IF *pIf);
+static void func03 (ST_THM_IF *pIf);
 void reqStartupThreadA (uint32_t *pnReqId); // extern
 void reqFunc00ThreadA (char *pszMsg, uint32_t *pnReqId); // extern
 void reqFunc01ThreadA (uint32_t *pnReqId); // extern
 void reqFunc02ThreadA (char *pszMsg, uint32_t *pnReqId); // extern
+void reqFunc03ThreadA (uint32_t *pnReqId); // extern
 
 /*
  * Variables
@@ -36,6 +38,7 @@ const PCB_THM_SEQ gpSeqsThreadA [EN_A_SEQ_NUM] = {
 	func00,
 	func01,
 	func02,
+	func03,
 };
 static uint8_t gnClientId;
 
@@ -50,7 +53,7 @@ static void startup (ST_THM_IF *pIf)
 	uint8_t nSectId;
 	EN_THM_ACT enAct;
 	enum {
-		SECTID_ENTRY = 0,
+		SECTID_ENTRY = THM_SECT_ID_INIT,
 		SECTID_END,
 	};
 
@@ -59,7 +62,7 @@ static void startup (ST_THM_IF *pIf)
 
 	pIf->pfnReply (EN_THM_RSLT_SUCCESS, (uint8_t*)"threadA startup end.");
 
-	nSectId = 0;
+	nSectId = THM_SECT_ID_INIT;
 	enAct = EN_THM_ACT_DONE;
 	pIf->pfnSetSectId (nSectId, enAct);
 }
@@ -69,7 +72,7 @@ static void func00 (ST_THM_IF *pIf)
 	uint8_t nSectId;
 	EN_THM_ACT enAct;
 	enum {
-		SECTID_ENTRY = 0,
+		SECTID_ENTRY = THM_SECT_ID_INIT,
 		SECTID_REQ_THREAD_A_FUNC01,
 		SECTID_WAIT_THREAD_A_FUNC01,
 		SECTID_END,
@@ -112,13 +115,13 @@ static void func00 (ST_THM_IF *pIf)
 
 	case SECTID_END:
 		pIf->pfnReply (EN_THM_RSLT_SUCCESS, NULL);
-		nSectId = 0;
+		nSectId = THM_SECT_ID_INIT;
 		enAct = EN_THM_ACT_DONE;
 		break;
 
 	case SECTID_ERR_END:
 		pIf->pfnReply (EN_THM_RSLT_ERROR, NULL);
-		nSectId = 0;
+		nSectId = THM_SECT_ID_INIT;
 		enAct = EN_THM_ACT_DONE;
 		break;
 
@@ -135,7 +138,7 @@ static void func01 (ST_THM_IF *pIf)
 	uint8_t nSectId;
 	EN_THM_ACT enAct;
 	enum {
-		SECTID_ENTRY = 0,
+		SECTID_ENTRY = THM_SECT_ID_INIT,
 		SECTID_REQ_THREAD_B_FUNC00,
 		SECTID_WAIT_THREAD_B_FUNC00,
 		SECTID_END,
@@ -190,13 +193,13 @@ static void func01 (ST_THM_IF *pIf)
 
 	case SECTID_END:
 		pIf->pfnReply (EN_THM_RSLT_SUCCESS, (uint8_t*)"aaaaaaaaaaaaaaaaa");
-		nSectId = 0;
+		nSectId = THM_SECT_ID_INIT;
 		enAct = EN_THM_ACT_DONE;
 		break;
 
 	case SECTID_ERR_END:
 		pIf->pfnReply (EN_THM_RSLT_ERROR, NULL);
-		nSectId = 0;
+		nSectId = THM_SECT_ID_INIT;
 		enAct = EN_THM_ACT_DONE;
 		break;
 
@@ -212,7 +215,7 @@ static void func02 (ST_THM_IF *pIf)
 	uint8_t nSectId;
 	EN_THM_ACT enAct;
 	enum {
-		SECTID_ENTRY = 0,
+		SECTID_ENTRY = THM_SECT_ID_INIT,
 		SECTID_REQ_THREAD_B_FUNC00,
 		SECTID_WAIT_THREAD_B_FUNC00,
 		SECTID_B,
@@ -298,7 +301,7 @@ static void func02 (ST_THM_IF *pIf)
 
 		pIf->pfnReply (EN_THM_RSLT_SUCCESS, NULL);
 
-		nSectId = 0;
+		nSectId = THM_SECT_ID_INIT;
 		enAct = EN_THM_ACT_DONE;
 		break;
 
@@ -309,6 +312,71 @@ static void func02 (ST_THM_IF *pIf)
 	pIf->pfnSetSectId (nSectId, enAct);
 }
 
+static void func03 (ST_THM_IF *pIf)
+{
+	uint8_t nSectId;
+	EN_THM_ACT enAct;
+	enum {
+		SECTID_ENTRY = THM_SECT_ID_INIT,
+		SECTID_1,
+		SECTID_2,
+		SECTID_3,
+		SECTID_4,
+		SECTID_END,
+	};
+
+	nSectId = pIf->pfnGetSectId();
+	THM_LOG_I ("nSectId %d\n", nSectId);
+
+	switch (nSectId) {
+	case SECTID_ENTRY: {
+		pIf->pfnEnableOverwrite ();
+		nSectId = SECTID_1;
+		enAct = EN_THM_ACT_CONTINUE;
+		} break;
+
+	case SECTID_1:
+		// スレッドBのfunc00にリクエスト
+		reqFunc00ThreadB (&gnTmpReqId);
+		THM_LOG_I ("reqFunc00ThreadB reqid:[%d]\n", gnTmpReqId);
+		nSectId = SECTID_2;
+		enAct = EN_THM_ACT_WAIT;
+		break;
+
+	case SECTID_2: {
+		if (pIf->pstSrcInfo->nReqId != gnTmpReqId) {
+			THM_LOG_W ("different reqid %d\n", pIf->pstSrcInfo->nReqId);
+			nSectId = SECTID_2;
+			enAct = EN_THM_ACT_WAIT;
+
+		} else {
+			EN_THM_RSLT enRslt = pIf->pstSrcInfo->enRslt;
+			THM_LOG_I ("reqFunc00ThreadB return [%d] msg:[%s]\n", enRslt, pIf->pstSrcInfo->pszMsg);
+			pIf->pfnSetTimeout (3000);
+			nSectId = SECTID_3;
+			enAct = EN_THM_ACT_WAIT;
+		}
+		} break;
+
+	case SECTID_3:
+		nSectId = SECTID_END;
+		enAct = EN_THM_ACT_CONTINUE;
+		break;
+
+	case SECTID_END:
+
+		pIf->pfnReply (EN_THM_RSLT_SUCCESS, NULL);
+
+		nSectId = THM_SECT_ID_INIT;
+		enAct = EN_THM_ACT_DONE;
+		break;
+
+	default:
+		break;
+	}
+
+	pIf->pfnSetSectId (nSectId, enAct);
+}
 
 
 // 以下公開用
@@ -331,4 +399,9 @@ void reqFunc01ThreadA (uint32_t *pnReqId)
 void reqFunc02ThreadA (char *pszMsg, uint32_t *pnReqId)
 {
 	gpIf->pfnRequestAsync (EN_THREAD_A, EN_A_FUNC_02, (uint8_t*)pszMsg, pnReqId);
+}
+
+void reqFunc03ThreadA (uint32_t *pnReqId)
+{
+	gpIf->pfnRequestAsync (EN_THREAD_A, EN_A_FUNC_03, NULL, pnReqId);
 }
