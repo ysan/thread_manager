@@ -91,6 +91,10 @@ typedef enum {
 #endif
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * External
  */
@@ -108,7 +112,7 @@ extern void putsLog (
 );
 /**
  * putsLW
- * ƒƒOo—Í src line‚È‚µ
+ * ãƒ­ã‚°å‡ºåŠ› src lineãªã—
  */
 extern void putsLogLW (
 	FILE *pFp,
@@ -118,5 +122,9 @@ extern void putsLogLW (
 );
 extern void deleteLF (char *p);
 extern void putsBackTrace (void);
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif

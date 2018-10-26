@@ -50,6 +50,7 @@ typedef struct threadmgr_src_info {
 	EN_THM_RSLT enRslt;
 	uint8_t nClientId;
 	uint8_t *pszMsg;
+	uint8_t nSeqIdx;
 } ST_THM_SRC_INFO;
 
 
@@ -67,7 +68,7 @@ typedef struct threadmgr_external_if {
 	PFN_CREATE_EXTERNAL_CP pfnCreateExternalCp;
 	PFN_DESTROY_EXTERNAL_CP pfnDestroyExternalCp;
 	PFN_RECEIVE_EXTERNAL pfnReceiveExternal;
-	PFN_FINALIZE pFinalize;
+	PFN_FINALIZE pfnFinalize;
 } ST_THM_EXTERNAL_IF;
 
 
@@ -122,10 +123,17 @@ typedef struct threadmgr_reg_tbl {
 } ST_THM_REG_TBL;
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * External
  */
-ST_THM_EXTERNAL_IF *setupThreadMgr (const ST_THM_REG_TBL *pTbl, uint8_t nTblMax);
+extern ST_THM_EXTERNAL_IF *setupThreadMgr (const ST_THM_REG_TBL *pTbl, uint8_t nTblMax);
 
+#ifdef __cplusplus
+};
+#endif
 
 #endif

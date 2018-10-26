@@ -1242,6 +1242,7 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 					 */
 					memcpy (&rtn, pstQueWorker, sizeof(ST_QUE_WORKER));
 
+//TODO この位置は問題
 					/* sectid関係を強制クリア */
 					clearSectId (nThreadIdx, nSeqIdx);
 
@@ -1995,6 +1996,7 @@ static void *workerThread (void *pArg)
 					if (stRtnQue.msg.isUsed) {
 						pstThmSrcInfo->pszMsg = stRtnQue.msg.szMsg;
 					}
+					pstThmSrcInfo->nSeqIdx = stRtnQue.nDestSeqIdx;
 
 					/* 引数セット */
 					stThmIf.pstSrcInfo = pstThmSrcInfo;
@@ -2193,6 +2195,7 @@ static void clearThmSrcInfo (ST_THM_SRC_INFO *p)
 	p->enRslt = EN_THM_RSLT_IGNORE;
 	p->nClientId = NOTIFY_CLIENT_ID_BLANK;
 	p->pszMsg = NULL;
+	p->nSeqIdx = SEQ_IDX_BLANK;
 }
 
 /**

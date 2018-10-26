@@ -5,7 +5,9 @@ BASEDIR		:=	./
 
 SUBDIRS		:= \
 	threadmgr \
+	threadmgrpp \
 	test \
+	testpp \
 
 
 #
