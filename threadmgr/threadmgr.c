@@ -4,7 +4,6 @@
 //TODO SIGTERMで終了 EN_QUE_TYPE_TERMがきたら今やってるsectionが終わったらthread return
 //		ついでに終了前に全threadのbacktrace
 //TODO 1requestごとにtimeoutあり/なし
-//TODO enableOverwrite
 //TODO segv でbacktrace  thread毎sighandler
 //TODO commander
 //TODO reqId類の配列は THREAD_IDX_MAX +1でもつのがわかりにくい
@@ -309,6 +308,7 @@ static const char *gpszRslt [EN_THM_RSLT_MAX] = {
 	"TIMEOUT",
 };
 
+static PFN_DISPATCHER gpfnDispatcher = NULL; /* for c++ wrapper extention */
 
 
 /*
@@ -453,6 +453,7 @@ void finalize (void); // extern
 static bool isEnableLog (void);
 static void enableLog (void);
 static void disableLog (void);
+void setDispatcher (const PFN_DISPATCHER pfnDispatcher); /* for c++ wrapper extention */ // extern
 
 /*
  * inner log macro
@@ -2018,7 +2019,12 @@ static void *workerThread (void *pArg)
 						 * 主処理
 						 * ユーザ側で sectId enActをセットするはず
 						 */
-						(void)(*((pTbl->pcbSeqArray)+stRtnQue.nDestSeqIdx)) (&stThmIf);
+						if (gpfnDispatcher) {
+							/* c++ wrapper extention */
+							gpfnDispatcher (EN_THM_DISPATCH_TYPE_REQ_REPLY, pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
+						} else {
+							(void)(*((pTbl->pcbSeqArray)+stRtnQue.nDestSeqIdx)) (&stThmIf);
+						}
 
 						if (((pstInnerInfo->pstSeqInfo)+stRtnQue.nDestSeqIdx)->enAct == EN_THM_ACT_CONTINUE) {
 //TODO
@@ -2128,7 +2134,12 @@ static void *workerThread (void *pArg)
 					/*
 					 * 主処理
 					 */
-					(void)(pTbl->pcbRecvNotify) (&stThmIf);
+					if (gpfnDispatcher) {
+						/* c++ wrapper extention */
+						gpfnDispatcher (EN_THM_DISPATCH_TYPE_NOTIFY, pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
+					} else {
+						(void) (pTbl->pcbRecvNotify) (&stThmIf);
+					}
 
 					/* clear */
 					clearThmIf (&stThmIf);
@@ -4432,4 +4443,15 @@ static void enableLog (void)
 static void disableLog (void)
 {
 	gIsEnableLog = false;
+}
+
+/**
+ * setDispatcher
+ * for c++ wrapper extention
+ */
+void setDispatcher (const PFN_DISPATCHER pfnDispatcher)
+{
+	if (pfnDispatcher) {
+		gpfnDispatcher = pfnDispatcher;
+	}
 }

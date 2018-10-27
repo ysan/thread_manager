@@ -55,3 +55,14 @@ ST_THM_EXTERNAL_IF *setupThreadMgr (const ST_THM_REG_TBL *pTbl, uint8_t nTblMax)
 
 	return &s_stThmExternalIf;
 }
+
+/**
+ * setDisaptcher
+ * for c++ wrapper extention
+ */
+void setupDispatcher (const PFN_DISPATCHER pfnDispatcher)
+{
+	if (pfnDispatcher) {
+		setDispatcher (pfnDispatcher);
+	}
+}

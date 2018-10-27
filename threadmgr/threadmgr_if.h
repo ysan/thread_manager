@@ -44,6 +44,13 @@ typedef enum {
 	EN_THM_ACT_MAX,
 } EN_THM_ACT;
 
+/* for c++ wrapper extention */
+typedef enum {
+	EN_THM_DISPATCH_TYPE_REQ_REPLY = 0,
+	EN_THM_DISPATCH_TYPE_NOTIFY,
+	EN_THM_DISPATCH_TYPE_MAX,
+} EN_THM_DISPATCH_TYPE;
+
 
 typedef struct threadmgr_src_info {
 	uint32_t nReqId;
@@ -123,6 +130,10 @@ typedef struct threadmgr_reg_tbl {
 } ST_THM_REG_TBL;
 
 
+/* for c++ wrapper extention */
+typedef bool (*PFN_DISPATCHER) (EN_THM_DISPATCH_TYPE enType, uint8_t nThreadIdx, uint8_t nSeqIdx);
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -131,6 +142,7 @@ extern "C" {
  * External
  */
 extern ST_THM_EXTERNAL_IF *setupThreadMgr (const ST_THM_REG_TBL *pTbl, uint8_t nTblMax);
+extern void setupDispatcher (const PFN_DISPATCHER pfnDispatcher); /* for c++ wrapper extention */
 
 #ifdef __cplusplus
 };
