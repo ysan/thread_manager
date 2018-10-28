@@ -15,7 +15,6 @@
 /*
  * External
  */
-extern ST_THM_EXTERNAL_IF *gpIf;
 
 
 #endif

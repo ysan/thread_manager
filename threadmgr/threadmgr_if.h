@@ -57,7 +57,6 @@ typedef struct threadmgr_src_info {
 	EN_THM_RSLT enRslt;
 	uint8_t nClientId;
 	uint8_t *pszMsg;
-	uint8_t nSeqIdx;
 } ST_THM_SRC_INFO;
 
 
@@ -131,7 +130,7 @@ typedef struct threadmgr_reg_tbl {
 
 
 /* for c++ wrapper extention */
-typedef bool (*PFN_DISPATCHER) (EN_THM_DISPATCH_TYPE enType, uint8_t nThreadIdx, uint8_t nSeqIdx);
+typedef void (*PFN_DISPATCHER) (EN_THM_DISPATCH_TYPE enType, uint8_t nThreadIdx, uint8_t nSeqIdx, ST_THM_IF *pIf);
 
 
 #ifdef __cplusplus

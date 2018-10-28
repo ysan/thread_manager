@@ -1972,7 +1972,7 @@ static void *workerThread (void *pArg)
 				 * 登録されているシーケンスを実行します
 				 */
 
-				if (*((pTbl->pcbSeqArray)+stRtnQue.nDestSeqIdx)) {
+				if (gpfnDispatcher || *((pTbl->pcbSeqArray)+stRtnQue.nDestSeqIdx)) {
 
 					/* sect init のrequestキューを保存 */
 					//TODO EN_QUE_TYPE_REQUESTで分けるべきか
@@ -1997,7 +1997,6 @@ static void *workerThread (void *pArg)
 					if (stRtnQue.msg.isUsed) {
 						pstThmSrcInfo->pszMsg = stRtnQue.msg.szMsg;
 					}
-					pstThmSrcInfo->nSeqIdx = stRtnQue.nDestSeqIdx;
 
 					/* 引数セット */
 					stThmIf.pstSrcInfo = pstThmSrcInfo;
@@ -2020,10 +2019,19 @@ static void *workerThread (void *pArg)
 						 * ユーザ側で sectId enActをセットするはず
 						 */
 						if (gpfnDispatcher) {
+
 							/* c++ wrapper extention */
-							gpfnDispatcher (EN_THM_DISPATCH_TYPE_REQ_REPLY, pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
+							gpfnDispatcher (
+								EN_THM_DISPATCH_TYPE_REQ_REPLY,
+								pstInnerInfo->nThreadIdx,
+								stRtnQue.nDestSeqIdx,
+								&stThmIf
+							);
+
 						} else {
+
 							(void)(*((pTbl->pcbSeqArray)+stRtnQue.nDestSeqIdx)) (&stThmIf);
+
 						}
 
 						if (((pstInnerInfo->pstSeqInfo)+stRtnQue.nDestSeqIdx)->enAct == EN_THM_ACT_CONTINUE) {
@@ -2108,7 +2116,7 @@ static void *workerThread (void *pArg)
 			case EN_QUE_TYPE_NOTIFY:
 				/* notifyがきました */
 
-				if (pTbl->pcbRecvNotify) {
+				if (gpfnDispatcher || pTbl->pcbRecvNotify) {
 
 					/* 引数gstThmSrcInfoセット */
 					pstThmSrcInfo->nReqId = stRtnQue.nReqId; /* REQUEST_ID_BLANKが入る 無効な値 */
@@ -2136,8 +2144,15 @@ static void *workerThread (void *pArg)
 					 */
 					if (gpfnDispatcher) {
 						/* c++ wrapper extention */
-						gpfnDispatcher (EN_THM_DISPATCH_TYPE_NOTIFY, pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
+						gpfnDispatcher (
+							EN_THM_DISPATCH_TYPE_NOTIFY,
+							pstInnerInfo->nThreadIdx,
+							stRtnQue.nDestSeqIdx,
+							&stThmIf
+						);
+
 					} else {
+
 						(void) (pTbl->pcbRecvNotify) (&stThmIf);
 					}
 
@@ -2206,7 +2221,6 @@ static void clearThmSrcInfo (ST_THM_SRC_INFO *p)
 	p->enRslt = EN_THM_RSLT_IGNORE;
 	p->nClientId = NOTIFY_CLIENT_ID_BLANK;
 	p->pszMsg = NULL;
-	p->nSeqIdx = SEQ_IDX_BLANK;
 }
 
 /**

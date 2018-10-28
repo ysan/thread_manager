@@ -14,15 +14,32 @@
 ST_THM_EXTERNAL_IF *gpIf;
 
 
-class CTest
+
+class CThreadMgrBase;
+typedef void (CThreadMgrBase:: *PFN_SEQ) (CThreadMgrIf *pIf);
+
+class CThreadMgrBase
 {
 public:
-	CTest (void) {}
-	virtual ~CTest (void) {}
+	CThreadMgrBase (void) {
+		initSeqs ();
+	}
+	virtual ~CThreadMgrBase (void) {}
 
+	void initSeqs (void) {
+		mpfnSeqs [0] = &CThreadMgrBase::testSeq;
+	}
 
-	static void seq (CThreadMgrIf *pIf)
-	{
+	void exec (EN_THM_DISPATCH_TYPE enType, uint8_t nSeqIdx, CThreadMgrIf *pIf) {
+
+		(void) (this->*mpfnSeqs[nSeqIdx]) (pIf);
+
+	}
+
+	void onCreate (void) {
+	}
+
+	void testSeq (CThreadMgrIf *pIf) {
 		uint8_t nSectId;
 		EN_THM_ACT enAct;
 		enum {
@@ -40,45 +57,41 @@ public:
 		pIf->setSectId (nSectId, enAct);
 	}
 
+	void onReceiveNotify (CThreadMgrIf *pIf) {
+	}
+
 
 private:
+	PFN_SEQ mpfnSeqs [1];
+
 };
 
-typedef void (*PCB_THM_SEQ_PP) (CThreadMgrIf *pIf);
-const PCB_THM_SEQ_PP gpSeqsPP [1] = {
-	CTest::seq,
-};
+CThreadMgrBase gbase;
 
-
-ST_THM_REG_TBL gstRegTbl [1] = {
-	{
-		"thread_A",
-		NULL,
-		5,
-		NULL,	// after
-		0,		// after
-		NULL,
-		NULL,
-	},
-};
-
-static void seq (ST_THM_IF *pIf)
+static void dispatcher (EN_THM_DISPATCH_TYPE enType, uint8_t nThreadIdx, uint8_t nSeqIdx, ST_THM_IF *pIf)
 {
-	puts ("test");
-	CThreadMgrIf thmIf (pIf);
-	(void) (gpSeqsPP [pIf->pstSrcInfo->nSeqIdx]) (&thmIf);
-}
+	puts ("dispatcher");
 
+	CThreadMgrIf thmIf (pIf);
+	gbase.exec (enType, nSeqIdx, &thmIf);
+
+}
 
 int main (void)
 {
-	PCB_THM_SEQ gpSeqs [1];
-	gpSeqs [0] = seq;
+	int n = 1;
+	ST_THM_REG_TBL *pTbl = (ST_THM_REG_TBL*) malloc (sizeof(ST_THM_REG_TBL) * n);
+	pTbl->pszName = "test";
+	const_cast <PCB_SETUP&> (pTbl->pcbSetup) = NULL;
+	pTbl->nQueNum = 10;
+	pTbl->pcbSeqArray = NULL;
+	pTbl->nSeqNum = 1;
+	const_cast <PCB_RECV_ASYNC_REPLY&> (pTbl->pcbRecvAsyncReply) = NULL;
+	const_cast <PCB_RECV_NOTIFY&> (pTbl->pcbRecvNotify) = NULL;
 
-	gstRegTbl[0].pcbSeqArray = gpSeqs;
-	gstRegTbl[0].nSeqNum = 1;
+	setupDispatcher (dispatcher);
 
-	if (!(gpIf = setupThreadMgr(gstRegTbl, (uint32_t)1))) {
+	if (!(gpIf = setupThreadMgr(pTbl, (uint32_t)1))) {
 		exit (EXIT_FAILURE);
 	}
 
