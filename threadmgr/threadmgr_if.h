@@ -46,7 +46,9 @@ typedef enum {
 
 /* for c++ wrapper extention */
 typedef enum {
-	EN_THM_DISPATCH_TYPE_REQ_REPLY = 0,
+	EN_THM_DISPATCH_TYPE_CREATE = 0,
+	EN_THM_DISPATCH_TYPE_DESTROY,
+	EN_THM_DISPATCH_TYPE_REQ_REPLY,
 	EN_THM_DISPATCH_TYPE_NOTIFY,
 	EN_THM_DISPATCH_TYPE_MAX,
 } EN_THM_DISPATCH_TYPE;
@@ -113,18 +115,19 @@ typedef struct threadmgr_if {
 
 
 /*--- threadmgr_reg_tbl ---*/
-typedef void (*PCB_SETUP) (void);
+typedef void (*PCB_CREATE) (void);
+typedef void (*PCB_DESTROY) (void);
 typedef void (*PCB_THM_SEQ) (ST_THM_IF *pIf);
 typedef void (*PCB_RECV_ASYNC_REPLY) (ST_THM_IF *pIf);
 typedef void (*PCB_RECV_NOTIFY) (ST_THM_IF *pIf);
 
 typedef struct threadmgr_reg_tbl {
 	const char *pszName;
-	const PCB_SETUP pcbSetup;
+	const PCB_CREATE pcbCreate;
+	const PCB_DESTROY pcbDestroy;
 	uint8_t nQueNum;
 	const PCB_THM_SEQ *pcbSeqArray; // double pointer
 	uint8_t nSeqNum;
-	const PCB_RECV_ASYNC_REPLY pcbRecvAsyncReply;
 	const PCB_RECV_NOTIFY pcbRecvNotify;
 } ST_THM_REG_TBL;
 

@@ -1927,11 +1927,26 @@ static void *workerThread (void *pArg)
 
 
 	/* 
-	 * setup
+	 * create
 	 * 登録されていれば行います
 	 */
-	if (pTbl->pcbSetup) {
-		(void)(pTbl->pcbSetup)();
+	if (gpfnDispatcher || pTbl->pcbCreate) {
+
+		if (gpfnDispatcher) {
+
+			/* c++ wrapper extention */
+			gpfnDispatcher (
+				EN_THM_DISPATCH_TYPE_CREATE,
+				pstInnerInfo->nThreadIdx,
+				stRtnQue.nDestSeqIdx,
+				NULL
+			);
+
+		} else {
+
+			(void) (pTbl->pcbCreate) ();
+
+		}
 	}
 
 	setState (pstInnerInfo->nThreadIdx, EN_STATE_READY);
@@ -2179,7 +2194,33 @@ static void *workerThread (void *pArg)
 
 	} /* main while loop */
 
-	/* ここにはこない */
+
+	/* 今のとこ ここ以下にはこない */
+
+
+	/* 
+	 * destroy
+	 * 登録されていれば行います
+	 */
+	if (gpfnDispatcher || pTbl->pcbDestroy) {
+
+		if (gpfnDispatcher) {
+
+			/* c++ wrapper extention */
+			gpfnDispatcher (
+				EN_THM_DISPATCH_TYPE_DESTROY,
+				pstInnerInfo->nThreadIdx,
+				stRtnQue.nDestSeqIdx,
+				NULL
+			);
+
+		} else {
+
+			(void) (pTbl->pcbDestroy) ();
+
+		}
+	}
+
 	setState (pstInnerInfo->nThreadIdx, EN_STATE_INIT);
 
 
