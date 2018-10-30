@@ -7,6 +7,8 @@
 #include "ThreadMgrExternalIf.h"
 
 
+namespace ThreadManager {
+
 CThreadMgrExternalIf::CThreadMgrExternalIf (ST_THM_EXTERNAL_IF *pExtIf)
 {
 	if (pExtIf) {
@@ -69,3 +71,4 @@ void CThreadMgrExternalIf::finalize (void)
 	}
 }
 
+} // namespace ThreadManager

@@ -7,6 +7,8 @@
 #include "ThreadMgr.h"
 
 
+namespace ThreadManager {
+
 /*
  * Constant define
  */
@@ -150,3 +152,5 @@ static void dispatcher (
 
 	///////////////////////////////
 }
+
+} // namespace ThreadManager

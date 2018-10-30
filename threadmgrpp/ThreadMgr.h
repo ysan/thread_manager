@@ -15,6 +15,8 @@
 #include "ThreadMgrBase.h"
 
 
+namespace ThreadManager {
+
 class CThreadMgr
 {
 public:
@@ -37,5 +39,7 @@ private:
 	CThreadMgrExternalIf *mpExtIf;
 
 };
+
+} // namespace ThreadManager
 
 #endif

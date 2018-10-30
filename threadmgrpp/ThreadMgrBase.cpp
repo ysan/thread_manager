@@ -7,6 +7,8 @@
 #include "ThreadMgrBase.h"
 
 
+namespace ThreadManager {
+
 CThreadMgrBase::CThreadMgrBase (char *pszName, uint8_t nQueNum)
 	:mpfnSeqsBase (NULL)
 	,mQueNum (0)
@@ -78,3 +80,5 @@ void CThreadMgrBase::onDestroy (void)
 void CThreadMgrBase::onReceiveNotify (CThreadMgrIf *pIf)
 {
 }
+
+} // namespace ThreadManager

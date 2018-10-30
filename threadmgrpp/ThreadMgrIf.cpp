@@ -7,6 +7,8 @@
 #include "ThreadMgrIf.h"
 
 
+namespace ThreadManager {
+
 CThreadMgrIf::CThreadMgrIf (ST_THM_IF *pIf)
 {
 	if (pIf) {
@@ -107,3 +109,5 @@ void CThreadMgrIf::disableOverwrite (void)
 		mpIf->pfnDisableOverwrite ();
 	}
 }
+
+} // namespace ThreadManager

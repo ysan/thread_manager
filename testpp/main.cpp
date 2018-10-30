@@ -14,6 +14,8 @@
 #include "ThreadMgr.h"
 
 
+using namespace ThreadManager;
+
 class CModuleA : public CThreadMgrBase
 {
 public:

@@ -14,6 +14,8 @@
 using namespace std;
 
 
+namespace ThreadManager {
+
 class CThreadMgrIf 
 {
 public:
@@ -39,5 +41,6 @@ private:
 	ST_THM_IF *mpIf;
 };
 
+} // namespace ThreadManager
 
 #endif

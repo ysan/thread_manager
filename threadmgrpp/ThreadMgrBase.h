@@ -13,6 +13,8 @@
 #include "ThreadMgrIf.h"
 
 
+namespace ThreadManager {
+
 class CThreadMgr;
 class CThreadMgrBase;
 typedef void (CThreadMgrBase:: *PFN_SEQ_BASE) (CThreadMgrIf *pIf);
@@ -46,5 +48,7 @@ private:
 	uint8_t mSeqNum;
 	
 };
+
+} // namespace ThreadManager
 
 #endif

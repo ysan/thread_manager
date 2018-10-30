@@ -14,6 +14,8 @@
 using namespace std;
 
 
+namespace ThreadManager {
+
 class CThreadMgrExternalIf 
 {
 public:
@@ -32,5 +34,6 @@ private:
 	ST_THM_EXTERNAL_IF *mpExtIf;
 };
 
+} // namespace ThreadManager
 
 #endif
