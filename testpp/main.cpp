@@ -10,159 +10,22 @@
 #include "ThreadMgrIf.h"
 #include "ThreadMgrExternalIf.h"
 
+#include "ThreadMgrBase.h"
+#include "ThreadMgr.h"
 
-static void dispatcher (
-	EN_THM_DISPATCH_TYPE enType,
-	uint8_t nThreadIdx,
-	uint8_t nSeqIdx,
-	ST_THM_IF *pIf
-);
-
-
-class CThreadMgrBase;
-typedef void (CThreadMgrBase:: *PFN_SEQ_BASE) (CThreadMgrIf *pIf);
-
-class CThreadMgrBase
-{
-public:
-	CThreadMgrBase (void) {}
-	virtual ~CThreadMgrBase (void) {}
-
-
-	void exec (EN_THM_DISPATCH_TYPE enType, uint8_t nSeqIdx, ST_THM_IF *pIf) {
-
-		switch (enType) {
-		case EN_THM_DISPATCH_TYPE_CREATE:
-			onCreate ();
-			break;
-
-		case EN_THM_DISPATCH_TYPE_DESTROY:
-			onDestroy ();
-			break;
-
-		case EN_THM_DISPATCH_TYPE_REQ_REPLY:
-			{
-			CThreadMgrIf thmIf (pIf);
-			(void) (this->*mpfnSeqsBase [nSeqIdx]) (&thmIf);
-			break;
-			}
-
-		case EN_THM_DISPATCH_TYPE_NOTIFY:
-			{
-			CThreadMgrIf thmIf (pIf);
-			onReceiveNotify (&thmIf);
-			break;
-			}
-
-		default:
-			puts ("BUG");
-			break;
-		}
-	}
-
-
-protected:
-	void setSeqs (PFN_SEQ_BASE pfnSeqs []) {
-		if (pfnSeqs) {
-			mpfnSeqsBase = pfnSeqs;
-		}
-	}
-
-	virtual void onCreate (void) {
-	}
-
-	virtual void onDestroy (void) {
-	}
-
-	virtual void onReceiveNotify (CThreadMgrIf *pIf) {
-	}
-
-
-private:
-	PFN_SEQ_BASE *mpfnSeqsBase ; // double pointer
-
-};
-
-class CThreadMgr;
-CThreadMgr *gpMgr = NULL;
-class CThreadMgr
-{
-public:
-	CThreadMgr (int n) {
-		mThreadNum = n;
-	}
-	virtual ~CThreadMgr (void) {}
-
-
-	bool init (void) {
-		if (mThreadNum < 1) {
-			// error
-			return false;
-		}
-
-		setupDispatcher (dispatcher);
-
-		ST_THM_REG_TBL *pTbl = (ST_THM_REG_TBL*) malloc (sizeof(ST_THM_REG_TBL) * mThreadNum);
-		if (!pTbl) {
-			// error
-			return false;
-		}
-
-		for (int i = 0; i < mThreadNum; ++ i) {
-			ST_THM_REG_TBL *p = pTbl + i;
-
-			p->pszName = "ModuleA";
-			const_cast <PCB_CREATE&> (p->pcbCreate) = NULL; // not use
-			const_cast <PCB_DESTROY&> (p->pcbDestroy) = NULL; // not use
-			p->nQueNum = 10;
-			p->pcbSeqArray = NULL; // not use
-			p->nSeqNum = 3;
-			const_cast <PCB_RECV_NOTIFY&> (p->pcbRecvNotify) = NULL; // not use
-		}
-
-		ST_THM_EXTERNAL_IF* pExtIf = setupThreadMgr(pTbl, (uint32_t)mThreadNum);
-		if (!pExtIf) {
-			// error
-			return false;
-		}
-
-		mpExtIf = new CThreadMgrExternalIf (pExtIf);
-		if (!mpExtIf) {
-			// error
-			return false;
-		}
-
-		return true;
-	}
-
-	void finaliz (void) {
-		if (mpExtIf) {
-			delete mpExtIf;
-			mpExtIf = NULL;
-		}
-	}
-
-	CThreadMgrExternalIf * getExternalIf (void) {
-		return mpExtIf;
-	}
-
-
-private:
-	int mThreadNum;
-	CThreadMgrExternalIf *mpExtIf;
-
-};
 
 class CModuleA : public CThreadMgrBase
 {
 public:
-	CModuleA (void) {
-		mpfnSeqs [0] = PFN_SEQ_BASE (&CModuleA::startUp);
-		mpfnSeqs [1] = PFN_SEQ_BASE (&CModuleA::func00);
-		mpfnSeqs [2] = PFN_SEQ_BASE (&CModuleA::func01);
-		setSeqs (mpfnSeqs);
+	CModuleA (char *pszName, uint8_t nQueNum) : CThreadMgrBase (pszName, nQueNum)
+	{
+		mpfnSeqs [0] = (PFN_SEQ_BASE)&CModuleA::startUp;
+		mpfnSeqs [1] = (PFN_SEQ_BASE)&CModuleA::func00;
+		mpfnSeqs [2] = (PFN_SEQ_BASE)&CModuleA::func01;
+		setSeqs (mpfnSeqs, sizeof(mpfnSeqs) / sizeof(PFN_SEQ_BASE));
 	}
 	virtual ~CModuleA (void) {}
+
 
 	void startUp (CThreadMgrIf *pIf) {
 		uint8_t nSectId;
@@ -209,7 +72,7 @@ public:
 
 			// 自スレのfunc01にリクエスト
 //			reqFunc01ThreadA(NULL);
-			gpMgr->getExternalIf()->requestAsync (0, 2, NULL, NULL);
+			CThreadMgr::getInstance()->getExternalIf()->requestAsync (0, 2, NULL, NULL);
 
 			nSectId = SECTID_WAIT_THREAD_A_FUNC01;
 			enAct = EN_THM_ACT_WAIT;
@@ -328,56 +191,46 @@ public:
 
 
 private:
-	PFN_SEQ_BASE mpfnSeqs [3];
+	PFN_SEQ_BASE mpfnSeqs [3]; // entity
 
 	uint32_t mTmpReqId;
 
 };
 
 
-CModuleA gthread;
+CModuleA g_moduleA ((char*)"ModuleA", 10);
+
 
 CThreadMgrBase *gpthreads [] = {
-	&gthread,
+	&g_moduleA,
 };
-
-static void dispatcher (
-	EN_THM_DISPATCH_TYPE enType,
-	uint8_t nThreadIdx,
-	uint8_t nSeqIdx,
-	ST_THM_IF *pIf
-) {
-	CThreadMgrBase *p = gpthreads [nThreadIdx];
-	if (!p) {
-		printf ("Err: mpThreads [%d] is null.", nThreadIdx);
-		return ;
-	}
-
-	////////////////////////////////
-	p->exec (enType, nSeqIdx, pIf);
-	////////////////////////////////
-}
 
 int main (void)
 {
-	gpMgr = new CThreadMgr (1);
-	gpMgr->init();
+	CThreadMgr *pMgr = CThreadMgr::getInstance();
 
-	gpMgr->getExternalIf()->createExternalCp();
+	if (!pMgr->setup (gpthreads, 1)) {
+		exit (EXIT_FAILURE);
+	}
 
-	gpMgr->getExternalIf()->requestAsync (0, 0, NULL, NULL);
-	ST_THM_SRC_INFO* res = gpMgr->getExternalIf()-> receiveExternal();
+	pMgr->getExternalIf()->createExternalCp();
+
+	pMgr->getExternalIf()->requestAsync (0, 0, NULL, NULL);
+	ST_THM_SRC_INFO* res = pMgr->getExternalIf()-> receiveExternal();
 	if (res) {
 		THM_LOG_I ("dddddddddddddddddd res [%d][%s]", res->enRslt, res->pszMsg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd res null");
 	}
 
-	gpMgr->getExternalIf()->requestAsync (0, 1, (uint8_t*)"test request", NULL);
+	pMgr->getExternalIf()->requestAsync (0, 1, (uint8_t*)"test request", NULL);
 
 	pause ();
 
-	gpMgr->finaliz();
+
+
+
+	pMgr->teardown();
 
 
 	exit (EXIT_SUCCESS);

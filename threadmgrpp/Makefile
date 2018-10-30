@@ -13,7 +13,7 @@ LIBS		:= \
 	-L$(BASEDIR)/threadmgr -lthreadmgr \
 
 USERDEFS	:= \
-	-D_LOG_SIMPLE \
+#	-D_LOG_SIMPLE \
 
 #
 #   Target object
@@ -32,6 +32,8 @@ TARGET_TYPE	:=	SHARED
 SRCS_CPP	:= \
 	ThreadMgrIf.cpp \
 	ThreadMgrExternalIf.cpp \
+	ThreadMgrBase.cpp \
+	ThreadMgr.cpp \
 
 
 #
