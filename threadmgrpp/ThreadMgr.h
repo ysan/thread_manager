@@ -27,6 +27,8 @@ public:
 	static CThreadMgr *getInstance (void);
 
 	bool registerThreads (CThreadMgrBase *pThreads[], int threadNum);
+	void unRegisterThreads (void);
+
 	bool setup (CThreadMgrBase *pThreads[], int threadNum);
 	void teardown (void);
 
@@ -36,6 +38,7 @@ public:
 private:
 	int mThreadNum;
 
+	ST_THM_REG_TBL *mpRegTbl;
 	CThreadMgrExternalIf *mpExtIf;
 
 };

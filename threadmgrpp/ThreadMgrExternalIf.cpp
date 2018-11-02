@@ -21,10 +21,46 @@ CThreadMgrExternalIf::~CThreadMgrExternalIf (void)
 }
 
 
+bool CThreadMgrExternalIf::requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx)
+{
+	if (mpExtIf) {
+		return mpExtIf->pfnRequestSync (nThreadIdx, nSeqIdx, NULL);
+	} else {
+		return false;
+	}
+}
+
 bool CThreadMgrExternalIf::requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
 {
 	if (mpExtIf) {
 		return mpExtIf->pfnRequestSync (nThreadIdx, nSeqIdx, pszMsg);
+	} else {
+		return false;
+	}
+}
+
+bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx)
+{
+	if (mpExtIf) {
+		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, NULL, NULL);
+	} else {
+		return false;
+	}
+}
+
+bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint32_t *pnReqId)
+{
+	if (mpExtIf) {
+		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, NULL, pnReqId);
+	} else {
+		return false;
+	}
+}
+
+bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
+{
+	if (mpExtIf) {
+		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, pszMsg, NULL);
 	} else {
 		return false;
 	}
@@ -61,13 +97,6 @@ ST_THM_SRC_INFO* CThreadMgrExternalIf::receiveExternal (void)
 		return mpExtIf->pfnReceiveExternal ();
 	} else {
 		return NULL;
-	}
-}
-
-void CThreadMgrExternalIf::finalize (void)
-{
-	if (mpExtIf) {
-		mpExtIf->pfnFinalize ();
 	}
 }
 
