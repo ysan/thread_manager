@@ -29,18 +29,16 @@
  * Prototypes
  */
 ST_THM_EXTERNAL_IF *setupThreadMgr (const ST_THM_REG_TBL *pTbl, uint8_t nTblMax); // extern
+void teardownThreadMgr (void); // extern
 
 
-/*
- * threadMgr external object
- */
+/* threadMgr external object */
 static ST_THM_EXTERNAL_IF s_stThmExternalIf = {
 	requestSync,
 	requestAsync,
 	createExternalCp,
 	destroyExternalCp,
 	receiveExternal,
-	finalize
 };
 
 
@@ -54,6 +52,14 @@ ST_THM_EXTERNAL_IF *setupThreadMgr (const ST_THM_REG_TBL *pTbl, uint8_t nTblMax)
 	}
 
 	return &s_stThmExternalIf;
+}
+
+/**
+ * teardownThreadMgr
+ */
+void teardownThreadMgr (void)
+{
+	finalize ();
 }
 
 /**

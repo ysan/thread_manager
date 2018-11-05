@@ -68,7 +68,6 @@ typedef bool (*PFN_REQUEST_ASYNC) (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t 
 typedef bool (*PFN_CREATE_EXTERNAL_CP) (void);
 typedef void (*PFN_DESTROY_EXTERNAL_CP) (void);
 typedef ST_THM_SRC_INFO* (*PFN_RECEIVE_EXTERNAL) (void);
-typedef void (*PFN_FINALIZE) (void);
 
 typedef struct threadmgr_external_if {
 	PFN_REQUEST_SYNC pfnRequestSync;
@@ -76,7 +75,6 @@ typedef struct threadmgr_external_if {
 	PFN_CREATE_EXTERNAL_CP pfnCreateExternalCp;
 	PFN_DESTROY_EXTERNAL_CP pfnDestroyExternalCp;
 	PFN_RECEIVE_EXTERNAL pfnReceiveExternal;
-	PFN_FINALIZE pfnFinalize;
 } ST_THM_EXTERNAL_IF;
 
 
@@ -144,6 +142,7 @@ extern "C" {
  * External
  */
 extern ST_THM_EXTERNAL_IF *setupThreadMgr (const ST_THM_REG_TBL *pTbl, uint8_t nTblMax);
+extern void teardownThreadMgr (void);
 extern void setupDispatcher (const PFN_DISPATCHER pfnDispatcher); /* for c++ wrapper extention */
 
 #ifdef __cplusplus

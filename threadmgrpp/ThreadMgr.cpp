@@ -147,6 +147,8 @@ void CThreadMgr::teardown (void) {
 	}
 
 	mThreadNum = 0;
+
+	teardownThreadMgr ();
 }
 
 CThreadMgrExternalIf * CThreadMgr::getExternalIf (void) {

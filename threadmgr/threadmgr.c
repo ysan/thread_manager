@@ -4469,11 +4469,12 @@ static void clearExternalControlInfo (ST_EXTERNAL_CONTROL_INFO *p)
  * finalize
  * 終了処理
  *
- * 公開 external_if
+ * 公開
  */
 void finalize (void)
 {
 //TODO	
+
 }
 
 /**
