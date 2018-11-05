@@ -32,12 +32,12 @@ void reqFunc00ThreadC (uint32_t *pnReqId); // extern
 /*
  * Variables
  */
-const PCB_THM_SEQ gpSeqsThreadC[ EN_C_SEQ_NUM ] = {
-	startup,
-	regNotify,
-	unregNotify,
-	cycleFunc,
-	func00,
+const ST_THM_SEQ gstSeqsThreadC[ EN_C_SEQ_NUM ] = {
+	{startup, "startup"},
+	{regNotify, "regNotify"},
+	{unregNotify, "unregNotify"},
+	{cycleFunc, "cycleFunc"},
+	{func00, "func00"},
 };
 static uint8_t gnClientId;
 

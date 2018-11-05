@@ -22,7 +22,7 @@ enum {
 /*
  * External
  */
-extern const PCB_THM_SEQ gpSeqsThreadC [];
+extern const ST_THM_SEQ gstSeqsThreadC [];
 extern void recvNotifyThreadC(ST_THM_IF *pIf);
 extern void reqStartupThreadC (uint32_t *pnReqId);
 extern void reqRegNotifyThreadC(uint32_t *pnReqId);

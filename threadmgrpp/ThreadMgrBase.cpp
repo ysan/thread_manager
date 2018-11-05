@@ -10,7 +10,8 @@
 namespace ThreadManager {
 
 CThreadMgrBase::CThreadMgrBase (char *pszName, uint8_t nQueNum)
-	:mpfnSeqsBase (NULL)
+//	:mpfnSeqsBase (NULL)
+	:mpSeqsBase (NULL)
 	,mQueNum (0)
 	,mSeqNum (0)
 {
@@ -44,7 +45,8 @@ void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE enType, uint8_t nSeqIdx, ST_THM
 	case EN_THM_DISPATCH_TYPE_REQ_REPLY:
 		{
 		CThreadMgrIf thmIf (pIf);
-		(void) (this->*mpfnSeqsBase [nSeqIdx]) (&thmIf);
+//		(void) (this->*mpfnSeqsBase [nSeqIdx]) (&thmIf);
+		(void) (this->*((mpSeqsBase + nSeqIdx)->pfnSeqBase)) (&thmIf);
 		break;
 		}
 
@@ -61,10 +63,18 @@ void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE enType, uint8_t nSeqIdx, ST_THM
 	}
 }
 
-void CThreadMgrBase::setSeqs (PFN_SEQ_BASE pfnSeqs [], uint8_t seqNum)
+//void CThreadMgrBase::setSeqs (PFN_SEQ_BASE pfnSeqs [], uint8_t seqNum)
+//{
+//	if (pfnSeqs && seqNum > 0) {
+//		mpfnSeqsBase = pfnSeqs;
+//		mSeqNum = seqNum;
+//	}
+//}
+
+void CThreadMgrBase::setSeqs (ST_SEQ_BASE pstSeqs [], uint8_t seqNum)
 {
-	if (pfnSeqs && seqNum > 0) {
-		mpfnSeqsBase = pfnSeqs;
+	if (pstSeqs && seqNum > 0) {
+		mpSeqsBase = pstSeqs;
 		mSeqNum = seqNum;
 	}
 }

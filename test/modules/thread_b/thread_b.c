@@ -32,11 +32,11 @@ void reqFunc02ThreadB (uint32_t *pnReqId); // extern
 /*
  * Variables
  */
-const PCB_THM_SEQ gpSeqsThreadB[ EN_B_SEQ_NUM ] = {
-	startup,
-	func00,
-	func01,
-	func02,
+const ST_THM_SEQ gstSeqsThreadB[ EN_B_SEQ_NUM ] = {
+	{startup, "startup"},
+	{func00, "func00"},
+	{func01, "func01"},
+	{func02, "func02"},
 };
 static uint8_t gnClientId;
 

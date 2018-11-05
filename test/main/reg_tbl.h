@@ -15,7 +15,7 @@ enum {
 /*
  * External
  */
-extern const ST_THM_REG_TBL gstRegThreadMgrTbl[ EN_THREAD_MAX ];
+extern const ST_THM_REG_TBL gstRegThreadMgrTbl [EN_THREAD_MAX];
 
 
 #endif

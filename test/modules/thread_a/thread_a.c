@@ -33,12 +33,12 @@ void reqFunc03ThreadA (uint32_t *pnReqId); // extern
 /*
  * Variables
  */
-const PCB_THM_SEQ gpSeqsThreadA [EN_A_SEQ_NUM] = {
-	startup,
-	func00,
-	func01,
-	func02,
-	func03,
+const ST_THM_SEQ gstSeqsThreadA [EN_A_SEQ_NUM] = {
+	{startup, "startup"},
+	{func00, "func00"},
+	{func01, "func01"},
+	{func02, "func02"},
+	{func03, "func03"},
 };
 static uint8_t gnClientId;
 

@@ -16,15 +16,20 @@
 
 using namespace ThreadManager;
 
+
 class CModuleA : public CThreadMgrBase
 {
 public:
 	CModuleA (char *pszName, uint8_t nQueNum) : CThreadMgrBase (pszName, nQueNum)
 	{
-		mpfnSeqs [0] = (PFN_SEQ_BASE)&CModuleA::startUp;
-		mpfnSeqs [1] = (PFN_SEQ_BASE)&CModuleA::func00;
-		mpfnSeqs [2] = (PFN_SEQ_BASE)&CModuleA::func01;
-		setSeqs (mpfnSeqs, sizeof(mpfnSeqs) / sizeof(PFN_SEQ_BASE));
+//		mpfnSeqs [0] = (PFN_SEQ_BASE)&CModuleA::startUp;
+//		mpfnSeqs [1] = (PFN_SEQ_BASE)&CModuleA::func00;
+//		mpfnSeqs [2] = (PFN_SEQ_BASE)&CModuleA::func01;
+//		setSeqs (mpfnSeqs, sizeof(mpfnSeqs) / sizeof(PFN_SEQ_BASE));
+		mSeqs [0] = {(PFN_SEQ_BASE)&CModuleA::startUp, (char*)"startUp"};
+		mSeqs [1] = {(PFN_SEQ_BASE)&CModuleA::func00, (char*)"func00"};
+		mSeqs [2] = {(PFN_SEQ_BASE)&CModuleA::func01, (char*)"func01"};
+		setSeqs (mSeqs, sizeof(mSeqs) / sizeof(ST_SEQ_BASE));
 	}
 	virtual ~CModuleA (void) {}
 
@@ -193,39 +198,86 @@ public:
 
 
 private:
-	PFN_SEQ_BASE mpfnSeqs [3]; // entity
+//	PFN_SEQ_BASE mpfnSeqs [3]; // entity
+	ST_SEQ_BASE mSeqs [3]; // entity
 
 	uint32_t mTmpReqId;
 
 };
 
+class CModuleB : public CThreadMgrBase
+{
+public:
+	CModuleB (char *pszName, uint8_t nQueNum) : CThreadMgrBase (pszName, nQueNum)
+	{
+		mSeqs [0] = {(PFN_SEQ_BASE)&CModuleB::startUp, (char*)"startUp"};
+		setSeqs (mSeqs, sizeof(mSeqs) / sizeof(ST_SEQ_BASE));
+	}
+	virtual ~CModuleB (void) {}
+
+
+	void startUp (CThreadMgrIf *pIf) {
+		uint8_t nSectId;
+		EN_THM_ACT enAct;
+		enum {
+			SECTID_ENTRY = THM_SECT_ID_INIT,
+			SECTID_END,
+		};
+
+		nSectId = pIf->getSectId();
+		THM_LOG_I ("nSectId %d\n", nSectId);
+
+		pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)"ModuleB startup end.");
+
+		nSectId = THM_SECT_ID_INIT;
+		enAct = EN_THM_ACT_DONE;
+		pIf->setSectId (nSectId, enAct);
+	}
+
+private:
+	ST_SEQ_BASE mSeqs [1]; // entity
+
+};
+
 
 CModuleA g_moduleA ((char*)"ModuleA", 10);
+CModuleB g_moduleB ((char*)"ModuleB", 10);
 
 
 CThreadMgrBase *gpthreads [] = {
 	&g_moduleA,
+	&g_moduleB,
 };
 
 int main (void)
 {
 	CThreadMgr *pMgr = CThreadMgr::getInstance();
 
-	if (!pMgr->setup (gpthreads, 1)) {
+	if (!pMgr->setup (gpthreads, 2)) {
 		exit (EXIT_FAILURE);
 	}
 
 	pMgr->getExternalIf()->createExternalCp();
 
-	pMgr->getExternalIf()->requestAsync (0, 0, NULL, NULL);
-	ST_THM_SRC_INFO* res = pMgr->getExternalIf()-> receiveExternal();
-	if (res) {
-		THM_LOG_I ("dddddddddddddddddd res [%d][%s]", res->enRslt, res->pszMsg);
+	pMgr->getExternalIf()->requestAsync (0, 0);
+	ST_THM_SRC_INFO* r = pMgr->getExternalIf()-> receiveExternal();
+	if (r) {
+		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->pszMsg);
 	} else {
-		THM_LOG_E ("dddddddddddddddddd res null");
+		THM_LOG_E ("dddddddddddddddddd r null");
 	}
 
-	pMgr->getExternalIf()->requestAsync (0, 1, (uint8_t*)"test request", NULL);
+	pMgr->getExternalIf()->requestAsync (1, 0);
+	r = pMgr->getExternalIf()-> receiveExternal();
+	if (r) {
+		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->pszMsg);
+	} else {
+		THM_LOG_E ("dddddddddddddddddd r null");
+	}
+
+
+	pMgr->getExternalIf()->requestAsync (0, 1, (uint8_t*)"test request");
+
 
 	pause ();
 

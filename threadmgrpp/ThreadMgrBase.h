@@ -19,6 +19,12 @@ class CThreadMgr;
 class CThreadMgrBase;
 typedef void (CThreadMgrBase:: *PFN_SEQ_BASE) (CThreadMgrIf *pIf);
 
+typedef struct _seq_base {
+	PFN_SEQ_BASE pfnSeqBase;
+	char *pszName;
+} ST_SEQ_BASE;
+
+
 class CThreadMgrBase
 {
 public:
@@ -33,7 +39,8 @@ public:
 
 
 protected:
-	void setSeqs (PFN_SEQ_BASE pfnSeqs [], uint8_t seqNum);
+//	void setSeqs (PFN_SEQ_BASE pfnSeqs [], uint8_t seqNum);
+	void setSeqs (ST_SEQ_BASE pstSeqs [], uint8_t seqNum);
 
 	virtual void onCreate (void);
 	virtual void onDestroy (void);
@@ -41,9 +48,10 @@ protected:
 
 
 private:
-	PFN_SEQ_BASE *mpfnSeqsBase ; // double pointer
+//	PFN_SEQ_BASE *mpfnSeqsBase ; // double pointer
+	ST_SEQ_BASE *mpSeqsBase ;
 
-	char mName [16]; //THREAD_NAME_SIZE
+	char mName [16];
 	uint8_t mQueNum;
 	uint8_t mSeqNum;
 	

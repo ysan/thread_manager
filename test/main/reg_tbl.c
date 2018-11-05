@@ -12,13 +12,13 @@
 #include "thread_c.h"
 
 
-const ST_THM_REG_TBL gstRegThreadMgrTbl[ EN_THREAD_MAX ] = {
+const ST_THM_REG_TBL gstRegThreadMgrTbl [EN_THREAD_MAX] = {
 	{
 		"thread_A",
 		NULL,
 		NULL,
 		5,
-		gpSeqsThreadA,
+		gstSeqsThreadA,
 		EN_A_SEQ_NUM,
 		recvNotifyThreadA,
 	},
@@ -27,7 +27,7 @@ const ST_THM_REG_TBL gstRegThreadMgrTbl[ EN_THREAD_MAX ] = {
 		NULL,
 		NULL,
 		10,
-		gpSeqsThreadB,
+		gstSeqsThreadB,
 		EN_B_SEQ_NUM,
 		recvNotifyThreadB,
 	},
@@ -36,7 +36,7 @@ const ST_THM_REG_TBL gstRegThreadMgrTbl[ EN_THREAD_MAX ] = {
 		NULL,
 		NULL,
 		15,
-		gpSeqsThreadC,
+		gstSeqsThreadC,
 		EN_C_SEQ_NUM,
 		recvNotifyThreadC,
 	},

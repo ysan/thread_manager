@@ -119,12 +119,18 @@ typedef void (*PCB_THM_SEQ) (ST_THM_IF *pIf);
 typedef void (*PCB_RECV_ASYNC_REPLY) (ST_THM_IF *pIf);
 typedef void (*PCB_RECV_NOTIFY) (ST_THM_IF *pIf);
 
+typedef struct threadmgr_seq {
+	const PCB_THM_SEQ pcbSeq;
+	const char *pszName; // must be non-null
+} ST_THM_SEQ;
+
+
 typedef struct threadmgr_reg_tbl {
-	const char *pszName;
+	const char *pszName;  // must be non-null
 	const PCB_CREATE pcbCreate;
 	const PCB_DESTROY pcbDestroy;
 	uint8_t nQueNum;
-	const PCB_THM_SEQ *pcbSeqArray; // double pointer
+	const ST_THM_SEQ *pstSeqArray;
 	uint8_t nSeqNum;
 	const PCB_RECV_NOTIFY pcbRecvNotify;
 } ST_THM_REG_TBL;

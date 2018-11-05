@@ -100,12 +100,12 @@ bool CThreadMgr::setup (CThreadMgrBase *pThreads[], int threadNum)
 
 	setupDispatcher (dispatcher);
 
-	ST_THM_REG_TBL *mpRegTbl = (ST_THM_REG_TBL*) malloc (sizeof(ST_THM_REG_TBL) * mThreadNum);
+
+	mpRegTbl = (ST_THM_REG_TBL*) malloc (sizeof(ST_THM_REG_TBL) * mThreadNum);
 	if (!mpRegTbl) {
 		THM_PERROR ("malloc");
 		return false;
 	}
-
 	for (int i = 0; i < mThreadNum; ++ i) {
 		ST_THM_REG_TBL *p = mpRegTbl + i;
 
@@ -113,10 +113,24 @@ bool CThreadMgr::setup (CThreadMgrBase *pThreads[], int threadNum)
 		const_cast <PCB_CREATE&> (p->pcbCreate) = NULL;				// not use
 		const_cast <PCB_DESTROY&> (p->pcbDestroy) = NULL;			// not use
 		p->nQueNum = gpThreads[i]->mQueNum;
-		p->pcbSeqArray = NULL;										// not use
+		p->pstSeqArray = NULL;										// set after
 		p->nSeqNum = gpThreads[i]->mSeqNum;
 		const_cast <PCB_RECV_NOTIFY&> (p->pcbRecvNotify) = NULL;	// not use
+
+		// set seq name
+		ST_THM_SEQ *pThmSeq = (ST_THM_SEQ*) malloc (sizeof(ST_THM_SEQ) * gpThreads[i]->mSeqNum);
+		if (!pThmSeq) {
+			THM_PERROR ("malloc");
+			return false;
+		}
+		for (int j = 0; j < gpThreads[i]->mSeqNum; ++ j) {
+			ST_THM_SEQ *p = pThmSeq + i;
+			const_cast <PCB_THM_SEQ&> (p->pcbSeq) = NULL;
+			p->pszName = ((gpThreads[i]->mpSeqsBase) + j)->pszName;
+		}
+		p->pstSeqArray = pThmSeq;
 	}
+
 
 	ST_THM_EXTERNAL_IF* pExtIf = setupThreadMgr (mpRegTbl, (uint32_t)mThreadNum);
 	if (!pExtIf) {
@@ -142,6 +156,12 @@ void CThreadMgr::teardown (void) {
 	unRegisterThreads ();
 
 	if (mpRegTbl) {
+		for (int i = 0; i < mThreadNum; ++ i) {
+			ST_THM_REG_TBL *p = mpRegTbl + i;
+			ST_THM_SEQ* s = const_cast <ST_THM_SEQ*> (p->pstSeqArray);
+			free (s);
+		}
+
 		free (mpRegTbl);
 		mpRegTbl = NULL;
 	}
