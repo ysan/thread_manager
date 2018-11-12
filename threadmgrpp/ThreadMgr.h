@@ -1,5 +1,5 @@
-#ifndef _CTHREADMGR_H_
-#define _CTHREADMGR_H_
+#ifndef _THREADMGR_HH_
+#define _THREADMGR_HH_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,9 +26,6 @@ public:
 
 	static CThreadMgr *getInstance (void);
 
-	bool registerThreads (CThreadMgrBase *pThreads[], int threadNum);
-	void unRegisterThreads (void);
-
 	bool setup (CThreadMgrBase *pThreads[], int threadNum);
 	void teardown (void);
 
@@ -36,6 +33,10 @@ public:
 
 
 private:
+	bool registerThreads (CThreadMgrBase *pThreads[], int threadNum);
+	void unRegisterThreads (void);
+
+
 	int mThreadNum;
 
 	ST_THM_REG_TBL *mpRegTbl;

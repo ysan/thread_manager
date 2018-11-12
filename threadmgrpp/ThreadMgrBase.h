@@ -1,5 +1,5 @@
-#ifndef _CTHREADMGR_BASE_H_
-#define _CTHREADMGR_BASE_H_
+#ifndef _THREADMGR_BASE_HH_
+#define _THREADMGR_BASE_HH_
 
 #include <stdio.h>
 #include <stdlib.h>

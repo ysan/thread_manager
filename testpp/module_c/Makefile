@@ -1,54 +1,41 @@
 #
 #   Defines
 #
-BASEDIR		:=	../
+BASEDIR		:=	../../
 
 CFLAGS		:=	-std=c++11
 
 INCLUDES	:= \
 	-I./ \
+	-I../ \
 	-I$(BASEDIR)/threadmgr \
 	-I$(BASEDIR)/threadmgrpp \
-	-I./module_a \
-	-I./module_b \
-	-I./module_c \
 
 LIBS		:= \
 	-lpthread \
 	-L$(BASEDIR)/threadmgr -lthreadmgr \
 	-L$(BASEDIR)/threadmgrpp -lthreadmgrpp \
-	-L./module_a -lmodule_a \
-	-L./module_b -lmodule_b \
-	-L./module_c -lmodule_c \
-
 
 USERDEFS	:= \
 	-D_LOG_SIMPLE \
-
-SUBDIRS		:= \
-	module_a \
-	module_b \
-	module_c \
-
 
 
 #
 #   Target object
 #
-TARGET_NAME	:=	testpp
+TARGET_NAME	:=	module_c
 
 #
 #   Target type
 #     (EXEC/SHARED/STATIC/OBJECT)
 #
-TARGET_TYPE	:=	EXEC
+TARGET_TYPE	:=	SHARED
 
 #
 #   Compile sources
 #
 SRCS_CPP	:= \
-	main.cpp \
-	mgr_reg_tbl.cpp \
+	ModuleC.cpp \
 
 
 #

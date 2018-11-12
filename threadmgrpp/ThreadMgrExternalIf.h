@@ -1,6 +1,5 @@
-#ifndef _THREAD_MGR_EXTERNAL_IF_H_
-#define _THREAD_MGR_EXTERNAL_IF_H_
-
+#ifndef _THREADMGR_EXTERNAL_IF_HH_
+#define _THREADMGR_EXTERNAL_IF_HH_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +18,8 @@ namespace ThreadManager {
 class CThreadMgrExternalIf 
 {
 public:
-	CThreadMgrExternalIf (ST_THM_EXTERNAL_IF *pExtIf);
+	explicit CThreadMgrExternalIf (ST_THM_EXTERNAL_IF *pExtIf);
+	explicit CThreadMgrExternalIf (CThreadMgrExternalIf *pExtIf);
 	virtual ~CThreadMgrExternalIf (void);
 
 

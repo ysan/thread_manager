@@ -16,6 +16,15 @@ CThreadMgrExternalIf::CThreadMgrExternalIf (ST_THM_EXTERNAL_IF *pExtIf)
 	}
 }
 
+CThreadMgrExternalIf::CThreadMgrExternalIf (CThreadMgrExternalIf *pExtIf)
+{
+	if (pExtIf) {
+		if (pExtIf->mpExtIf) {
+			mpExtIf = pExtIf->mpExtIf;
+		}
+	}
+}
+
 CThreadMgrExternalIf::~CThreadMgrExternalIf (void)
 {
 }

@@ -16,6 +16,15 @@ CThreadMgrIf::CThreadMgrIf (ST_THM_IF *pIf)
 	}
 }
 
+CThreadMgrIf::CThreadMgrIf (CThreadMgrIf *pIf)
+{
+	if (pIf) {
+		if (pIf->mpIf) {
+			mpIf = pIf->mpIf;
+		}
+	}
+}
+
 CThreadMgrIf::~CThreadMgrIf (void)
 {
 }
@@ -27,6 +36,15 @@ ST_THM_SRC_INFO * CThreadMgrIf::getSrcInfo (void)
 		return mpIf->pstSrcInfo;
 	} else {
 		return NULL;
+	}
+}
+
+bool CThreadMgrIf::reply (EN_THM_RSLT enRslt)
+{
+	if (mpIf) {
+		return mpIf->pfnReply (enRslt, NULL);
+	} else {
+		return false;
 	}
 }
 
@@ -52,6 +70,15 @@ bool CThreadMgrIf::unregNotify (uint8_t nClientId)
 {
 	if (mpIf) {
 		return mpIf->pfnUnRegNotify (nClientId);
+	} else {
+		return false;
+	}
+}
+
+bool CThreadMgrIf::notify (uint8_t nClientId)
+{
+	if (mpIf) {
+		return mpIf->pfnNotify (nClientId, NULL);
 	} else {
 		return false;
 	}
