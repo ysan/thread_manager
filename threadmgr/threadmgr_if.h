@@ -58,13 +58,16 @@ typedef struct threadmgr_src_info {
 	uint32_t nReqId;
 	EN_THM_RSLT enRslt;
 	uint8_t nClientId;
-	uint8_t *pszMsg;
+	struct {
+		uint8_t *pMsg;
+		size_t size;
+	} msg;
 } ST_THM_SRC_INFO;
 
 
 /*--- threadmgr_external_if ---*/
-typedef bool (*PFN_REQUEST_SYNC) (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg);
-typedef bool (*PFN_REQUEST_ASYNC) (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_t *pnReqId);
+typedef bool (*PFN_REQUEST_SYNC) (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize);
+typedef bool (*PFN_REQUEST_ASYNC) (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize, uint32_t *pOutReqId);
 typedef bool (*PFN_CREATE_EXTERNAL_CP) (void);
 typedef void (*PFN_DESTROY_EXTERNAL_CP) (void);
 typedef ST_THM_SRC_INFO* (*PFN_RECEIVE_EXTERNAL) (void);
@@ -80,10 +83,10 @@ typedef struct threadmgr_external_if {
 
 
 /*--- threadmgr_if ---*/
-typedef bool (*PFN_REPLY) (EN_THM_RSLT enRslt, uint8_t *pszMsg);
+typedef bool (*PFN_REPLY) (EN_THM_RSLT enRslt, uint8_t *pMsg, size_t msgSize);
 typedef bool (*PFN_REG_NOTIFY) (uint8_t *pnClientId);
 typedef bool (*PFN_UNREG_NOTIFY) (uint8_t nClientId);
-typedef bool (*PFN_NOTIFY) (uint8_t nClientId, uint8_t *pszMsg);
+typedef bool (*PFN_NOTIFY) (uint8_t nClientId, uint8_t *pMsg, size_t msgSize);
 typedef void (*PFN_SET_SECTID) (uint8_t nSectId, EN_THM_ACT enAct);
 typedef uint8_t (*PFN_GET_SECTID) (void);
 typedef void (*PFN_SET_TIMEOUT) (uint32_t nTimeoutMsec);

@@ -24,9 +24,9 @@ enum {
  */
 extern const ST_THM_SEQ gstSeqsThreadC [];
 extern void recvNotifyThreadC(ST_THM_IF *pIf);
-extern void reqStartupThreadC (uint32_t *pnReqId);
-extern void reqRegNotifyThreadC(uint32_t *pnReqId);
-extern void reqUnRegNotifyThreadC (uint8_t nClientId, uint32_t *pnReqId);
-extern void reqFunc00ThreadC (uint32_t *pnReqId);
+extern void reqStartupThreadC (uint32_t *pOutReqId);
+extern void reqRegNotifyThreadC(uint32_t *pOutReqId);
+extern void reqUnRegNotifyThreadC (uint8_t nClientId, uint32_t *pOutReqId);
+extern void reqFunc00ThreadC (uint32_t *pOutReqId);
 
 #endif

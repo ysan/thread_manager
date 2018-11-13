@@ -33,16 +33,16 @@ CThreadMgrExternalIf::~CThreadMgrExternalIf (void)
 bool CThreadMgrExternalIf::requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx)
 {
 	if (mpExtIf) {
-		return mpExtIf->pfnRequestSync (nThreadIdx, nSeqIdx, NULL);
+		return mpExtIf->pfnRequestSync (nThreadIdx, nSeqIdx, NULL, 0);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrExternalIf::requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
+bool CThreadMgrExternalIf::requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, size_t msgSize)
 {
 	if (mpExtIf) {
-		return mpExtIf->pfnRequestSync (nThreadIdx, nSeqIdx, pszMsg);
+		return mpExtIf->pfnRequestSync (nThreadIdx, nSeqIdx, pszMsg, msgSize);
 	} else {
 		return false;
 	}
@@ -51,34 +51,34 @@ bool CThreadMgrExternalIf::requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uin
 bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx)
 {
 	if (mpExtIf) {
-		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, NULL, NULL);
+		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, NULL, 0, NULL);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint32_t *pnReqId)
+bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint32_t *pOutReqId)
 {
 	if (mpExtIf) {
-		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, NULL, pnReqId);
+		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, NULL, 0, pOutReqId);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
+bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, size_t msgSize)
 {
 	if (mpExtIf) {
-		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, pszMsg, NULL);
+		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, pszMsg, msgSize, NULL);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_t *pnReqId)
+bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, size_t msgSize, uint32_t *pOutReqId)
 {
 	if (mpExtIf) {
-		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, pszMsg, pnReqId);
+		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, pszMsg, msgSize, pOutReqId);
 	} else {
 		return false;
 	}

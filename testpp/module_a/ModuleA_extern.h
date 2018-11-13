@@ -36,12 +36,12 @@ public:
 		return requestAsync (EN_MODULE_A, EN_SEQ_STARTUP);
 	};
 
-	bool reqFunc00 (const char *pMsg) {
-		return requestAsync (EN_MODULE_A, EN_SEQ_FUNC00, (uint8_t*)pMsg);
+	bool reqFunc00 (const char *pMsg, size_t len) {
+		return requestAsync (EN_MODULE_A, EN_SEQ_FUNC00, (uint8_t*)pMsg, len);
 	};
 
-	bool reqFunc01 (void) {
-		return requestAsync (EN_MODULE_A, EN_SEQ_FUNC01);
+	bool reqFunc01 (const char *pMsg, size_t len) {
+		return requestAsync (EN_MODULE_A, EN_SEQ_FUNC01, (uint8_t*)pMsg, len);
 	};
 
 

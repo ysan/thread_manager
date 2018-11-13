@@ -32,7 +32,7 @@ int main( void )
 	reqStartupThreadA(NULL);
 	res = gpIf-> pfnReceiveExternal();
 	if (res) {
-		THM_LOG_I ("dddddddddddddddddd res [%d][%s]", res->enRslt, res->pszMsg);
+		THM_LOG_I ("dddddddddddddddddd res [%d][%s]", res->enRslt, res->msg.pMsg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd res null");
 	}
@@ -40,7 +40,7 @@ int main( void )
 	reqStartupThreadB(NULL);
 	res = gpIf-> pfnReceiveExternal();
 	if (res) {
-		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->enRslt, res->pszMsg);
+		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->enRslt, res->msg.pMsg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd res null");
 	}
@@ -48,7 +48,7 @@ int main( void )
 	reqStartupThreadC(NULL);
 	res = gpIf-> pfnReceiveExternal();
 	if (res) {
-		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->enRslt, res->pszMsg);
+		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->enRslt, res->msg.pMsg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd res null");
 	}

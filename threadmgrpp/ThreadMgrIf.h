@@ -26,13 +26,13 @@ public:
 	ST_THM_SRC_INFO * getSrcInfo (void);
 
 	bool reply (EN_THM_RSLT enRslt);
-	bool reply (EN_THM_RSLT enRslt, uint8_t *pszMsg);
+	bool reply (EN_THM_RSLT enRslt, uint8_t *pMsg, size_t msgSize);
 
 	bool regNotify (uint8_t *pnClientId);
 	bool unregNotify (uint8_t nClientId);
 
 	bool notify (uint8_t nClientId);
-	bool notify (uint8_t nClientId, uint8_t *pszMsg);
+	bool notify (uint8_t nClientId, uint8_t *pMsg, size_t msgSize);
 
 	void setSectId (uint8_t nSectId, EN_THM_ACT enAct);
 	uint8_t getSectId (void);

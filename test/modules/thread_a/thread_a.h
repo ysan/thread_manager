@@ -24,10 +24,10 @@ enum {
  */
 extern const ST_THM_SEQ gstSeqsThreadA[];
 extern void recvNotifyThreadA (ST_THM_IF *pIf);
-extern void reqStartupThreadA (uint32_t *pnReqId);
-extern void reqFunc00ThreadA (char *pszMsg, uint32_t *pnReqId);
-extern void reqFunc01ThreadA (uint32_t *pnReqId);
-extern void reqFunc02ThreadA (char *pszMsg, uint32_t *pnReqId);
-extern void reqFunc03ThreadA (uint32_t *pnReqId);
+extern void reqStartupThreadA (uint32_t *pOutReqId);
+extern void reqFunc00ThreadA (char *pszMsg, uint32_t *pOutReqId);
+extern void reqFunc01ThreadA (uint32_t *pOutReqId);
+extern void reqFunc02ThreadA (char *pszMsg, uint32_t *pOutReqId);
+extern void reqFunc03ThreadA (uint32_t *pOutReqId);
 
 #endif

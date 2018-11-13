@@ -146,7 +146,8 @@ typedef struct que_worker {
 
 	/* message */
 	struct {
-		uint8_t szMsg [MSG_SIZE];
+		uint8_t msg [MSG_SIZE];
+		size_t size;
 		bool isUsed;
 	} msg;
 
@@ -207,7 +208,8 @@ typedef struct sync_reply_info {
 
 	/* message */
 	struct {
-		uint8_t szMsg [MSG_SIZE];
+		uint8_t msg [MSG_SIZE];
+		size_t size;
 		bool isUsed;
 	} msg;
 
@@ -243,7 +245,11 @@ typedef struct external_control_info {
 	pthread_t nPthreadId; // key
 	uint32_t nReqId;
 
-	uint8_t szMsgEntity [MSG_SIZE];
+	struct {
+		uint8_t msg [MSG_SIZE];
+		size_t size;
+	} msgEntity;
+
 	ST_THM_SRC_INFO stThmSrcInfo;
 
 	bool isReplyAlready;
@@ -344,7 +350,8 @@ static bool enQueWorker (
 	uint32_t nReqId,
 	EN_THM_RSLT enRslt,
 	uint8_t nClientId,
-	uint8_t *pszMsg
+	uint8_t *pMsg,
+	size_t msgSize
 );
 static void dumpQueWorker (uint8_t nThreadIdx);
 static void dumpQueAllThread (void);
@@ -363,26 +370,29 @@ static bool requestInner (
 	uint8_t nSeqIdx,
 	uint32_t nReqId,
 	ST_CONTEXT *pstContext,
-	uint8_t *pszMsg
+	uint8_t *pMsg,
+	size_t msgSize
 );
-bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg); // extern
-bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_t *pnReqId); // extern
+bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize); // extern
+bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize, uint32_t *pnReqId); // extern
 static bool replyInner (
 	uint8_t nThreadIdx,
 	uint8_t nSeqIdx,
 	uint32_t nReqId,
 	ST_CONTEXT *pstContext,
 	EN_THM_RSLT enRslt,
-	uint8_t *pszMsg,
+	uint8_t *pMsg,
+	size_t msgSize,
 	bool isSync
 );
 static bool replyOuter (
 	uint32_t nReqId,
 	ST_CONTEXT *pstContext,
 	EN_THM_RSLT enRslt,
-	uint8_t *pszMsg
+	uint8_t *pMsg,
+	size_t msgSize
 );
-static bool reply (EN_THM_RSLT enRslt, uint8_t *pszMsg);
+static bool reply (EN_THM_RSLT enRslt, uint8_t *pMsg, size_t msgSize);
 static ST_CONTEXT getContext (void);
 static void clearContext (ST_CONTEXT *p);
 static uint32_t getRequestId (uint8_t nThreadIdx, uint8_t nSeqIdx);
@@ -400,7 +410,7 @@ static void clearRequestIdInfo (ST_REQUEST_ID_INFO *p);
 static bool isSyncReplyFromRequestId (uint8_t nThreadIdx, uint32_t nReqId);
 static bool setRequestIdSyncReply (uint8_t nThreadIdx, uint32_t nReqId);
 static ST_SYNC_REPLY_INFO *getSyncReplyInfo (uint8_t nThreadIdx);
-static bool cashSyncReplyInfo (uint8_t nThreadIdx, EN_THM_RSLT enRslt, uint8_t *pszMsg);
+static bool cashSyncReplyInfo (uint8_t nThreadIdx, EN_THM_RSLT enRslt, uint8_t *pMsg, size_t msgSize);
 static void setReplyAlreadySyncReplyInfo (uint8_t nThreadIdx);
 static void clearSyncReplyInfo (ST_SYNC_REPLY_INFO *p);
 static bool registerNotify (uint8_t *pnClientId);
@@ -411,9 +421,10 @@ static bool notifyInner (
 	uint8_t nThreadIdx,
 	uint8_t nClientId,
 	ST_CONTEXT *pstContext,
-	uint8_t *pszMsg
+	uint8_t *pMsg,
+	size_t msgSize
 );
-static bool notify (uint8_t nClientId, uint8_t *pszMsg);
+static bool notify (uint8_t nClientId, uint8_t *pMsg, size_t msgSize);
 static void clearNotifyClientInfo (ST_NOTIFY_CLIENT_INFO *p);
 static void setSectId (uint8_t nSectId, EN_THM_ACT enAct);
 static void setSectIdInner (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t nSectId, EN_THM_ACT enAct);
@@ -1018,7 +1029,8 @@ static bool enQueWorker (
 	uint32_t nReqId,
 	EN_THM_RSLT enRslt,
 	uint8_t nClientId,
-	uint8_t *pszMsg
+	uint8_t *pMsg,
+	size_t msgSize
 )
 {
 	uint8_t i = 0;
@@ -1045,8 +1057,10 @@ static bool enQueWorker (
 			pstQueWorker->nReqId = nReqId;
 			pstQueWorker->enRslt = enRslt;
 			pstQueWorker->nClientId = nClientId;
-			if (pszMsg) {
-				memcpy (pstQueWorker->msg.szMsg, pszMsg, MSG_SIZE);
+			if (pMsg && msgSize > 0) {
+//TODO size truncate
+				memcpy (pstQueWorker->msg.msg, pMsg, msgSize < MSG_SIZE ? msgSize : MSG_SIZE);
+				pstQueWorker->msg.size = msgSize < MSG_SIZE ? msgSize : MSG_SIZE;
 				pstQueWorker->msg.isUsed = true;
 			}
 			pstQueWorker->isUsed = true;
@@ -1614,7 +1628,8 @@ static void clearQueWorker (ST_QUE_WORKER *p)
 	p->nReqId = REQUEST_ID_BLANK;
 	p->enRslt = EN_THM_RSLT_IGNORE;
 	p->nClientId = NOTIFY_CLIENT_ID_BLANK;
-	memset (p->msg.szMsg, 0x00, MSG_SIZE);
+	memset (p->msg.msg, 0x00, MSG_SIZE);
+	p->msg.size = 0;
 	p->msg.isUsed = false;
 	p->isUsed = false;
 	p->isDrop = false;
@@ -2010,7 +2025,8 @@ static void *workerThread (void *pArg)
 																Seqタイムアウトの場合はEN_THM_RSLT_SEQ_TIMEOUTが入る */
 					pstThmSrcInfo->nClientId = stRtnQue.nClientId; /* NOTIFY_CLIENT_ID_BLANK が入る 無効な値 */
 					if (stRtnQue.msg.isUsed) {
-						pstThmSrcInfo->pszMsg = stRtnQue.msg.szMsg;
+						pstThmSrcInfo->msg.pMsg = stRtnQue.msg.msg;
+						pstThmSrcInfo->msg.size = stRtnQue.msg.size;
 					}
 
 					/* 引数セット */
@@ -2102,7 +2118,7 @@ static void *workerThread (void *pArg)
 					pstThmSrcInfo->enRslt = stRtnQue.enRslt; /* 結果が入る */
 					pstThmSrcInfo->nClientId = stRtnQue.nClientId; /* NOTIFY_CLIENT_ID_BLANK が入る 無効な値 */
 					if (stRtnQue.msg.isUsed) {
-						pstThmSrcInfo->pszMsg = stRtnQue.msg.szMsg;
+						pstThmSrcInfo->pMsg = stRtnQue.msg.msg;
 					}
 
 					/* 引数セット */
@@ -2138,7 +2154,8 @@ static void *workerThread (void *pArg)
 					pstThmSrcInfo->enRslt = stRtnQue.enRslt; /* EN_THM_RSLT_IGNOREが入る 無効な値 */
 					pstThmSrcInfo->nClientId = stRtnQue.nClientId; /* notify時に登録した値 */
 					if (stRtnQue.msg.isUsed) {
-						pstThmSrcInfo->pszMsg = stRtnQue.msg.szMsg;
+						pstThmSrcInfo->msg.pMsg = stRtnQue.msg.msg;
+						pstThmSrcInfo->msg.size = stRtnQue.msg.size;
 					}
 
 					/* 引数セット */
@@ -2261,7 +2278,8 @@ static void clearThmSrcInfo (ST_THM_SRC_INFO *p)
 	p->nReqId = REQUEST_ID_BLANK;
 	p->enRslt = EN_THM_RSLT_IGNORE;
 	p->nClientId = NOTIFY_CLIENT_ID_BLANK;
-	p->pszMsg = NULL;
+	p->msg.pMsg = NULL;
+	p->msg.size= 0;
 }
 
 /**
@@ -2305,7 +2323,8 @@ static bool requestInner (
 	uint8_t nSeqIdx,
 	uint32_t nReqId,
 	ST_CONTEXT *pstContext,
-	uint8_t *pszMsg
+	uint8_t *pMsg,
+	size_t msgSize
 )
 {
 	/* lock */
@@ -2313,7 +2332,7 @@ static bool requestInner (
 
 	/* キューに入れる */
 	if (!enQueWorker (nThreadIdx, nSeqIdx, EN_QUE_TYPE_REQUEST,
-							pstContext, nReqId, EN_THM_RSLT_IGNORE, NOTIFY_CLIENT_ID_BLANK, pszMsg)) {
+							pstContext, nReqId, EN_THM_RSLT_IGNORE, NOTIFY_CLIENT_ID_BLANK, pMsg, msgSize)) {
 		/* unlock */
 		pthread_mutex_unlock (&gMutexWorker [nThreadIdx]);
 
@@ -2344,7 +2363,7 @@ static bool requestInner (
  *
  * 公開用 external_if
  */
-bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
+bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize)
 {
 	if ((nThreadIdx < 0) || (nThreadIdx >= getTotalWorkerThreadNum())) {
 		THM_INNER_LOG_E ("invalid arument\n");
@@ -2390,7 +2409,7 @@ bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
 		pthread_mutex_unlock (&(pstExtInfo->mutex));
 
 		/* リクエスト投げる */
-		if (!requestInner (nThreadIdx, nSeqIdx, reqId, &stContext, pszMsg)) {
+		if (!requestInner (nThreadIdx, nSeqIdx, reqId, &stContext, pMsg, msgSize)) {
 			releaseRequestId (THREAD_IDX_EXTERNAL, reqId);
 			return false;
 		}
@@ -2428,7 +2447,7 @@ bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
 	pthread_mutex_lock (&gMutexSyncReply [stContext.nThreadIdx]);
 
 	/* リクエスト投げる */
-	if (!requestInner(nThreadIdx, nSeqIdx, reqId, &stContext, pszMsg)) {
+	if (!requestInner(nThreadIdx, nSeqIdx, reqId, &stContext, pMsg, msgSize)) {
 
 		/* gMutexSyncReply unlock */
 		pthread_mutex_unlock (&gMutexSyncReply[stContext.nThreadIdx]);
@@ -2480,9 +2499,11 @@ bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
 			gstThmSrcInfo [stContext.nThreadIdx].nReqId = reqId;
 			gstThmSrcInfo [stContext.nThreadIdx].enRslt = pstTmpSyncReplyInfo->enRslt;
 			if (pstTmpSyncReplyInfo->msg.isUsed) {
-				gstThmSrcInfo [stContext.nThreadIdx].pszMsg = pstTmpSyncReplyInfo->msg.szMsg;
+				gstThmSrcInfo [stContext.nThreadIdx].msg.pMsg = pstTmpSyncReplyInfo->msg.msg;
+				gstThmSrcInfo [stContext.nThreadIdx].msg.size = pstTmpSyncReplyInfo->msg.size;
 			} else {
-				gstThmSrcInfo [stContext.nThreadIdx].pszMsg = NULL;
+				gstThmSrcInfo [stContext.nThreadIdx].msg.pMsg = NULL;
+				gstThmSrcInfo [stContext.nThreadIdx].msg.size = 0;
 			}
 		}
 		break;
@@ -2529,7 +2550,7 @@ bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg)
  *
  * 公開用 external_if
  */
-bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_t *pnReqId)
+bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize, uint32_t *pOutReqId)
 {
 	if ((nThreadIdx < 0) || (nThreadIdx >= getTotalWorkerThreadNum())) {
 		THM_INNER_LOG_E ("invalid arument\n");
@@ -2567,8 +2588,8 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_
 		}
 
 		/* 引数pReqIdに返却 */
-		if (pnReqId) {
-			*pnReqId = reqId;
+		if (pOutReqId) {
+			*pOutReqId = reqId;
 		}
 
 		/*
@@ -2578,7 +2599,7 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_
 		pstExtInfo->nReqId = reqId;
 
 		/* リクエスト投げる */
-		if (!requestInner (nThreadIdx, nSeqIdx, reqId, &stContext, pszMsg)) {
+		if (!requestInner (nThreadIdx, nSeqIdx, reqId, &stContext, pMsg, msgSize)) {
 			releaseRequestId (THREAD_IDX_EXTERNAL, reqId);
 			return false;
 		}
@@ -2598,8 +2619,8 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_
 	}
 
 	/* 引数pReqIdに返却 */
-	if (pnReqId) {
-		*pnReqId = reqId;
+	if (pOutReqId) {
+		*pOutReqId = reqId;
 	}
 
 #ifndef _MULTI_REQUESTING
@@ -2614,7 +2635,7 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, uint32_
 #endif
 
 	/* リクエスト投げる */
-	if (!requestInner(nThreadIdx, nSeqIdx, reqId, &stContext, pszMsg)) {
+	if (!requestInner(nThreadIdx, nSeqIdx, reqId, &stContext, pMsg, msgSize)) {
 		releaseRequestId (stContext.nThreadIdx, reqId);
 		return false;
 	}
@@ -2637,13 +2658,14 @@ static bool replyInner (
 	uint32_t nReqId,
 	ST_CONTEXT *pstContext,
 	EN_THM_RSLT enRslt,
-	uint8_t *pszMsg,
+	uint8_t *pMsg,
+	size_t msgSize,
 	bool isSync
 )
 {
 	if (isSync) {
 		/* sync Reply */
-		if (!cashSyncReplyInfo (nThreadIdx, enRslt, pszMsg)) {
+		if (!cashSyncReplyInfo (nThreadIdx, enRslt, pMsg, msgSize)) {
 			THM_INNER_LOG_E ("cashSyncReplyInfo() is failure.\n");
 			return false;
 		}
@@ -2680,7 +2702,7 @@ static bool replyInner (
 
 	/* キューに入れる */
 	if (!enQueWorker (nThreadIdx, nSeqIdx, EN_QUE_TYPE_REPLY,
-							pstContext, nReqId, enRslt, NOTIFY_CLIENT_ID_BLANK, pszMsg)) {
+							pstContext, nReqId, enRslt, NOTIFY_CLIENT_ID_BLANK, pMsg, msgSize)) {
 		/* unlock */
 		pthread_mutex_unlock (&gMutexWorker [nThreadIdx]);
 
@@ -2710,7 +2732,8 @@ static bool replyOuter (
 	uint32_t nReqId,
 	ST_CONTEXT *pstContext,
 	EN_THM_RSLT enRslt,
-	uint8_t *pszMsg
+	uint8_t *pMsg,
+	size_t msgSize
 )
 {
 	ST_EXTERNAL_CONTROL_INFO *pstExtInfo = NULL;
@@ -2734,11 +2757,14 @@ static bool replyOuter (
 		pstExtInfo->stThmSrcInfo.nReqId = nReqId;
 	}
 	pstExtInfo->stThmSrcInfo.enRslt = enRslt;
-	if (pszMsg) {
-		memcpy (pstExtInfo->szMsgEntity, pszMsg, MSG_SIZE);
-		pstExtInfo->stThmSrcInfo.pszMsg = pstExtInfo->szMsgEntity;
+	if (pMsg && msgSize > 0) {
+		memcpy (pstExtInfo->msgEntity.msg, pMsg, msgSize < MSG_SIZE ? msgSize : MSG_SIZE);
+		pstExtInfo->msgEntity.size = msgSize < MSG_SIZE ? msgSize : MSG_SIZE;
+		pstExtInfo->stThmSrcInfo.msg.pMsg = pstExtInfo->msgEntity.msg;
+		pstExtInfo->stThmSrcInfo.msg.size = pstExtInfo->msgEntity.size;
 	} else {
-		pstExtInfo->stThmSrcInfo.pszMsg = NULL;
+		pstExtInfo->stThmSrcInfo.msg.pMsg = NULL;
+		pstExtInfo->stThmSrcInfo.msg.size = 0;
 	}
 
 	pthread_cond_signal (&(pstExtInfo->cond));
@@ -2754,7 +2780,7 @@ static bool replyOuter (
  * Reply
  * 公開用
  */
-static bool reply (EN_THM_RSLT enRslt, uint8_t *pszMsg)
+static bool reply (EN_THM_RSLT enRslt, uint8_t *pMsg, size_t msgSize)
 {
 	/*
 	 * getContext->自分のthreadIdx取得->innerInfoを参照して返送先を得る
@@ -2783,7 +2809,7 @@ static bool reply (EN_THM_RSLT enRslt, uint8_t *pszMsg)
 		}
 
 		/* リプライ投げる */
-		if (!replyOuter (nReqId, &stContext, enRslt, pszMsg)) {
+		if (!replyOuter (nReqId, &stContext, enRslt, pMsg, msgSize)) {
 			return false;
 		}
 
@@ -2801,7 +2827,7 @@ static bool reply (EN_THM_RSLT enRslt, uint8_t *pszMsg)
 		isSync = isSyncReplyFromRequestId (nThreadIdx, nReqId);
 
 		/* リプライ投げる */
-		if (!replyInner (nThreadIdx, nSeqIdx, nReqId, &stContext, enRslt, pszMsg, isSync)) {
+		if (!replyInner (nThreadIdx, nSeqIdx, nReqId, &stContext, enRslt, pMsg, msgSize, isSync)) {
 			return false;
 		}
 	}
@@ -3079,7 +3105,7 @@ static void checkReqTimeout (uint8_t nThreadIdx)
 					 * ここでreplyして reqId解放します
 					 */
 					THM_INNER_FORCE_LOG_N ("external thread -- reqTimeout reqId:[0x%x]\n", i);
-					replyOuter (i, &stContext, EN_THM_RSLT_REQ_TIMEOUT, NULL);
+					replyOuter (i, &stContext, EN_THM_RSLT_REQ_TIMEOUT, NULL, 0);
 					releaseRequestId (THREAD_IDX_EXTERNAL, i);
 
 				} else {
@@ -3164,7 +3190,7 @@ static bool enQueReqTimeout (uint8_t nThreadIdx, uint32_t nReqId)
 	uint8_t nSeqIdx = gstRequestIdInfo [nThreadIdx][nReqId].nSrcSeqIdx;
 
 	if (!enQueWorker (nThreadIdx, nSeqIdx, EN_QUE_TYPE_REQ_TIMEOUT,
-							&stContext, nReqId, EN_THM_RSLT_REQ_TIMEOUT, NOTIFY_CLIENT_ID_BLANK, NULL)) {
+							&stContext, nReqId, EN_THM_RSLT_REQ_TIMEOUT, NOTIFY_CLIENT_ID_BLANK, NULL, 0)) {
 		THM_INNER_LOG_E ("enQueWorker() is failure.\n");
 
 		/* unlock */
@@ -3371,7 +3397,7 @@ static ST_SYNC_REPLY_INFO *getSyncReplyInfo (uint8_t nThreadIdx)
  *
  * 引数 nThreadIdxは request元スレッドです
  */
-static bool cashSyncReplyInfo (uint8_t nThreadIdx, EN_THM_RSLT enRslt, uint8_t *pszMsg)
+static bool cashSyncReplyInfo (uint8_t nThreadIdx, EN_THM_RSLT enRslt, uint8_t *pMsg, size_t msgSize)
 {
 	if (
 		(!gstSyncReplyInfo [nThreadIdx].isUsed) ||
@@ -3388,8 +3414,10 @@ static bool cashSyncReplyInfo (uint8_t nThreadIdx, EN_THM_RSLT enRslt, uint8_t *
 	gstSyncReplyInfo [nThreadIdx].enRslt = enRslt;
 
 	/* message 保存 */
-	if (pszMsg) {
-		memcpy (gstSyncReplyInfo [nThreadIdx].msg.szMsg, pszMsg, MSG_SIZE);
+	if (pMsg && msgSize > 0) {
+//TODO msg truncate
+		memcpy (gstSyncReplyInfo [nThreadIdx].msg.msg, pMsg, msgSize < MSG_SIZE ? msgSize : MSG_SIZE);
+		gstSyncReplyInfo [nThreadIdx].msg.size = msgSize < MSG_SIZE ? msgSize : MSG_SIZE;
 		gstSyncReplyInfo [nThreadIdx].msg.isUsed = true;
 	}
 
@@ -3428,7 +3456,8 @@ static void clearSyncReplyInfo (ST_SYNC_REPLY_INFO *p)
 
 	p->nReqId = REQUEST_ID_BLANK;
 	p->enRslt = EN_THM_RSLT_IGNORE;
-	memset( p->msg.szMsg, 0x00, MSG_SIZE );
+	memset (p->msg.msg, 0x00, MSG_SIZE);
+	p->msg.size = 0;
 	p->msg.isUsed = false;
 	p->isReplyAlready = false;
 	p->isUsed = false;
@@ -3572,7 +3601,8 @@ static bool notifyInner (
 	uint8_t nThreadIdx,
 	uint8_t nClientId,
 	ST_CONTEXT *pstContext,
-	uint8_t *pszMsg
+	uint8_t *pMsg,
+	size_t msgSize
 )
 {
 	/* lock */
@@ -3580,7 +3610,7 @@ static bool notifyInner (
 
 	/* キューに入れる */
 	if (!enQueWorker (nThreadIdx, SEQ_IDX_BLANK, EN_QUE_TYPE_NOTIFY,
-							pstContext, REQUEST_ID_BLANK, EN_THM_RSLT_IGNORE, nClientId, pszMsg)) {
+							pstContext, REQUEST_ID_BLANK, EN_THM_RSLT_IGNORE, nClientId, pMsg, msgSize)) {
 		/* unlock */
 		pthread_mutex_unlock (&gMutexWorker [nThreadIdx]);
 
@@ -3606,7 +3636,7 @@ static bool notifyInner (
  * Notify送信
  * 公開
  */
-static bool notify (uint8_t nClientId, uint8_t *pszMsg)
+static bool notify (uint8_t nClientId, uint8_t *pMsg, size_t msgSize)
 {
 	/*
 	 * getContext->自分のthreadIdx取得-> notifyClientInfoをみて trueだったらenque
@@ -3631,7 +3661,7 @@ static bool notify (uint8_t nClientId, uint8_t *pszMsg)
 
 
 	/* Notify投げる */
-	if (!notifyInner (nClientThreadIdx, nClientId, &stContext, pszMsg)) {
+	if (!notifyInner (nClientThreadIdx, nClientId, &stContext, pMsg, msgSize)) {
 		return false;
 	}
 
@@ -3864,9 +3894,9 @@ static bool enQueSeqTimeout (uint8_t nThreadIdx, uint8_t nSeqIdx)
 {
 	ST_CONTEXT stContext = getContext();
 
-	if (!enQueWorker( nThreadIdx, nSeqIdx, EN_QUE_TYPE_SEQ_TIMEOUT,
-							&stContext, REQUEST_ID_BLANK, EN_THM_RSLT_SEQ_TIMEOUT, NOTIFY_CLIENT_ID_BLANK, NULL )) {
-		THM_INNER_LOG_E( "enQueWorker() is failure.\n" );
+	if (!enQueWorker(nThreadIdx, nSeqIdx, EN_QUE_TYPE_SEQ_TIMEOUT,
+							&stContext, REQUEST_ID_BLANK, EN_THM_RSLT_SEQ_TIMEOUT, NOTIFY_CLIENT_ID_BLANK, NULL, 0)) {
+		THM_INNER_LOG_E ("enQueWorker() is failure.\n");
 		return false;
 	}
 
@@ -4457,7 +4487,8 @@ static void clearExternalControlInfo (ST_EXTERNAL_CONTROL_INFO *p)
 	p->nPthreadId = pthread_self();
 	p->nReqId = REQUEST_ID_BLANK;
 
-	memset (p->szMsgEntity, 0x00, sizeof(MSG_SIZE));
+	memset (p->msgEntity.msg, 0x00, sizeof(MSG_SIZE));
+	p->msgEntity.size = 0;
 	clearThmSrcInfo (&(p->stThmSrcInfo));
 
 	p->isReplyAlready = false;

@@ -42,16 +42,16 @@ ST_THM_SRC_INFO * CThreadMgrIf::getSrcInfo (void)
 bool CThreadMgrIf::reply (EN_THM_RSLT enRslt)
 {
 	if (mpIf) {
-		return mpIf->pfnReply (enRslt, NULL);
+		return mpIf->pfnReply (enRslt, NULL, 0);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrIf::reply (EN_THM_RSLT enRslt, uint8_t *pszMsg)
+bool CThreadMgrIf::reply (EN_THM_RSLT enRslt, uint8_t *pMsg, size_t msgSize)
 {
 	if (mpIf) {
-		return mpIf->pfnReply (enRslt, pszMsg);
+		return mpIf->pfnReply (enRslt, pMsg, msgSize);
 	} else {
 		return false;
 	}
@@ -78,16 +78,16 @@ bool CThreadMgrIf::unregNotify (uint8_t nClientId)
 bool CThreadMgrIf::notify (uint8_t nClientId)
 {
 	if (mpIf) {
-		return mpIf->pfnNotify (nClientId, NULL);
+		return mpIf->pfnNotify (nClientId, NULL, 0);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrIf::notify (uint8_t nClientId, uint8_t *pszMsg)
+bool CThreadMgrIf::notify (uint8_t nClientId, uint8_t *pMsg, size_t msgSize)
 {
 	if (mpIf) {
-		return mpIf->pfnNotify (nClientId, pszMsg);
+		return mpIf->pfnNotify (nClientId, pMsg, msgSize);
 	} else {
 		return false;
 	}

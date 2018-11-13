@@ -37,7 +37,8 @@ void CModuleA::startUp (CThreadMgrIf *pIf)
 	nSectId = pIf->getSectId();
 	THM_LOG_I ("nSectId %d\n", nSectId);
 
-	pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)"ModuleA startup end.");
+	const char *msg = "ModuleA startup end.";
+	pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
 
 	nSectId = THM_SECT_ID_INIT;
 	enAct = EN_THM_ACT_DONE;
@@ -61,25 +62,28 @@ void CModuleA::func00 (CThreadMgrIf *pIf)
 
 	switch (nSectId) {
 	case SECTID_ENTRY:
-		THM_LOG_I ("msg [%s]\n", pIf->getSrcInfo()->pszMsg);
+		THM_LOG_I ("msg [%s]\n", (char*)pIf->getSrcInfo()->msg.pMsg);
 
 		nSectId = SECTID_REQ_THREAD_A_FUNC01;
 		enAct = EN_THM_ACT_CONTINUE;
 		break;
 
-	case SECTID_REQ_THREAD_A_FUNC01:
+	case SECTID_REQ_THREAD_A_FUNC01: {
 
 		// 自スレのfunc01にリクエスト
-//		reqFunc01ThreadA(NULL);
-		CThreadMgr::getInstance()->getExternalIf()->requestAsync (0, 2, NULL, NULL);
+		CModuleA_extern *ex = new CModuleA_extern (CThreadMgr::getInstance()->getExternalIf());
+		const char *msg = "req func01";
+		ex->reqFunc01 (msg, strlen(msg));
+		delete ex;
+		ex = NULL;
 
 		nSectId = SECTID_WAIT_THREAD_A_FUNC01;
 		enAct = EN_THM_ACT_WAIT;
-		break;
+		} break;
 
 	case SECTID_WAIT_THREAD_A_FUNC01: {
 		EN_THM_RSLT enRslt = pIf->getSrcInfo()->enRslt;
-		THM_LOG_I ("reqFunc01ThreadA return [%d] msg:[%s]\n", enRslt, pIf->getSrcInfo()->pszMsg);
+		THM_LOG_I ("reqFunc01ThreadA return [%d] msg:[%s]\n", enRslt, (char*)pIf->getSrcInfo()->msg.pMsg);
 
 		if (enRslt == EN_THM_RSLT_SUCCESS) {
 			nSectId = SECTID_END;
@@ -92,13 +96,13 @@ void CModuleA::func00 (CThreadMgrIf *pIf)
 		} break;
 
 	case SECTID_END:
-		pIf->reply (EN_THM_RSLT_SUCCESS, NULL);
+		pIf->reply (EN_THM_RSLT_SUCCESS);
 		nSectId = THM_SECT_ID_INIT;
 		enAct = EN_THM_ACT_DONE;
 		break;
 
 	case SECTID_ERR_END:
-		pIf->reply (EN_THM_RSLT_ERROR, NULL);
+		pIf->reply (EN_THM_RSLT_ERROR);
 		nSectId = THM_SECT_ID_INIT;
 		enAct = EN_THM_ACT_DONE;
 		break;
@@ -127,7 +131,7 @@ void CModuleA::func01 (CThreadMgrIf *pIf)
 
 	switch (nSectId) {
 	case SECTID_ENTRY:
-		THM_LOG_I ("msg [%s]\n", pIf->getSrcInfo()->pszMsg);
+		THM_LOG_I ("msg [%s]\n", (char*)pIf->getSrcInfo()->msg.pMsg);
 
 //		nSectId = SECTID_REQ_THREAD_B_FUNC00;
 		nSectId = SECTID_END;
@@ -156,7 +160,7 @@ void CModuleA::func01 (CThreadMgrIf *pIf)
 
 		} else {
 			EN_THM_RSLT enRslt = pIf->getSrcInfo()->enRslt;
-			THM_LOG_I ("reqFunc00ThreadB return [%d] msg:[%s]\n", enRslt, pIf->getSrcInfo()->pszMsg);
+			THM_LOG_I ("reqFunc00ThreadB return [%d] msg:[%s]\n", enRslt, pIf->getSrcInfo()->pMsg);
 
 			if (enRslt == EN_THM_RSLT_SUCCESS) {
 				nSectId = SECTID_END;
@@ -169,14 +173,15 @@ void CModuleA::func01 (CThreadMgrIf *pIf)
 
 		} break;
 **/
-	case SECTID_END:
-		pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)"aaaaaaaaaaaaaaaaa");
+	case SECTID_END: {
+		const char *msg = "aaaaaaaaaaaaaaaaa";
+		pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
 		nSectId = THM_SECT_ID_INIT;
 		enAct = EN_THM_ACT_DONE;
-		break;
+		} break;
 
 	case SECTID_ERR_END:
-		pIf->reply (EN_THM_RSLT_ERROR, NULL);
+		pIf->reply (EN_THM_RSLT_ERROR);
 		nSectId = THM_SECT_ID_INIT;
 		enAct = EN_THM_ACT_DONE;
 		break;

@@ -45,7 +45,7 @@ int main (void)
 	p_mod_a_extern-> reqStartUp ();
 	ST_THM_SRC_INFO* r = pMgr->getExternalIf()-> receiveExternal();
 	if (r) {
-		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->pszMsg);
+		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->msg.pMsg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd r null");
 	}
@@ -53,7 +53,7 @@ int main (void)
 	p_mod_b_extern-> reqStartUp ();
 	r = pMgr->getExternalIf()-> receiveExternal();
 	if (r) {
-		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->pszMsg);
+		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->msg.pMsg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd r null");
 	}
@@ -61,14 +61,14 @@ int main (void)
 	p_mod_c_extern-> reqStartUp ();
 	r = pMgr->getExternalIf()-> receiveExternal();
 	if (r) {
-		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->pszMsg);
+		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->msg.pMsg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd r null");
 	}
 
 
-
-	p_mod_a_extern->reqFunc00 ((const char*)"test request");
+	const char *msg = "test request";
+	p_mod_a_extern->reqFunc00 ((const char*)msg, strlen(msg));
 
 
 	pause ();

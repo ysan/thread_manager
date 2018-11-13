@@ -44,7 +44,7 @@ static uint8_t gnClientId;
 void recvNotifyThreadB (ST_THM_IF *pIf)
 {
 	if (pIf->pstSrcInfo->nClientId == gnClientId) {
-		THM_LOG_I ("recv notify  id:[%d] msg:[%s]\n", pIf->pstSrcInfo->nClientId, pIf->pstSrcInfo->pszMsg);
+		THM_LOG_I ("recv notify  id:[%d] msg:[%s]\n", pIf->pstSrcInfo->nClientId, (char*)pIf->pstSrcInfo->msg.pMsg);
 	}
 }
 
@@ -77,7 +77,7 @@ static void startup (ST_THM_IF *pIf)
 
 	case SECTID_WAIT_REG_NOTIFY_THC: {
 		EN_THM_RSLT enRslt = pIf->pstSrcInfo->enRslt;
-		gnClientId = *(pIf->pstSrcInfo->pszMsg);
+		gnClientId = *(pIf->pstSrcInfo->msg.pMsg);
 		THM_LOG_I ("return reqRegNotifyThreadC [%d] gnClientId:[%d]\n", enRslt, gnClientId);
 
 		if (enRslt == EN_THM_RSLT_SUCCESS) {
@@ -91,13 +91,13 @@ static void startup (ST_THM_IF *pIf)
 		} break;
 
 	case SECTID_END:
-		pIf->pfnReply (EN_THM_RSLT_SUCCESS, NULL);
+		pIf->pfnReply (EN_THM_RSLT_SUCCESS, NULL, 0);
 		nSectId = 0;
 		enAct = EN_THM_ACT_DONE;
 		break;
 
 	case SECTID_ERR_END:
-		pIf->pfnReply (EN_THM_RSLT_ERROR, NULL);
+		pIf->pfnReply (EN_THM_RSLT_ERROR, NULL, 0);
 		nSectId = 0;
 		enAct = EN_THM_ACT_DONE;
 		break;
@@ -124,7 +124,8 @@ static void func00 (ST_THM_IF *pIf)
 	THM_LOG_I ("execute. sleep 2sec.\n");
 	sleep (2);
 
-	pIf->pfnReply (EN_THM_RSLT_SUCCESS, (uint8_t*)"thread_b func00 end.");
+	char *msg = "thread_b func00 end.";
+	pIf->pfnReply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
 
 	nSectId = 0;
 	enAct = EN_THM_ACT_DONE;
@@ -144,7 +145,8 @@ static void func01 (ST_THM_IF *pIf)
 	nSectId = pIf->pfnGetSectId();
 	THM_LOG_I ("nSectId %d\n", nSectId);
 
-	pIf->pfnReply (EN_THM_RSLT_SUCCESS, (uint8_t*)"thread_b func01 end. -- sync --");
+	char *msg = "thread_b func01 end. -- sync --";
+	pIf->pfnReply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
 
 	nSectId = 0;
 	enAct = EN_THM_ACT_DONE;
@@ -182,12 +184,12 @@ static void func02 (ST_THM_IF *pIf)
 		EN_THM_RSLT enRslt = pIf->pstSrcInfo->enRslt;
 		switch ((int)enRslt) {
 		case EN_THM_RSLT_SUCCESS:
-			THM_LOG_I ("return success reqFunc00ThreadC [%d] msg:[%s]\n", enRslt, (char*)pIf->pstSrcInfo->pszMsg);
+			THM_LOG_I ("return success reqFunc00ThreadC [%d] msg:[%s]\n", enRslt, (char*)pIf->pstSrcInfo->msg.pMsg);
 			nSectId = SECTID_END;
 			enAct = EN_THM_ACT_CONTINUE;
 			break;
 		case EN_THM_RSLT_ERROR:
-			THM_LOG_E ("return error reqFunc00ThreadC [%d] msg:[%s]\n", enRslt, (char*)pIf->pstSrcInfo->pszMsg);
+			THM_LOG_E ("return error reqFunc00ThreadC [%d] msg:[%s]\n", enRslt, (char*)pIf->pstSrcInfo->msg.pMsg);
 			nSectId = SECTID_ERR_END;
 			enAct = EN_THM_ACT_CONTINUE;
 			break;
@@ -201,13 +203,13 @@ static void func02 (ST_THM_IF *pIf)
 		} break;
 
 	case SECTID_END:
-		pIf->pfnReply (EN_THM_RSLT_SUCCESS, NULL);
+		pIf->pfnReply (EN_THM_RSLT_SUCCESS, NULL, 0);
 		nSectId = 0;
 		enAct = EN_THM_ACT_DONE;
 		break;
 
 	case SECTID_ERR_END:
-		pIf->pfnReply (EN_THM_RSLT_ERROR, NULL);
+		pIf->pfnReply (EN_THM_RSLT_ERROR, NULL, 0);
 		nSectId = 0;
 		enAct = EN_THM_ACT_DONE;
 		break;
@@ -223,22 +225,22 @@ static void func02 (ST_THM_IF *pIf)
 
 // 以下公開用
 
-void reqStartupThreadB (uint32_t *pnReqId)
+void reqStartupThreadB (uint32_t *pOutReqId)
 {
-	gpIf->pfnRequestAsync (EN_THREAD_B, EN_B_STARTUP, NULL, pnReqId);
+	gpIf->pfnRequestAsync (EN_THREAD_B, EN_B_STARTUP, NULL, 0, pOutReqId);
 }
 
-void reqFunc00ThreadB (uint32_t *pnReqId)
+void reqFunc00ThreadB (uint32_t *pOutReqId)
 {
-	gpIf->pfnRequestAsync (EN_THREAD_B, EN_B_FUNC_00, NULL, pnReqId);
+	gpIf->pfnRequestAsync (EN_THREAD_B, EN_B_FUNC_00, NULL, 0, pOutReqId);
 }
 
 void func01ThreadB (void)
 {
-	gpIf->pfnRequestSync (EN_THREAD_B, EN_B_FUNC_01, NULL);
+	gpIf->pfnRequestSync (EN_THREAD_B, EN_B_FUNC_01, NULL, 0);
 }
 
-void reqFunc02ThreadB (uint32_t *pnReqId)
+void reqFunc02ThreadB (uint32_t *pOutReqId)
 {
-	gpIf->pfnRequestAsync (EN_THREAD_B, EN_B_FUNC_02, NULL, pnReqId);
+	gpIf->pfnRequestAsync (EN_THREAD_B, EN_B_FUNC_02, NULL, 0, pOutReqId);
 }
