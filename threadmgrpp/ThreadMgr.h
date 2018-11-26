@@ -29,7 +29,7 @@ public:
 	bool setup (CThreadMgrBase *pThreads[], int threadNum);
 	void teardown (void);
 
-	CThreadMgrExternalIf * getExternalIf (void);
+	CThreadMgrExternalIf * getExternalIf (void) const;
 
 
 private:

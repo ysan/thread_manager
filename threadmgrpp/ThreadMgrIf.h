@@ -23,7 +23,7 @@ public:
 	virtual ~CThreadMgrIf (void);
 
 
-	ST_THM_SRC_INFO * getSrcInfo (void);
+	ST_THM_SRC_INFO * getSrcInfo (void) const;
 
 	bool reply (EN_THM_RSLT enRslt);
 	bool reply (EN_THM_RSLT enRslt, uint8_t *pMsg, size_t msgSize);
@@ -35,7 +35,7 @@ public:
 	bool notify (uint8_t nClientId, uint8_t *pMsg, size_t msgSize);
 
 	void setSectId (uint8_t nSectId, EN_THM_ACT enAct);
-	uint8_t getSectId (void);
+	uint8_t getSectId (void) const;
 
 	void setTimeout (uint32_t nTimeoutMsec);
 	void clearTimeout (void);

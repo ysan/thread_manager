@@ -171,7 +171,8 @@ void CThreadMgr::teardown (void) {
 	teardownThreadMgr ();
 }
 
-CThreadMgrExternalIf * CThreadMgr::getExternalIf (void) {
+CThreadMgrExternalIf * CThreadMgr::getExternalIf (void) const
+{
 	return mpExtIf;
 }
 

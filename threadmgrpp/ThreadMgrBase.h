@@ -31,7 +31,7 @@ public:
 	friend class CThreadMgr;
 
 
-	CThreadMgrBase (char *pszName, uint8_t nQueNum);
+	CThreadMgrBase (const char *pszName, uint8_t nQueNum);
 	virtual ~CThreadMgrBase (void);
 
 

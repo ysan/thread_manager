@@ -9,7 +9,7 @@
 
 namespace ThreadManager {
 
-CThreadMgrBase::CThreadMgrBase (char *pszName, uint8_t nQueNum)
+CThreadMgrBase::CThreadMgrBase (const char *pszName, uint8_t nQueNum)
 //	:mpfnSeqsBase (NULL)
 	:mpSeqsBase (NULL)
 	,mQueNum (0)

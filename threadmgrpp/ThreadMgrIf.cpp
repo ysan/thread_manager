@@ -30,7 +30,7 @@ CThreadMgrIf::~CThreadMgrIf (void)
 }
 
 
-ST_THM_SRC_INFO * CThreadMgrIf::getSrcInfo (void)
+ST_THM_SRC_INFO * CThreadMgrIf::getSrcInfo (void) const
 {
 	if (mpIf) {
 		return mpIf->pstSrcInfo;
@@ -100,7 +100,7 @@ void CThreadMgrIf::setSectId (uint8_t nSectId, EN_THM_ACT enAct)
 	}
 }
 
-uint8_t CThreadMgrIf::getSectId (void)
+uint8_t CThreadMgrIf::getSectId (void) const
 {
 	if (mpIf) {
 		return mpIf->pfnGetSectId ();
