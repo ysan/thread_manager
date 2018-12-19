@@ -19,6 +19,9 @@ ST_THM_EXTERNAL_IF *gpIf;
 
 int main( void )
 {
+	initLogStdout ();
+
+
 	ST_THM_SRC_INFO *res = NULL;
 
 	if (!(gpIf = setupThreadMgr(gstRegThreadMgrTbl, (uint32_t)EN_THREAD_MAX))) {

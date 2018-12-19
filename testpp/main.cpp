@@ -28,6 +28,9 @@ using namespace ThreadManager;
 
 int main (void)
 {
+	initLogStdout();
+
+
 	CThreadMgr *pMgr = CThreadMgr::getInstance();
 
 	if (!pMgr->setup (gp_threads, EN_MODULE_NUM)) {

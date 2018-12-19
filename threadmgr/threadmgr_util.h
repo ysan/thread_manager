@@ -19,6 +19,10 @@
 #define THM_TEXT_WHITE				"\x1B[37m"
 #define THM_TEXT_STANDARD_COLOR		"\x1B[39m"
 
+#define LOG_PATH	"./"
+#define LOG_NAME	"trace"
+#define LOG_EXT		"log"
+
 
 /*
  * Type define
@@ -33,60 +37,66 @@ typedef enum {
 
 
 /*
+ * Variables
+ */
+extern FILE *g_fpLog;
+
+
+/*
  * log macro
  */
 /* --- Information --- */
 #ifdef _LOG_SIMPLE
 #define THM_LOG_I(fmt, ...) {\
-	putsLogLW (stdout, EN_LOG_TYPE_I, fmt, ##__VA_ARGS__);\
+	putsLogLW (g_fpLog, EN_LOG_TYPE_I, fmt, ##__VA_ARGS__);\
 }
 #else
 #define THM_LOG_I(fmt, ...) {\
-	putsLog (stdout, EN_LOG_TYPE_I, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
+	putsLog (g_fpLog, EN_LOG_TYPE_I, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 /* --- Notice --- */
 #ifdef _LOG_SIMPLE
 #define THM_LOG_N(fmt, ...) {\
-	putsLogLW (stdout, EN_LOG_TYPE_N, fmt, ##__VA_ARGS__);\
+	putsLogLW (g_fpLog, EN_LOG_TYPE_N, fmt, ##__VA_ARGS__);\
 }
 #else
 #define THM_LOG_N(fmt, ...) {\
-	putsLog (stdout, EN_LOG_TYPE_N, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
+	putsLog (g_fpLog, EN_LOG_TYPE_N, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 /* --- Warning --- */
 #ifdef _LOG_SIMPLE
 #define THM_LOG_W(fmt, ...) {\
-	putsLogLW (stdout, EN_LOG_TYPE_W, fmt, ##__VA_ARGS__);\
+	putsLogLW (g_fpLog, EN_LOG_TYPE_W, fmt, ##__VA_ARGS__);\
 }
 #else
 #define THM_LOG_W(fmt, ...) {\
-	putsLog (stdout, EN_LOG_TYPE_W, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
+	putsLog (g_fpLog, EN_LOG_TYPE_W, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 /* --- Error --- */
 #ifdef _LOG_SIMPLE
 #define THM_LOG_E(fmt, ...) {\
-	putsLogLW (stdout, EN_LOG_TYPE_E, fmt, ##__VA_ARGS__);\
+	putsLogLW (g_fpLog, EN_LOG_TYPE_E, fmt, ##__VA_ARGS__);\
 }
 #else
 #define THM_LOG_E(fmt, ...) {\
-	putsLog (stdout, EN_LOG_TYPE_E, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
+	putsLog (g_fpLog, EN_LOG_TYPE_E, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 /* --- perror --- */
 #ifdef _LOG_SIMPLE
 #define THM_PERROR(fmt, ...) {\
-	putsLogLW (stdout, EN_LOG_TYPE_PE, fmt, ##__VA_ARGS__);\
+	putsLogLW (g_fpLog, EN_LOG_TYPE_PE, fmt, ##__VA_ARGS__);\
 }
 #else
 #define THM_PERROR(fmt, ...) {\
-	putsLog (stdout, EN_LOG_TYPE_PE, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
+	putsLog (g_fpLog, EN_LOG_TYPE_PE, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
@@ -101,6 +111,9 @@ extern "C" {
 extern void putsSysTime (void);
 extern void putsThreadName (void);
 extern void getTimeOfDay (struct timeval *p);
+extern bool initLog (void);
+extern void initLogStdout (void);
+extern void finalizLog (void);
 extern void putsLog (
 	FILE *pFp,
 	EN_LOG_TYPE enLogType,
@@ -110,10 +123,6 @@ extern void putsLog (
 	const char *pszFormat,
 	...
 );
-/**
- * putsLW
- * ログ出力 src lineなし
- */
 extern void putsLogLW (
 	FILE *pFp,
 	EN_LOG_TYPE enLogType,
