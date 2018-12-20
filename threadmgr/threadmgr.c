@@ -1188,7 +1188,6 @@ static ST_QUE_WORKER deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 	clearQueWorker (&rtn);
 
 	/* 複数の人が同じthreadIdxのキューを操作するのをガード */
-//TODO いらないかも ここは個々のスレッドが処理するから
 	pthread_mutex_lock (&gMutexOpeQueWorker [nThreadIdx]);
 
 	memcpy (&rtn, pstQueWorker, sizeof (ST_QUE_WORKER));
@@ -1238,7 +1237,6 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 
 
 	/* 複数の人が同じthreadIdxのキューを操作するのをガード */
-//TODO いらないかも ここは個々のスレッドが処理するから
 	pthread_mutex_lock (&gMutexOpeQueWorker [nThreadIdx]);
 
 	/* 新しいほうからキューを探す */
@@ -1257,12 +1255,14 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 					 */
 					memcpy (&rtn, pstQueWorker, sizeof(ST_QUE_WORKER));
 
-//TODO この位置は問題
-					/* sectid関係を強制クリア */
-					clearSectId (nThreadIdx, nSeqIdx);
-
-					/* Seqタイムアウトを強制クリア */
-					clearSeqTimeout (nThreadIdx, nSeqIdx);
+//TODO この位置はよくないか
+					/* 取り出す時だけ */
+					if (isGetOut) {
+						/* sectid関係を強制クリア */
+						clearSectId (nThreadIdx, nSeqIdx);
+						/* Seqタイムアウトを強制クリア */
+						clearSeqTimeout (nThreadIdx, nSeqIdx);
+					}
 
 					break;
 
@@ -1585,6 +1585,7 @@ static ST_QUE_WORKER check2deQueWorker (uint8_t nThreadIdx, bool isGetOut)
 
 
 	/* isDropフラグ立っているものは消します  逆からみます */
+	/* isDropの削除はisGetOut関係なく処理する */
 	pstQueWorker = gstInnerInfo [nThreadIdx].pstQueWorker;
 	for (k = nQueWorkerNum -1; (k >= 0) && (k < nQueWorkerNum); k --) { // unsignedなので マイナス値にならず一周する...
 		if ((pstQueWorker +k)->isDrop) {
@@ -1812,7 +1813,7 @@ static void checkWaitWorkerThread (ST_INNER_INFO *pstInnerInfo)
 
 				if (!pstReqIdInfo) {
 					THM_INNER_LOG_E ("BUG: pstReqIdInfo is null !!!\n");
-					return;
+					goto _F_END;
 				}
 				pstReqIdInfo->timeout.enState = EN_TIMEOUT_STATE_MEAS_COND_TIMEDWAIT;
 				pstTimeout = &(pstReqIdInfo->timeout.stTime);
@@ -1822,7 +1823,7 @@ static void checkWaitWorkerThread (ST_INNER_INFO *pstInnerInfo)
 
 				if (!pstSeqInfo) {
 					THM_INNER_LOG_E ("BUG: pstSeqInfo is null !!!\n");
-					return;
+					goto _F_END;
 				}
 				pstSeqInfo->timeout.enState = EN_TIMEOUT_STATE_MEAS_COND_TIMEDWAIT;
 				pstTimeout = &(pstSeqInfo->timeout.stTime);
@@ -1843,14 +1844,14 @@ static void checkWaitWorkerThread (ST_INNER_INFO *pstInnerInfo)
 				if (enTimeout == EN_NEAREST_TIMEOUT_REQ) {
 					if (!pstReqIdInfo) {
 						THM_INNER_LOG_E ("BUG: pstReqIdInfo is null !!!\n");
-						return;
+						goto _F_END;
 					}
 					pstReqIdInfo->timeout.enState = EN_TIMEOUT_STATE_MEAS;
 
 				} else {
 					if (!pstSeqInfo) {
 						THM_INNER_LOG_E ("BUG: pstSeqInfo is null !!!\n");
-						return;
+						goto _F_END;
 					}
 					pstSeqInfo->timeout.enState = EN_TIMEOUT_STATE_MEAS;
 				}
@@ -1864,7 +1865,7 @@ static void checkWaitWorkerThread (ST_INNER_INFO *pstInnerInfo)
 				if (enTimeout == EN_NEAREST_TIMEOUT_REQ) {
 					if (!pstReqIdInfo) {
 						THM_INNER_LOG_E ("BUG: pstReqIdInfo is null !!!\n");
-						return;
+						goto _F_END;
 					}
 					pstReqIdInfo->timeout.enState = EN_TIMEOUT_STATE_PASSED;
 					enQueReqTimeout (pstInnerInfo->nThreadIdx, pstReqIdInfo->nId);
@@ -1872,7 +1873,7 @@ static void checkWaitWorkerThread (ST_INNER_INFO *pstInnerInfo)
 				} else {
 					if (!pstSeqInfo) {
 						THM_INNER_LOG_E ("BUG: pstSeqInfo is null !!!\n");
-						return;
+						goto _F_END;
 					}
 					pstSeqInfo->timeout.enState = EN_TIMEOUT_STATE_PASSED;
 					enQueSeqTimeout (pstInnerInfo->nThreadIdx, pstSeqInfo->nSeqIdx);
@@ -1893,6 +1894,7 @@ static void checkWaitWorkerThread (ST_INNER_INFO *pstInnerInfo)
 		}
 	}
 
+_F_END:
 	/* unlock */
 	pthread_mutex_unlock (&gMutexWorker [pstInnerInfo->nThreadIdx]);
 }
@@ -1993,9 +1995,9 @@ static void *workerThread (void *pArg)
 				/* Seqタイムアウトが無事終わったので タイムアウト情報クリア */
 				clearSeqTimeout (pstInnerInfo->nThreadIdx, stRtnQue.nDestSeqIdx);
 
-			case EN_QUE_TYPE_REQ_TIMEOUT:
 			case EN_QUE_TYPE_REQUEST:
 			case EN_QUE_TYPE_REPLY:
+			case EN_QUE_TYPE_REQ_TIMEOUT:
 
 				/*
 				 * request/ reply/ timeout がきました
