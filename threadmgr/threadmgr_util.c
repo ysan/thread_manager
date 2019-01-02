@@ -465,6 +465,7 @@ void putsLog (
 		);
 
 		s = NULL;
+		++ n;
 	}
 #endif
 
