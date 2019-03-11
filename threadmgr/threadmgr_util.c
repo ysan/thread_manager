@@ -47,6 +47,7 @@ void getTimeOfDay (struct timeval *p); //extern
 bool initLog (void); // extern
 void initLogStdout (void); // extern
 void finalizLog (void); // extern
+void setLogFileptr (FILE *p); // extern
 void putsLog ( // extern
 	FILE *pFp,
 	EN_LOG_TYPE enLogType,
@@ -314,6 +315,23 @@ void finalizLog (void)
 	}
 }
 
+/**
+ * ログ出力用 FP切り替え
+ */
+void setLogFileptr (FILE *p)
+{
+	if (p) {
+		g_fpLog = p;
+	}
+}
+
+/**
+ * ログ出力用 FP取得
+ */
+FILE* getLogFileptr (void)
+{
+	return g_fpLog;
+}
 /**
  * putsLog
  * ログ出力

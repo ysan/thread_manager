@@ -8,6 +8,32 @@
  */
 #define THM_SECT_ID_INIT	(0)
 
+// REQUEST_OPTION 16bit
+// upper 16 bits are timeout value.
+#define REQUEST_OPTION__WITHOUT_REPLY		(0x00000001)
+#define REQUEST_OPTION__WITH_TIMEOUT_MSEC	(0x00000002)
+#define REQUEST_OPTION__WITH_TIMEOUT_MIN	(0x00000004)
+//#define REQUEST_OPTION__xxx			(0x00000008)
+//#define REQUEST_OPTION__xxx			(0x00000010)
+//#define REQUEST_OPTION__xxx			(0x00000020)
+//#define REQUEST_OPTION__xxx			(0x00000040)
+//#define REQUEST_OPTION__xxx			(0x00000080)
+//#define REQUEST_OPTION__xxx			(0x00000100)
+//#define REQUEST_OPTION__xxx			(0x00000200)
+//#define REQUEST_OPTION__xxx			(0x00000400)
+//#define REQUEST_OPTION__xxx			(0x00000800)
+//#define REQUEST_OPTION__xxx			(0x00001000)
+//#define REQUEST_OPTION__xxx			(0x00002000)
+//#define REQUEST_OPTION__xxx			(0x00004000)
+//#define REQUEST_OPTION__xxx			(0x00008000)
+
+
+
+
+//TODO
+#define _NO_TYPEDEF_uint64_t
+
+
 /*
  * Type define
  */
@@ -68,6 +94,8 @@ typedef struct threadmgr_src_info {
 /*--- threadmgr_external_if ---*/
 typedef bool (*PFN_REQUEST_SYNC) (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize);
 typedef bool (*PFN_REQUEST_ASYNC) (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize, uint32_t *pOutReqId);
+typedef void (*PFN_SET_REQUEST_OPTION) (uint32_t option);
+typedef uint32_t (*PFN_GET_REQUEST_OPTION) (void);
 typedef bool (*PFN_CREATE_EXTERNAL_CP) (void);
 typedef void (*PFN_DESTROY_EXTERNAL_CP) (void);
 typedef ST_THM_SRC_INFO* (*PFN_RECEIVE_EXTERNAL) (void);
@@ -75,6 +103,8 @@ typedef ST_THM_SRC_INFO* (*PFN_RECEIVE_EXTERNAL) (void);
 typedef struct threadmgr_external_if {
 	PFN_REQUEST_SYNC pfnRequestSync;
 	PFN_REQUEST_ASYNC pfnRequestAsync;
+	PFN_SET_REQUEST_OPTION pfnSetRequestOption;
+	PFN_GET_REQUEST_OPTION pfnGetRequestOption;
 	PFN_CREATE_EXTERNAL_CP pfnCreateExternalCp;
 	PFN_DESTROY_EXTERNAL_CP pfnDestroyExternalCp;
 	PFN_RECEIVE_EXTERNAL pfnReceiveExternal;
@@ -93,6 +123,10 @@ typedef void (*PFN_SET_TIMEOUT) (uint32_t nTimeoutMsec);
 typedef void (*PFN_CLEAR_TIMEOUT) (void);
 typedef void (*PFN_ENABLE_OVERWRITE) (void);
 typedef void (*PFN_DISABLE_OVERWRITE) (void);
+typedef void (*PFN_LOCK) (void);
+typedef void (*PFN_UNLOCK) (void);
+typedef uint8_t (*PFN_GET_SEQ_IDX) (void);
+typedef const char* (*PFN_GET_SEQ_NAME) (void);
 
 typedef struct threadmgr_if {
 	ST_THM_SRC_INFO *pstSrcInfo;
@@ -111,6 +145,12 @@ typedef struct threadmgr_if {
 
 	PFN_ENABLE_OVERWRITE pfnEnableOverwrite;
 	PFN_DISABLE_OVERWRITE pfnDisableOverwrite;
+
+	PFN_LOCK pfnLock;
+	PFN_UNLOCK pfnUnlock;
+
+	PFN_GET_SEQ_IDX pfnGetSeqIdx;
+	PFN_GET_SEQ_NAME pfnGetSeqName;
 
 } ST_THM_IF;
 

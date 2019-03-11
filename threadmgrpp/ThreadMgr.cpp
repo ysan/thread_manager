@@ -117,6 +117,7 @@ bool CThreadMgr::setup (CThreadMgrBase *pThreads[], int threadNum)
 		p->nSeqNum = gpThreads[i]->mSeqNum;
 		const_cast <PCB_RECV_NOTIFY&> (p->pcbRecvNotify) = NULL;	// not use
 
+
 		// set seq name
 		ST_THM_SEQ *pThmSeq = (ST_THM_SEQ*) malloc (sizeof(ST_THM_SEQ) * gpThreads[i]->mSeqNum);
 		if (!pThmSeq) {
@@ -124,11 +125,15 @@ bool CThreadMgr::setup (CThreadMgrBase *pThreads[], int threadNum)
 			return false;
 		}
 		for (int j = 0; j < gpThreads[i]->mSeqNum; ++ j) {
-			ST_THM_SEQ *p = pThmSeq + i;
+			ST_THM_SEQ *p = pThmSeq + j;
 			const_cast <PCB_THM_SEQ&> (p->pcbSeq) = NULL;
 			p->pszName = ((gpThreads[i]->mpSeqsBase) + j)->pszName;
 		}
 		p->pstSeqArray = pThmSeq;
+
+
+		// threadMgrExternalIf
+		gpThreads[i]->setExternalIf (&mpExtIf);
 	}
 
 

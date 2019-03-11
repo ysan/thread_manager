@@ -114,6 +114,8 @@ extern void getTimeOfDay (struct timeval *p);
 extern bool initLog (void);
 extern void initLogStdout (void);
 extern void finalizLog (void);
+extern void setLogFileptr (FILE *p);
+extern FILE* getLogFileptr (void);
 extern void putsLog (
 	FILE *pFp,
 	EN_LOG_TYPE enLogType,

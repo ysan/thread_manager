@@ -5,12 +5,12 @@ BASEDIR		:=	../
 
 INCLUDES	:= \
 	-I./ \
-	-I$(BASEDIR)/threadmgr \
+	-I../threadmgr \
 
 LIBS		:= \
 	-lpthread \
 	-rdynamic \
-	-L$(BASEDIR)/threadmgr -lthreadmgr \
+	-L../threadmgr -lthreadmgr \
 
 USERDEFS	:= \
 #	-D_LOG_SIMPLE \
