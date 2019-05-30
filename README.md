@@ -15,6 +15,7 @@ Clone and make.
 When you execute make install, it will install in the cloned local directory.
 
 	$ make install
+	$ ls -R local_build/
 	local_build/:
 	include  lib
 	
