@@ -35,6 +35,11 @@ SRCS_CPP	:= \
 	ThreadMgrBase.cpp \
 	ThreadMgr.cpp \
 
+INSTALL_HEADERS := \
+	ThreadMgrIf.h \
+	ThreadMgrExternalIf.h \
+	ThreadMgrBase.h \
+	ThreadMgr.h \
 
 #
 #   Configurations

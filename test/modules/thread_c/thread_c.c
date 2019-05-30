@@ -14,6 +14,7 @@
 #include "thread_b.h"
 #include "thread_c.h"
 
+#define NOTIFY_CATEGORY		(0)
 
 /*
  * Prototypes
@@ -83,7 +84,7 @@ static void regNotify (ST_THM_IF *pIf)
 	THM_LOG_I ("nSectId %d\n", nSectId);
 
 	// 複数クライアントがいるときはちゃんとid管理すること
-	bool rslt = pIf->pfnRegNotify (&gnClientId);
+	bool rslt = pIf->pfnRegNotify (NOTIFY_CATEGORY, &gnClientId);
 
 	EN_THM_RSLT enRslt;
 	if (rslt) {
@@ -121,7 +122,7 @@ static void unregNotify (ST_THM_IF *pIf)
 		pIf->pfnReply (EN_THM_RSLT_ERROR, NULL, 0);
 		enRslt = EN_THM_RSLT_ERROR;
 	} else {
-		bool rslt = pIf->pfnUnRegNotify (id);
+		bool rslt = pIf->pfnUnRegNotify (NOTIFY_CATEGORY, id);
 		if (rslt) {
 			enRslt = EN_THM_RSLT_SUCCESS;
 		} else {
@@ -166,7 +167,7 @@ static void cycleFunc (ST_THM_IF *pIf)
 		break;
 	case SECTID_SEND_NOTIFY: {
 		char *msg = "this is notify message...";
-		pIf->pfnNotify (gnClientId, (uint8_t*)msg, strlen(msg));
+		pIf->pfnNotify (NOTIFY_CATEGORY, (uint8_t*)msg, strlen(msg));
 
 		nSectId = SECTID_CYCLE;
 		enAct = EN_THM_ACT_CONTINUE;

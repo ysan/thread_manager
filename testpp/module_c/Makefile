@@ -24,6 +24,7 @@ USERDEFS	:= \
 #   Target object
 #
 TARGET_NAME	:=	module_c
+NOT_INSTALL :=	YES
 
 #
 #   Target type

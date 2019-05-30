@@ -1,6 +1,23 @@
 #ifndef _THREADMGR_UTIL_H_
 #define _THREADMGR_UTIL_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+
+#include <pthread.h>
+#include <stdbool.h>
+#include <time.h>
+#include <sys/time.h>
+#include <stdarg.h>
+#include <sys/syscall.h>
+#include <sys/stat.h>
+
+#include <syslog.h>
+
+#include "threadmgr_if.h"
 
 /*
  * Constant define
@@ -19,6 +36,7 @@
 #define THM_TEXT_WHITE				"\x1B[37m"
 #define THM_TEXT_STANDARD_COLOR		"\x1B[39m"
 
+
 #define LOG_PATH	"./"
 #define LOG_NAME	"trace"
 #define LOG_EXT		"log"
@@ -28,8 +46,8 @@
  * Type define
  */
 typedef enum {
+	EN_LOG_TYPE_D,		// debug
 	EN_LOG_TYPE_I,		// information
-	EN_LOG_TYPE_N,		// notice
 	EN_LOG_TYPE_W,		// warning
 	EN_LOG_TYPE_E,		// error
 	EN_LOG_TYPE_PE,		// perror
@@ -45,59 +63,59 @@ extern FILE *g_fpLog;
 /*
  * log macro
  */
-/* --- Information --- */
+/* --- Debug --- */
 #ifdef _LOG_SIMPLE
-#define THM_LOG_I(fmt, ...) {\
-	putsLogLW (g_fpLog, EN_LOG_TYPE_I, fmt, ##__VA_ARGS__);\
-}
+#define THM_LOG_D(fmt, ...) do {\
+	putsLogLW (g_fpLog, EN_LOG_TYPE_D, fmt, ##__VA_ARGS__);\
+} while (0)
 #else
-#define THM_LOG_I(fmt, ...) {\
-	putsLog (g_fpLog, EN_LOG_TYPE_I, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
-}
+#define THM_LOG_D(fmt, ...) do {\
+	putsLog (g_fpLog, EN_LOG_TYPE_D, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
+} while (0)
 #endif
 
-/* --- Notice --- */
+/* --- Information --- */
 #ifdef _LOG_SIMPLE
-#define THM_LOG_N(fmt, ...) {\
-	putsLogLW (g_fpLog, EN_LOG_TYPE_N, fmt, ##__VA_ARGS__);\
-}
+#define THM_LOG_I(fmt, ...) do {\
+	putsLogLW (g_fpLog, EN_LOG_TYPE_I, fmt, ##__VA_ARGS__);\
+} while (0)
 #else
-#define THM_LOG_N(fmt, ...) {\
-	putsLog (g_fpLog, EN_LOG_TYPE_N, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
-}
+#define THM_LOG_I(fmt, ...) do {\
+	putsLog (g_fpLog, EN_LOG_TYPE_I, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
+} while (0)
 #endif
 
 /* --- Warning --- */
 #ifdef _LOG_SIMPLE
-#define THM_LOG_W(fmt, ...) {\
+#define THM_LOG_W(fmt, ...) do {\
 	putsLogLW (g_fpLog, EN_LOG_TYPE_W, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #else
-#define THM_LOG_W(fmt, ...) {\
+#define THM_LOG_W(fmt, ...) do {\
 	putsLog (g_fpLog, EN_LOG_TYPE_W, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #endif
 
 /* --- Error --- */
 #ifdef _LOG_SIMPLE
-#define THM_LOG_E(fmt, ...) {\
+#define THM_LOG_E(fmt, ...) do {\
 	putsLogLW (g_fpLog, EN_LOG_TYPE_E, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #else
-#define THM_LOG_E(fmt, ...) {\
+#define THM_LOG_E(fmt, ...) do {\
 	putsLog (g_fpLog, EN_LOG_TYPE_E, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #endif
 
 /* --- perror --- */
 #ifdef _LOG_SIMPLE
-#define THM_PERROR(fmt, ...) {\
+#define THM_PERROR(fmt, ...) do {\
 	putsLogLW (g_fpLog, EN_LOG_TYPE_PE, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #else
-#define THM_PERROR(fmt, ...) {\
+#define THM_PERROR(fmt, ...) do {\
 	putsLog (g_fpLog, EN_LOG_TYPE_PE, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #endif
 
 
@@ -114,6 +132,8 @@ extern void getTimeOfDay (struct timeval *p);
 extern bool initLog (void);
 extern void initLogStdout (void);
 extern void finalizLog (void);
+extern void initSyslog (void);
+extern void finalizSyslog (void);
 extern void setLogFileptr (FILE *p);
 extern FILE* getLogFileptr (void);
 extern void putsLog (

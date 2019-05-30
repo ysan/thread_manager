@@ -23,6 +23,7 @@ USERDEFS	:= \
 #   Target object
 #
 TARGET_NAME	:=	thread_c
+NOT_INSTALL :=	YES
 
 #
 #   Target type

@@ -256,17 +256,17 @@ static void func02 (ST_THM_IF *pIf)
 		switch ((int)enRslt) {
 		case EN_THM_RSLT_SUCCESS:
 			THM_LOG_I ("return success reqFunc00ThreadB [%d] msg:[%s]\n", enRslt, (char*)pIf->pstSrcInfo->msg.pMsg);
-			THM_LOG_N ("clearTimeout\n");
+			THM_LOG_I ("clearTimeout\n");
 			pIf->pfnClearTimeout();
 			break;
 		case EN_THM_RSLT_ERROR:
 			THM_LOG_E ("return error reqFunc00ThreadB [%d] msg:[%s]\n", enRslt, (char*)pIf->pstSrcInfo->msg.pMsg);
-			THM_LOG_N ("clearTimeout\n");
+			THM_LOG_I ("clearTimeout\n");
 			pIf->pfnClearTimeout();
 			break;
 		case EN_THM_RSLT_REQ_TIMEOUT:
 			THM_LOG_E ("reqtimeout reqFunc00ThreadB");
-			THM_LOG_N ("clearTimeout\n");
+			THM_LOG_I ("clearTimeout\n");
 			pIf->pfnClearTimeout();
 			break;
 		case EN_THM_RSLT_SEQ_TIMEOUT:

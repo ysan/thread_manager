@@ -21,6 +21,7 @@ int main( void )
 {
 	initLogStdout ();
 
+	THM_LOG_E ("start");
 
 	ST_THM_SRC_INFO *res = NULL;
 

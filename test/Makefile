@@ -26,6 +26,7 @@ SUBDIRS		:= \
 #   Target object
 #
 TARGET_NAME	:=	test
+NOT_INSTALL :=	YES
 
 #
 #   Target type

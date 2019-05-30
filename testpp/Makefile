@@ -36,6 +36,7 @@ SUBDIRS		:= \
 #   Target object
 #
 TARGET_NAME	:=	testpp
+NOT_INSTALL :=	YES
 
 #
 #   Target type

@@ -34,6 +34,9 @@ SRCS		:= \
 	threadmgr_if.c \
 	threadmgr_util.c \
 
+INSTALL_HEADERS := \
+	threadmgr_if.h \
+	threadmgr_util.h \
 
 #
 #   Configurations
