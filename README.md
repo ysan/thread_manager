@@ -34,6 +34,7 @@ When you execute make install, it will install in the cloned local directory.
 If you want to specify the installation destination, please add INSTALLDIR.
 
 	$ sudo make install INSTALLDIR=/usr/local/
+	$ sudo ldconfig /usr/local/lib/threadmgr
 
 
 big picture
