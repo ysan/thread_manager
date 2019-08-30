@@ -41,7 +41,8 @@ And you will need to run `ldconfig`.
 
 How to using thread manager
 ------------
-[`atpp`](https://github.com/ysan/notes/tree/master/atpp)
+In reference, this is middleware using thread manager.
+[`atpp`](https://github.com/ysan/atpp)
 
 
 Big picture
