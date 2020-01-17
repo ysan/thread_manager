@@ -1,6 +1,12 @@
+# LOG_COLOR_OFF
+ifeq ($(LOG_COLOR_OFF), 1)
+MAKE_OPTIONS		+=	LOG_COLOR_OFF=1
+endif
+
 ifeq ($(LOG_COLOR_OFF), 1)
 CFLAGS				+=	-D_LOG_COLOR_OFF
 endif
+
 
 
 INSTALLDIR_BASE		:=	threadmgr
