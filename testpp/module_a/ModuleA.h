@@ -7,8 +7,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "threadmgr_if.h"
-#include "threadmgr_util.h"
 #include "ThreadMgrpp.h"
 
 #include "ModuleA_extern.h"
