@@ -1,4 +1,4 @@
-thread manager
+thread manager [![Build Status](https://travis-ci.org/ysan/thread_manager.svg?branch=master)](https://travis-ci.org/ysan/thread_manager)
 ===============
 Synchronous asynchronous communication framework during multi threads and section sequence manager.
 
