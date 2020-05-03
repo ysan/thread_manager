@@ -2,7 +2,7 @@
 #define _MGR_REG_TBL_H_
 
 
-#include "ThreadMgrBase.h"
+#include "ThreadMgrpp.h"
 
 
 using namespace ThreadManager;

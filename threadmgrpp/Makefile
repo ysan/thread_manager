@@ -40,6 +40,7 @@ INSTALL_HEADERS := \
 	ThreadMgrExternalIf.h \
 	ThreadMgrBase.h \
 	ThreadMgr.h \
+	ThreadMgrpp.h \
 
 #
 #   Configurations

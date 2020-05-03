@@ -6,12 +6,7 @@
 
 #include "threadmgr_if.h"
 #include "threadmgr_util.h"
-
-#include "ThreadMgrIf.h"
-#include "ThreadMgrExternalIf.h"
-
-#include "ThreadMgrBase.h"
-#include "ThreadMgr.h"
+#include "ThreadMgrpp.h"
 
 #include "ModuleA.h"
 #include "ModuleA_extern.h"

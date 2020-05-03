@@ -7,7 +7,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "ThreadMgrExternalIf.h"
 #include "mgr_reg_tbl.h"
 
 
