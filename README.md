@@ -39,8 +39,7 @@ Here is a typical gcc link command.
 
 Linking with an C++ Application
 ------------
-Include `threadmgr_if.h` `threadmgr_util.h` `ThreadMgrpp.h` in your application and  
-link with `libthreadmgr` `libthreadmgrpp`.  
+Include `ThreadMgrpp.h` in your application and link with `libthreadmgr` `libthreadmgrpp`.  
 Here is a typical g++ link command.
 
 	$ g++ myapp.cpp -o myapp -lthreadmgr -lthreadmgrpp
