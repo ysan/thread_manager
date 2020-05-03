@@ -9,5 +9,5 @@ endif
 
 
 
-INSTALLDIR_BASE		:=	threadmgr
+INSTALLDIR_INC_BASE		:=	threadmgr
 

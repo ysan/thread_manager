@@ -4,39 +4,46 @@ Synchronous asynchronous communication framework during multi threads and sectio
 
 
 How to build
---------
+------------
 
-`clone` and `make`.
-
-	$ git clone https://github.com/ysan/thread_manager
+	$ git clone https://github.com/ysan/thread_manager.git
 	$ cd thread_manager
 	$ make
+	$ sudo make install INSTALLDIR=/usr/local/
+	$ sudo ldconfig
 
-When you execute make install, it will install in the cloned local directory.
+Installation files:
 
-	$ make install
-	$ tree local_build/
-	local_build/
+	/usr/local/
 	├── include
 	│   └── threadmgr
+	│       ├── threadmgr_if.h
+	│       ├── threadmgr_util.h
+	│       ├── ThreadMgrpp.h
 	│       ├── ThreadMgr.h
 	│       ├── ThreadMgrBase.h
 	│       ├── ThreadMgrExternalIf.h
-	│       ├── ThreadMgrIf.h
-	│       ├── threadmgr_if.h
-	│       └── threadmgr_util.h
+	│       └── ThreadMgrIf.h
 	└── lib
-	    └── threadmgr
-	        ├── libthreadmgr.so
-	        └── libthreadmgrpp.so
+	    └── libthreadmgr.so
+	    └── libthreadmgrpp.so
+
 	
-	4 directories, 8 files
+Linking with an C Application
+------------
+Include `threadmgr_if.h` `threadmgr_util.h` in your application and link with libthreadmgr.  
+Here is a typical gcc link command.
 
-For example, if you want to specify the installation destination, please add `INSTALLDIR`.  
-And you will need to run `ldconfig`.
+	$ gcc myapp.c -o myapp -lthreadmgr
 
-	$ sudo make install INSTALLDIR=/usr/local/
-	$ sudo ldconfig /usr/local/lib/threadmgr
+
+Linking with an C++ Application
+------------
+Include `threadmgr_if.h` `threadmgr_util.h` `ThreadMgrpp.h` in your application and  
+link with `libthreadmgr` `libthreadmgrpp`.  
+Here is a typical g++ link command.
+
+	$ g++ myapp.cpp -o myapp -lthreadmgr -lthreadmgrpp
 
 
 How to using thread manager
@@ -63,5 +70,5 @@ since sequences on the same thread are always exclusive, exclusion control betwe
 
 Platforms
 ------------
-Generic Linux will be ok. (confirmed worked on Ubuntu, Fedora)
+Generic Linux will be ok. (confirmed worked on Ubuntu, Fedora, Raspbian)
 
