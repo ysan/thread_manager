@@ -29,24 +29,27 @@ Installation files:
 	    └── libthreadmgrpp.so
 
 	
-Linking with an C Application
+Linking with an Application
 ------------
-Include `threadmgr_if.h` `threadmgr_util.h` in your application and link with libthreadmgr.  
+#### C ####
+Include `threadmgr_if.h` `threadmgr_util.h` in your application and link with `libthreadmgr` and pthread.  
 Here is a typical gcc link command.
 
-	$ gcc myapp.c -o myapp -lthreadmgr
+	$ gcc myapp.c -o myapp -lthreadmgr -lpthread
 
-
-Linking with an C++ Application
-------------
-Include `ThreadMgrpp.h` in your application and link with `libthreadmgr` `libthreadmgrpp`.  
+#### C++ ####
+Include `ThreadMgrpp.h` in your application and link with `libthreadmgr` `libthreadmgrpp` and pthread.  
 Here is a typical g++ link command.
 
-	$ g++ myapp.cpp -o myapp -lthreadmgr -lthreadmgrpp
+	$ g++ myapp.cpp -o myapp -lthreadmgr -lthreadmgrpp -lpthread
 
 
-How to using thread manager
+Example of use
 ------------
+#### Sample codes ####
+...
+
+#### Reference ####
 In reference, this is middleware using thread manager.  
 [`auto_rec_mini`](https://github.com/ysan/auto_rec_mini)
 
@@ -62,7 +65,7 @@ The framework first receives queue, identifies the sequence from the sent queue,
 an argument to the corresponding sequence. After processing the called sequence, we return control to
 the framework and enter the next message wait.
 Sequence switching is done every 1 queue, and other sequences can not operate at all.
-since sequences on the same thread are always exclusive, exclusion control between threads is not necessary.
+since sequences on the same thread are always exclusive, exclusion control between sequences is not necessary.
 
 ![about sequence](https://github.com/ysan/thread_manager/blob/master/etc/about_sequence.png)
 
