@@ -3,7 +3,7 @@ thread manager [![Build Status](https://travis-ci.org/ysan/thread_manager.svg?br
 Synchronous asynchronous communication framework during multi threads and section sequence manager.
 
 
-How to build
+Build and install
 ------------
 
 	$ git clone https://github.com/ysan/thread_manager.git
@@ -50,7 +50,7 @@ Example of use
 ...
 
 #### Reference ####
-In reference, this is middleware using thread manager.  
+middleware daemon using thread manager.  
 [`auto_rec_mini`](https://github.com/ysan/auto_rec_mini)
 
 
