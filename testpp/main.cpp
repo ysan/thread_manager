@@ -67,9 +67,7 @@ int main (void)
 	p_mod_a_extern->reqFunc00 ((const char*)msg, strlen(msg));
 
 
-	pause ();
-
-
+	pMgr->wait ();
 
 
 	pMgr->teardown();

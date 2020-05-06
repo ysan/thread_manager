@@ -103,6 +103,8 @@ int main( void )
 
 	gpIf->pfnDestroyExternalCp();
 
+	waitThreadMgr();
+	teardownThreadMgr();
 
 	exit (EXIT_SUCCESS);
 }
