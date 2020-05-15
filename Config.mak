@@ -75,7 +75,6 @@ OBJS		+=	$(SRCS_CPP:%.cpp=$(OBJDIR)/%.o)
 DEPENDS		:=	$(OBJS:%.o=%.d)
 GCDAS		:=	$(OBJS:%.o=%.gcda)
 GCNOS		:=	$(OBJS:%.o=%.gcno)
-GCOVS		:=	$(SRCS:%.c=%.c.gcov)
 endif
 
 
@@ -341,9 +340,7 @@ endif
 ifneq ($(GCNOS),)
 	$(RM) -f $(GCNOS)
 endif
-ifneq ($(GCOVS),)
-	$(RM) -f $(GCOVS)
-endif
+	$(RM) -f *.gcov
 
 
 
