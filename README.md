@@ -1,6 +1,11 @@
-thread manager [![Build Status](https://travis-ci.org/ysan/thread_manager.svg?branch=master)](https://travis-ci.org/ysan/thread_manager)
+thread manager
 ===============
 Synchronous asynchronous communication framework during multi threads and section sequence manager.
+
+
+------------
+[![Build Status](https://travis-ci.org/ysan/thread_manager.svg?branch=master)](https://travis-ci.org/ysan/thread_manager)
+[![Coverage Status](https://coveralls.io/repos/github/ysan/thread_manager/badge.svg?branch=master)](https://coveralls.io/github/ysan/thread_manager?branch=master)
 
 
 Build and install
@@ -32,13 +37,13 @@ Installation files:
 Linking with an Application
 ------------
 #### C ####
-Include `threadmgr_if.h` `threadmgr_util.h` in your application and link with `libthreadmgr` and pthread.  
+Include `threadmgr_if.h` `threadmgr_util.h` in your application and link with `libthreadmgr` and `libpthread`.  
 Here is a typical gcc link command.
 
 	$ gcc myapp.c -o myapp -lthreadmgr -lpthread
 
 #### C++ ####
-Include `ThreadMgrpp.h` in your application and link with `libthreadmgr` `libthreadmgrpp` and pthread.  
+Include `ThreadMgrpp.h` in your application and link with `libthreadmgr` `libthreadmgrpp` and `libpthread`.  
 Here is a typical g++ link command.
 
 	$ g++ myapp.cpp -o myapp -lthreadmgr -lthreadmgrpp -lpthread

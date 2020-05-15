@@ -3,5 +3,13 @@ language: cpp
 compiler:
   - gcc
 
+before_install:
+  - pip install --user cpp-coveralls
+
 script:
-  - make
+  - make WITH_COVERAGE=1
+  - cd testpp && ./run && cd ..
+  - make WITH_COVERAGE=1
+
+after_success:
+  - coveralls -n --include threadmgr --include threadmgrpp

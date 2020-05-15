@@ -2,5 +2,8 @@
 *o
 *a
 *d
+*gcda
+*gcno
+*gcov
 test/test
 testpp/testpp

@@ -19,6 +19,7 @@ INSTALL		:=	/usr/bin/install
 LDD			:=	/usr/bin/ldd
 SIZE		:=	/usr/bin/size
 OBJDUMP		:=	/usr/bin/objdump
+GCOV		:=	/usr/bin/gcov
 
 MAKE_OPTIONS	:=	--no-print-directory
 
@@ -52,6 +53,10 @@ ifeq ($(WITH_ASAN), 1)
 CFLAGS		+=	-fsanitize=address -fno-omit-frame-pointer
 endif
 
+ifeq ($(WITH_COVERAGE), 1)
+CFLAGS		+=	--coverage
+endif
+
 
 # EXIST_SRCS
 EXIST_SRCS		:=	FALSE
@@ -68,6 +73,9 @@ OBJDIR		:=	./objs/
 OBJS		:=	$(SRCS:%.c=$(OBJDIR)/%.o)
 OBJS		+=	$(SRCS_CPP:%.cpp=$(OBJDIR)/%.o)
 DEPENDS		:=	$(OBJS:%.o=%.d)
+GCDAS		:=	$(OBJS:%.o=%.gcda)
+GCNOS		:=	$(OBJS:%.o=%.gcno)
+GCOVS		:=	$(SRCS:%.c=%.c.gcov)
 endif
 
 
@@ -122,6 +130,9 @@ all:
 	@$(MAKE) subdirs
 	@$(MAKE) pre_proc
 	@$(MAKE) target
+ifeq ($(WITH_COVERAGE), 1)
+	@$(MAKE) gcov
+endif
 	@$(MAKE) post_proc
 
 target: $(TARGET_OBJ)
@@ -143,6 +154,14 @@ $(OBJDIR)/%.o: %.cpp
 #	@$(MKDIR) -p -m 775 $(OBJDIR)
 	@$(MKDIR) -p -m 775 $(dir $@)
 	$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES)
+
+gcov:
+	@for gcda in $(GCDAS) ; do \
+		if [ -e $$gcda ]; then \
+			$(ECHO) "found [$$gcda]";\
+			$(GCOV) -o $(OBJDIR) $$gcda; \
+		fi \
+	done
 
 # TARGET_TYPE = SHARED -----------------------------------
 else ifeq ($(TARGET_TYPE), SHARED)
@@ -151,6 +170,9 @@ all:
 	@$(MAKE) subdirs
 	@$(MAKE) pre_proc
 	@$(MAKE) target
+ifeq ($(WITH_COVERAGE), 1)
+	@$(MAKE) gcov
+endif
 	@$(MAKE) post_proc
 
 target: $(TARGET_OBJ)
@@ -173,6 +195,14 @@ $(OBJDIR)/%.o: %.cpp
 	@$(MKDIR) -p -m 775 $(dir $@)
 	$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
+gcov:
+	@for gcda in $(GCDAS) ; do \
+		if [ -e $$gcda ]; then \
+			$(ECHO) "found [$$gcda]";\
+			$(GCOV) -o $(OBJDIR) $$gcda; \
+		fi \
+	done
+
 # TARGET_TYPE = STATIC -----------------------------------
 else ifeq ($(TARGET_TYPE), STATIC)
 #all: pre_proc subdirs target post_proc
@@ -180,6 +210,9 @@ all:
 	@$(MAKE) subdirs
 	@$(MAKE) pre_proc
 	@$(MAKE) target
+ifeq ($(WITH_COVERAGE), 1)
+	@$(MAKE) gcov
+endif
 	@$(MAKE) post_proc
 
 target: $(TARGET_OBJ)
@@ -199,6 +232,14 @@ $(OBJDIR)/%.o: %.cpp
 	@$(MKDIR) -p -m 775 $(dir $@)
 	$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES)
 
+gcov:
+	@for gcda in $(GCDAS) ; do \
+		if [ -e $$gcda ]; then \
+			$(ECHO) "found [$$gcda]";\
+			$(GCOV) -o $(OBJDIR) $$gcda; \
+		fi \
+	done
+
 # TARGET_TYPE = OBJECT -----------------------------------
 else ifeq ($(TARGET_TYPE), OBJECT)
 #all: pre_proc subdirs target post_proc
@@ -206,6 +247,9 @@ all:
 	@$(MAKE) subdirs
 	@$(MAKE) pre_proc
 	@$(MAKE) target
+ifeq ($(WITH_COVERAGE), 1)
+	@$(MAKE) gcov
+endif
 	@$(MAKE) post_proc
 
 target: $(TARGET_OBJ)
@@ -223,6 +267,14 @@ $(OBJDIR)/%.o: %.cpp
 #	@$(MKDIR) -p -m 775 $(OBJDIR)
 	@$(MKDIR) -p -m 775 $(dir $@)
 	$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES)
+
+gcov:
+	@for gcda in $(GCDAS) ; do \
+		if [ -e $$gcda ]; then \
+			$(ECHO) "found [$$gcda]";\
+			$(GCOV) -o $(OBJDIR) $$gcda; \
+		fi \
+	done
 
 #---------------------------------------------------------
 else
@@ -283,6 +335,17 @@ endif
 ifneq ($(DEPENDS),)
 	$(RM) -f $(DEPENDS)
 endif
+ifneq ($(GCDAS),)
+	$(RM) -f $(GCDAS)
+endif
+ifneq ($(GCNOS),)
+	$(RM) -f $(GCNOS)
+endif
+ifneq ($(GCOVS),)
+	$(RM) -f $(GCOVS)
+endif
+
+
 
 ifeq ($(TARGET_TYPE), EXEC)
 ifneq ($(TARGET_OBJ),)
@@ -379,7 +442,7 @@ endif
 #
 #   Phony defines
 #
-.PHONY: all target clean clean-r install install-r subdirs clean-subdirs install-subdirs pre_proc post_proc post_proc_target
+.PHONY: all target clean clean-r install install-r subdirs clean-subdirs install-subdirs pre_proc post_proc post_proc_target gcov
 
 
 #
