@@ -8,7 +8,7 @@ before_install:
 
 script:
   - make WITH_COVERAGE=1
-  - cd testpp && ./run && cd ..
+  - cd testpp && ./run.sh && cd ..
   - make WITH_COVERAGE=1
 
 after_success:
