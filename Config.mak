@@ -159,7 +159,7 @@ gcov:
 	@for gcda in $(GCDAS) ; do \
 		if [ -e $$gcda ]; then \
 			$(ECHO) "found [$$gcda]";\
-			$(GCOV) -o $(OBJDIR) $$gcda; \
+			$(GCOV) -r -o $(OBJDIR) $$gcda; \
 		fi \
 	done
 
@@ -199,7 +199,7 @@ gcov:
 	@for gcda in $(GCDAS) ; do \
 		if [ -e $$gcda ]; then \
 			$(ECHO) "found [$$gcda]";\
-			$(GCOV) -o $(OBJDIR) $$gcda; \
+			$(GCOV) -r -o $(OBJDIR) $$gcda; \
 		fi \
 	done
 
@@ -236,7 +236,7 @@ gcov:
 	@for gcda in $(GCDAS) ; do \
 		if [ -e $$gcda ]; then \
 			$(ECHO) "found [$$gcda]";\
-			$(GCOV) -o $(OBJDIR) $$gcda; \
+			$(GCOV) -r -o $(OBJDIR) $$gcda; \
 		fi \
 	done
 

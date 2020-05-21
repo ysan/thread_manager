@@ -165,7 +165,7 @@ void CMyModuleA::func01 (CThreadMgrIf *pIf)
 	case SECTID_WAIT_REPLY_MODULE_B_FUNC00: {
 
 		EN_THM_RSLT r = pIf->getSrcInfo()->enRslt;
-        if (r == EN_THM_RSLT_SUCCESS) {
+		if (r == EN_THM_RSLT_SUCCESS) {
 			// success reply
 		} else {	
 			// error reply

@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <sys/types.h>
+#include <signal.h>
+
 #include "ThreadMgrpp.h"
 
 #include "ModuleA.h"
@@ -22,7 +25,13 @@ using namespace ThreadManager;
 int main (void)
 {
 	initLogStdout();
+	initSyslog();
 
+	THM_LOG_D ("test THM_LOG_D");
+	THM_LOG_I ("test THM_LOG_I");
+	THM_LOG_W ("test THM_LOG_W");
+	THM_LOG_E ("test THM_LOG_E");
+	THM_PERROR ("test THM_PERROR");
 
 	CThreadMgr *pMgr = CThreadMgr::getInstance();
 
@@ -67,11 +76,18 @@ int main (void)
 	p_mod_a_extern->reqFunc00 ((const char*)msg, strlen(msg));
 
 
+	kill (getpid(), SIGQUIT);
+
+
 //	pMgr->wait ();
 sleep(3);
 
 	pMgr->teardown();
 
+	putsBackTrace();
+
+	finalizSyslog();
+	finalizLog();
 
 	exit (EXIT_SUCCESS);
 }
