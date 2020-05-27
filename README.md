@@ -40,7 +40,10 @@ Uninstall
 
 Big picture
 ------------
+<!-- 
 ![big picture](https://github.com/ysan/thread_manager/blob/master/etc/big_picture.png)
+-->
+<img src="https://github.com/ysan/thread_manager/blob/master/etc/big_picture.png" width="75%" height="75%">
 
 
 About sequence
@@ -51,83 +54,108 @@ the framework and enter the next message wait.
 Sequence switching is done every 1 queue, and other sequences can not operate at all.
 since sequences on the same thread are always exclusive, exclusion control between sequences is not necessary.
 
+<!--
 ![about sequence](https://github.com/ysan/thread_manager/blob/master/etc/about_sequence.png)
+-->
+<img src="https://github.com/ysan/thread_manager/blob/master/etc/about_sequence.png" width="75%" height="75%">
 
 
 How to use
 ------------
 #### Quick start (C++) ####
-##### register your class #####
+##### include libary header #####
 ```C++
 #include "ThreadMgrpp.h"
+```
 
-// Class that inherits CThreadMgrBase has one posix thread context.
-class CMyModuleA : public CThreadMgrBase
-{
-	// implements your class
-};
-class CMyModuleB : public CThreadMgrBase
-{
-	// implements your class
-};
+##### setup ThreadManager and register your class instances #####
 
-// create instance (maximum of queue buffer size: 100)
-CMyModuleA _moduleA ((char*)"MyModuleA", 10); // (name, queue buffer size)
-CMyModuleB _moduleB ((char*)"MyModuleB", 10);
+Register your instances with `CThreadMgr::setup`.  
+Also, your class should extend `CThreadMgrBase`. It has one posix thread context. >> ([here](#jump1))
 
-// instance table
-CThreadMgrBase *p_modules [] = {
-	&_moduleA,
-	&_moduleB,
+
+```C++
+enum {
+	_MODULE_A = 0,
+	_MODULE_B,
+	_MODULE_C,
 };
 
+using namespace ThreadManager;
 int main (void) {
 	CThreadMgr *p_mgr = CThreadMgr::getInstance();
 
-	// register instance table (maximum of registration: 32)
-	p_mgr->setup(p_modules, 2);
+	// create your class instances (maximum of queue buffer size: 100)
+	CModuleA *p_moduleA = new CModuleA((char*)"ModuleA", 10); // (name, queue buffer size)
+	CModuleB *p_moduleB = new CModuleB((char*)"ModuleB", 10);
+	CModuleC *p_moduleC = new CModuleC((char*)"ModuleC", 10);
+	.
+	.
 
-	// thread manager framework was ready.
+	std::vector<CThreadMgrBase*> threads;
+	threads.push_back(p_moduleA); // enum _MODULE_A
+	threads.push_back(p_moduleB); // enum _MODULE_B
+	threads.push_back(p_moduleC); // enum _MODULE_C
+	.
+	.
+
+	// register your instances (maximum of registration: 32)
+	p_mgr->setup(threads);
+
+	// ThreadManager-framework was ready.
 
 	// thread return wait, as daemon process.
 	p_mgr->wait();
 	p_mgr->teardown();
+
+	for (const auto &th : threads)
+		delete th;
 	return 0;
 }
-
 ```
 
-##### register your sequences #####
+<a href="#jump1"></a>
+##### implements your class and register sequences #####
+
+Your class should extend `CThreadMgrBase`. It has one posix thread context.  
+Then register your sequences with `CThreadMgrBase::setSeqs` in the constructor.
+
 ```C++
-// Class that inherits CThreadMgrBase has one posix thread context.
-class CMyModuleA : public CThreadMgrBase
+enum {
+	_SEQ_1 = 0,
+	_SEQ_2,
+	_SEQ_3,
+};
+
+using namespace ThreadManager;
+class CModuleA : public CThreadMgrBase
 {
 public:
-	CMyModuleA (char *pszName, uint8_t nQueNum)
+	CModuleA (char *pszName, uint8_t nQueNum)
 		:CThreadMgrBase (pszName, nQueNum)
 	{
-		mSeqs [0] = {(PFN_SEQ_BASE)&CMyModuleA::func00, (char*)"func00"};
-		mSeqs [1] = {(PFN_SEQ_BASE)&CMyModuleA::func01, (char*)"func01"};
-		mSeqs [2] = {(PFN_SEQ_BASE)&CMyModuleA::func02, (char*)"func02"};
-		setSeqs (mSeqs, 3); // set sequences
+		vector<ST_SEQ_BASE> seqs;
+		seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::sequence1, (char*)"sequence1"}); // enum _SEQ_1
+		seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::sequence2, (char*)"sequence2"}); // enum _SEQ_2
+		seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::sequence3, (char*)"sequence3"}); // enum _SEQ_3
+
+		// register your sequences (maximum of registration: 64)
+		setSeqs (seqs);
 	}
 
-	virtual ~CMyModuleA (void) {}
+	virtual ~CModuleA (void) {}
 
 	// implements your sequences (member functions)
-	void func00 (CThreadMgrIf *pIf);
-	void func01 (CThreadMgrIf *pIf);
-	void func02 (CThreadMgrIf *pIf);
-
-private:
-	ST_SEQ_BASE mSeqs [2]; // member function pointers entity
+	void sequence1 (CThreadMgrIf *pIf);
+	void sequence2 (CThreadMgrIf *pIf);
+	void sequence3 (CThreadMgrIf *pIf);
 };
 ```
 
 ##### implements your sequences #####
 ```C++
 // one shot echo-reply
-void CMyModuleA::func00 (CThreadMgrIf *pIf)
+void CModuleA::sequence1 (CThreadMgrIf *pIf)
 {
 	// request message is char strings.
 	char *msg = (char*)(pIf->getSrcInfo()->msg.pMsg)
@@ -139,8 +167,8 @@ void CMyModuleA::func00 (CThreadMgrIf *pIf)
 	pIf->setSectId (THM_SECT_ID_INIT, EN_THM_ACT_DONE);
 }
 
-// section sequence
-void CMyModuleA::func01 (CThreadMgrIf *pIf)
+// section type
+void CModuleA::sequence2 (CThreadMgrIf *pIf)
 {
 	enum {
 		SECTID_REQUEST_MODULE_B_FUNC00 = THM_SECT_ID_INIT,
@@ -152,9 +180,9 @@ void CMyModuleA::func01 (CThreadMgrIf *pIf)
 	switch (section_id) {
 	case SECTID_REQUEST_MODULE_B_FUNC00:
 
-		// request to CMyModuleB::func00
+		// request to CModuleB::sequence1
 		// add a message to the request (maximum of message size: 256bytes)
-		requestAsync (1, 0); // (thread idx, sequence idx)
+		requestAsync (_MODULE_B, _SEQ_1); // (thread idx, sequence idx)
 
 		// set next section id, and action.
 		// Return control to framework and wait for queue, by EN_THM_ACT_WAIT.

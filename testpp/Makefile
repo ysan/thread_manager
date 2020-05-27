@@ -49,7 +49,6 @@ TARGET_TYPE	:=	EXEC
 #
 SRCS_CPP	:= \
 	main.cpp \
-	mgr_reg_tbl.cpp \
 
 
 #

@@ -28,8 +28,6 @@ public:
 
 
 private:
-	ST_SEQ_BASE mSeqs [EN_SEQ_NUM]; // entity
-
 	uint32_t mTmpReqId;
 
 };

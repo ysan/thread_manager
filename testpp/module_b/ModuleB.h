@@ -27,7 +27,6 @@ public:
 
 
 private:
-	ST_SEQ_BASE mSeqs [EN_SEQ_MODULE_B_NUM]; // entity
 
 };
 

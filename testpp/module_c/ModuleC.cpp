@@ -6,7 +6,7 @@
 
 #include "ModuleC.h"
 #include "ModuleC_extern.h"
-#include "mgr_reg_tbl.h"
+#include "modules.h"
 
 
 using namespace ThreadManager;
@@ -15,8 +15,9 @@ using namespace ThreadManager;
 
 CModuleC::CModuleC (char *pszName, uint8_t nQueNum) : CThreadMgrBase (pszName, nQueNum)
 {
-	mSeqs [EN_SEQ_MODULE_C_STARTUP] = {(PFN_SEQ_BASE)&CModuleC::startUp, (char*)"startUp"};
-	setSeqs (mSeqs, EN_SEQ_MODULE_C_NUM);
+	vector<ST_SEQ_BASE> seqs;
+	seqs.push_back ({(PFN_SEQ_BASE)&CModuleC::startUp, (char*)"startUp"});
+	setSeqs (seqs);
 }
 
 CModuleC::~CModuleC (void)

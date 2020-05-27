@@ -35,6 +35,7 @@ CThreadMgr::CThreadMgr (void)
 	,mpRegTbl (NULL)
 	,mpExtIf (NULL)
 {
+	mThreads.clear();
 }
 
 CThreadMgr:: ~CThreadMgr (void)
@@ -48,7 +49,7 @@ CThreadMgr* CThreadMgr::getInstance (void)
 	return &singleton;
 }
 
-bool CThreadMgr::registerThreads (CThreadMgrBase *pThreads[], int threadNum)
+bool CThreadMgr::registerThreads (const CThreadMgrBase *pThreads[], int threadNum)
 {
 	if ((!pThreads) || (threadNum <= 0)) {
 		THM_LOG_E ("invalid argument.\n");
@@ -73,7 +74,7 @@ bool CThreadMgr::registerThreads (CThreadMgrBase *pThreads[], int threadNum)
 			return false;
 		}
 
-		gpThreads [i] = pThreads [i];
+		gpThreads [i] = const_cast<CThreadMgrBase *>(pThreads [i]);
 		++ i;
 	}
 
@@ -89,18 +90,8 @@ void CThreadMgr::unRegisterThreads (void)
 	}
 }
 
-bool CThreadMgr::setup (CThreadMgrBase *pThreads[], int threadNum)
+bool CThreadMgr::setup (void)
 {
-	if (!registerThreads (pThreads, threadNum)) {
-		THM_LOG_E ("registerThreads() is failure.\n");
-		return false;
-	}
-
-	mThreadNum = threadNum;
-
-	setupDispatcher (dispatcher);
-
-
 	mpRegTbl = (ST_THM_REG_TBL*) malloc (sizeof(ST_THM_REG_TBL) * mThreadNum);
 	if (!mpRegTbl) {
 		THM_PERROR ("malloc");
@@ -146,6 +137,39 @@ bool CThreadMgr::setup (CThreadMgrBase *pThreads[], int threadNum)
 	mpExtIf = new CThreadMgrExternalIf (pExtIf);
 	if (!mpExtIf) {
 		THM_LOG_E ("mpExtIf is null.\n");
+		return false;
+	}
+
+	return true;
+}
+
+bool CThreadMgr::setup (const CThreadMgrBase *pThreads[], int threadNum)
+{
+	if (!registerThreads (pThreads, threadNum)) {
+		THM_LOG_E ("registerThreads() is failure.\n");
+		return false;
+	}
+
+	mThreadNum = threadNum;
+
+	setupDispatcher (dispatcher);
+
+	return setup();
+}
+
+bool CThreadMgr::setup (const std::vector<CThreadMgrBase*> &threads)
+{
+	int _size = threads.size();
+	CThreadMgrBase *p_base [_size] = {0};
+	int idx = 0;
+	for (const auto &th : threads) {
+		p_base[idx] = th;
+		++ idx ;
+	}
+
+
+	if (!setup ((const CThreadMgrBase**)p_base, _size)) {
+		THM_LOG_E ("setup() is failure.\n");
 		return false;
 	}
 

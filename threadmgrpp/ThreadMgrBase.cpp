@@ -25,6 +25,8 @@ CThreadMgrBase::CThreadMgrBase (const char *pszName, uint8_t nQueNum)
 	}
 
 	mQueNum = nQueNum;
+
+	mSeqs.clear();
 }
 
 CThreadMgrBase::~CThreadMgrBase (void)
@@ -32,8 +34,8 @@ CThreadMgrBase::~CThreadMgrBase (void)
 }
 
 
-void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE enType, uint8_t nSeqIdx, ST_THM_IF *pIf) {
-
+void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE enType, uint8_t nSeqIdx, ST_THM_IF *pIf)
+{
 	switch (enType) {
 	case EN_THM_DISPATCH_TYPE_CREATE:
 
@@ -75,11 +77,23 @@ void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE enType, uint8_t nSeqIdx, ST_THM
 	}
 }
 
-void CThreadMgrBase::setSeqs (ST_SEQ_BASE pstSeqs [], uint8_t seqNum)
+void CThreadMgrBase::setSeqs (const ST_SEQ_BASE pstSeqs [], uint8_t seqNum)
 {
 	if (pstSeqs && seqNum > 0) {
-		mpSeqsBase = pstSeqs;
+		for (int i = 0; i < seqNum; ++ i) {
+			mSeqs.push_back(pstSeqs[i]);
+		}
+		mpSeqsBase = &mSeqs[0];
 		mSeqNum = seqNum;
+	}
+}
+
+void CThreadMgrBase::setSeqs (const std::vector<ST_SEQ_BASE> &seqs)
+{
+	if (seqs.size() > 0) {
+		mSeqs = seqs;
+		mpSeqsBase = &mSeqs[0];
+		mSeqNum = seqs.size();
 	}
 }
 

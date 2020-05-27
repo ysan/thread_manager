@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "mgr_reg_tbl.h"
+#include "modules.h"
 
 
 using namespace ThreadManager;

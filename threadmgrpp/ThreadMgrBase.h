@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <vector>
+
 #include "threadmgr_if.h"
 #include "threadmgr_util.h"
 
@@ -42,7 +44,8 @@ public:
 	CThreadMgrIf *getIf (void) const;
 
 protected:
-	void setSeqs (ST_SEQ_BASE pstSeqs [], uint8_t seqNum);
+	void setSeqs (const ST_SEQ_BASE pstSeqs [], uint8_t seqNum);
+	void setSeqs (const std::vector<ST_SEQ_BASE> &seqs);
 
 	virtual void onCreate (void);
 	virtual void onDestroy (void);
@@ -66,10 +69,12 @@ private:
 	void setIf (CThreadMgrIf *pIf);
 
 
-	ST_SEQ_BASE *mpSeqsBase ;
+	const ST_SEQ_BASE *mpSeqsBase ;
 
 	char mName [16];
 	uint8_t mQueNum;
+
+	std::vector<ST_SEQ_BASE> mSeqs;
 	uint8_t mSeqNum;
 	
 	CThreadMgrExternalIf **mpExtIf;

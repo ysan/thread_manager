@@ -3,12 +3,18 @@ language: cpp
 compiler:
   - gcc
 
+branches:
+  only:
+    - master
+
 before_install:
   - pip install --user cpp-coveralls
 
 script:
   - make WITH_COVERAGE=1
-  - cd testpp && ./run.sh && cd ..
+  - cd testpp
+  - ./run.sh
+  - cd ..
   - make WITH_COVERAGE=1
 
 after_success:

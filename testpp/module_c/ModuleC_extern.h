@@ -8,7 +8,7 @@
 #include <errno.h>
 
 #include "ThreadMgrpp.h"
-#include "mgr_reg_tbl.h"
+#include "modules.h"
 
 
 using namespace ThreadManager;

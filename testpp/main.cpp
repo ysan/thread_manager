@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <signal.h>
 
+#include <vector>
+
 #include "ThreadMgrpp.h"
 
 #include "ModuleA.h"
@@ -16,7 +18,7 @@
 #include "ModuleC.h"
 #include "ModuleC_extern.h"
 
-#include "mgr_reg_tbl.h"
+#include "modules.h"
 
 
 using namespace ThreadManager;
@@ -33,22 +35,31 @@ int main (void)
 	THM_LOG_E ("test THM_LOG_E");
 	THM_PERROR ("test THM_PERROR");
 
-	CThreadMgr *pMgr = CThreadMgr::getInstance();
 
-	if (!pMgr->setup (gp_threads, EN_MODULE_NUM)) {
+	CThreadMgr *p_mgr = CThreadMgr::getInstance();
+
+	CModuleA *p_moduleA = new CModuleA((char*)"ModuleA", 10);
+	CModuleB *p_moduleB = new CModuleB((char*)"ModuleB", 10);
+	CModuleC *p_moduleC = new CModuleC((char*)"ModuleC", 10);
+	std::vector<CThreadMgrBase*> threads;
+	threads.push_back(p_moduleA);
+	threads.push_back(p_moduleB);
+	threads.push_back(p_moduleC);
+
+	if (!p_mgr->setup (threads)) {
 		exit (EXIT_FAILURE);
 	}
 
-	CModuleA_extern *p_mod_a_extern = new CModuleA_extern (pMgr->getExternalIf());
-	CModuleB_extern *p_mod_b_extern = new CModuleB_extern (pMgr->getExternalIf());
-	CModuleC_extern *p_mod_c_extern = new CModuleC_extern (pMgr->getExternalIf());
+	CModuleA_extern *p_mod_a_extern = new CModuleA_extern (p_mgr->getExternalIf());
+	CModuleB_extern *p_mod_b_extern = new CModuleB_extern (p_mgr->getExternalIf());
+	CModuleC_extern *p_mod_c_extern = new CModuleC_extern (p_mgr->getExternalIf());
 
 
-	pMgr->getExternalIf()->createExternalCp();
+	p_mgr->getExternalIf()->createExternalCp();
 
 
 	p_mod_a_extern-> reqStartUp ();
-	ST_THM_SRC_INFO* r = pMgr->getExternalIf()-> receiveExternal();
+	ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
 	if (r) {
 		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->msg.pMsg);
 	} else {
@@ -56,7 +67,7 @@ int main (void)
 	}
 
 	p_mod_b_extern-> reqStartUp ();
-	r = pMgr->getExternalIf()-> receiveExternal();
+	r = p_mgr->getExternalIf()-> receiveExternal();
 	if (r) {
 		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->msg.pMsg);
 	} else {
@@ -64,7 +75,7 @@ int main (void)
 	}
 
 	p_mod_c_extern-> reqStartUp ();
-	r = pMgr->getExternalIf()-> receiveExternal();
+	r = p_mgr->getExternalIf()-> receiveExternal();
 	if (r) {
 		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->msg.pMsg);
 	} else {
@@ -79,15 +90,18 @@ int main (void)
 	kill (getpid(), SIGQUIT);
 
 
-//	pMgr->wait ();
+//	p_mgr->wait ();
 sleep(3);
 
-	pMgr->teardown();
+	p_mgr->teardown();
 
 	putsBackTrace();
 
 	finalizSyslog();
 	finalizLog();
+
+	for (const auto &th : threads)
+		delete th;
 
 	exit (EXIT_SUCCESS);
 }

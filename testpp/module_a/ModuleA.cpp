@@ -7,17 +7,19 @@
 #include "ModuleA.h"
 #include "ModuleA_extern.h"
 
-#include "mgr_reg_tbl.h"
+#include "modules.h"
 
 
 
 CModuleA::CModuleA (char *pszName, uint8_t nQueNum)
 	:CThreadMgrBase (pszName, nQueNum)
 {
-	mSeqs [EN_SEQ_STARTUP] = {(PFN_SEQ_BASE)&CModuleA::startUp, (char*)"startUp"};
-	mSeqs [EN_SEQ_FUNC00] = {(PFN_SEQ_BASE)&CModuleA::func00, (char*)"func00"};
-	mSeqs [EN_SEQ_FUNC01] = {(PFN_SEQ_BASE)&CModuleA::func01, (char*)"func01"};
-	setSeqs (mSeqs, EN_SEQ_NUM);
+	vector<ST_SEQ_BASE> seqs;
+	seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::startUp, (char*)"startUp"});
+	seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::startUp, (char*)"startUp"});
+	seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::func00, (char*)"func00"});
+	seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::func01, (char*)"func01"});
+	setSeqs (seqs);
 }
 
 CModuleA::~CModuleA (void)
