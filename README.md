@@ -71,7 +71,7 @@ How to use
 ##### setup ThreadManager and register your class instances #####
 
 Register your instances with `CThreadMgr::setup`.  
-Also, your class should extend `CThreadMgrBase`. It has one posix thread context. >> ([here](#jump1))
+Also, your class should extend `CThreadMgrBase`. It has one posix thread context.
 
 
 ```C++
@@ -79,6 +79,8 @@ enum {
 	_MODULE_A = 0,
 	_MODULE_B,
 	_MODULE_C,
+	.
+	.
 };
 
 using namespace ThreadManager;
@@ -86,9 +88,9 @@ int main (void) {
 	CThreadMgr *p_mgr = CThreadMgr::getInstance();
 
 	// create your class instances (maximum of queue buffer size: 100)
-	CModuleA *p_moduleA = new CModuleA((char*)"ModuleA", 10); // (name, queue buffer size)
-	CModuleB *p_moduleB = new CModuleB((char*)"ModuleB", 10);
-	CModuleC *p_moduleC = new CModuleC((char*)"ModuleC", 10);
+	CModuleA *p_moduleA = new CModuleA("ModuleA", 10); // (name, queue buffer size)
+	CModuleB *p_moduleB = new CModuleB("ModuleB", 10);
+	CModuleC *p_moduleC = new CModuleC("ModuleC", 10);
 	.
 	.
 
@@ -114,30 +116,33 @@ int main (void) {
 }
 ```
 
-<a href="#jump1"></a>
 ##### implements your class and register sequences #####
 
 Your class should extend `CThreadMgrBase`. It has one posix thread context.  
 Then register your sequences with `CThreadMgrBase::setSeqs` in the constructor.
 
 ```C++
-enum {
-	_SEQ_1 = 0,
-	_SEQ_2,
-	_SEQ_3,
-};
-
 using namespace ThreadManager;
 class CModuleA : public CThreadMgrBase
 {
 public:
+	enum {
+		_SEQ_1 = 0,
+		_SEQ_2,
+		_SEQ_3,
+		.
+		.
+	};
+
 	CModuleA (char *pszName, uint8_t nQueNum)
 		:CThreadMgrBase (pszName, nQueNum)
 	{
 		vector<ST_SEQ_BASE> seqs;
-		seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::sequence1, (char*)"sequence1"}); // enum _SEQ_1
-		seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::sequence2, (char*)"sequence2"}); // enum _SEQ_2
-		seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::sequence3, (char*)"sequence3"}); // enum _SEQ_3
+		seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::sequence1, "sequence1"}); // enum _SEQ_1
+		seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::sequence2, "sequence2"}); // enum _SEQ_2
+		seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::sequence3, "sequence3"}); // enum _SEQ_3
+		.
+		.
 
 		// register your sequences (maximum of registration: 64)
 		setSeqs (seqs);
@@ -145,20 +150,35 @@ public:
 
 	virtual ~CModuleA (void) {}
 
+private:
 	// implements your sequences (member functions)
 	void sequence1 (CThreadMgrIf *pIf);
 	void sequence2 (CThreadMgrIf *pIf);
 	void sequence3 (CThreadMgrIf *pIf);
+	.
+	.
+
 };
+
+class CModuleB : public CThreadMgrBase
+{
+	.
+	.
+
+class CModuleC : public CThreadMgrBase
+{
+	.
+	.
+
 ```
 
 ##### implements your sequences #####
 ```C++
-// one shot echo-reply
+//  example of one shot echo-reply
 void CModuleA::sequence1 (CThreadMgrIf *pIf)
 {
-	// request message is char strings.
-	char *msg = (char*)(pIf->getSrcInfo()->msg.pMsg)
+	// get request message.
+	char *msg = (char*)(pIf->getSrcInfo()->msg.pMsg);
 
 	// send reply (maximum of message size: 256bytes)
 	pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
@@ -167,34 +187,40 @@ void CModuleA::sequence1 (CThreadMgrIf *pIf)
 	pIf->setSectId (THM_SECT_ID_INIT, EN_THM_ACT_DONE);
 }
 
-// section type
-void CModuleA::sequence2 (CThreadMgrIf *pIf)
+// example of separated by section
+void CModuleB::sequence1 (CThreadMgrIf *pIf)
 {
 	enum {
-		SECTID_REQUEST_MODULE_B_FUNC00 = THM_SECT_ID_INIT,
-		SECTID_WAIT_REPLY_MODULE_B_FUNC00,
+		SECTID_REQUEST_MODULE_A_SEQ_1 = THM_SECT_ID_INIT,
+		SECTID_WAIT_REPLY_MODULE_A_SEQ_1,
 		SECTID_END,
 	};
 
 	uint8_t section_id = pIf->getSectId();
 	switch (section_id) {
-	case SECTID_REQUEST_MODULE_B_FUNC00:
+	case SECTID_REQUEST_MODULE_A_SEQ_1:
 
 		// request to CModuleB::sequence1
 		// add a message to the request (maximum of message size: 256bytes)
-		requestAsync (_MODULE_B, _SEQ_1); // (thread idx, sequence idx)
+		const char *msg = "hello world\0";
+		requestAsync (_MODULE_A, CModuleA::_SEQ_1, msg, strlen(msg)+1); // (thread idx, sequence idx)
 
 		// set next section id, and action.
 		// Return control to framework and wait for queue, by EN_THM_ACT_WAIT.
-		// During this time the framework can handle another queue. (func00 or func02)
+		// During this time can handle another queue (another sequence).
 		pIf->setSectId (SECTID_WAIT_REPLY_MODULE_B_FUNC00, EN_THM_ACT_WAIT);
 		break;
 
-	case SECTID_WAIT_REPLY_MODULE_B_FUNC00: {
+	case SECTID_WAIT_REPLY_MODULE_A_SEQ_1: {
 
 		EN_THM_RSLT r = pIf->getSrcInfo()->enRslt;
 		if (r == EN_THM_RSLT_SUCCESS) {
 			// success reply
+			// get reply message.
+			char *msg = (char*)(pIf->getSrcInfo()->msg.pMsg);
+
+			std::cout << msg << std::endl; // "hello world"
+
 		} else {	
 			// error reply
 		}

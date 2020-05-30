@@ -19,14 +19,12 @@ using namespace ThreadManager;
 class CModuleB : public CThreadMgrBase
 {
 public:
-	CModuleB (char *pszName, uint8_t nQueNum);
+	CModuleB (std::string name, uint8_t nQueNum);
 	virtual ~CModuleB (void);
 
 
-	void startUp (CThreadMgrIf *pIf) ;
-
-
 private:
+	void startUp (CThreadMgrIf *pIf) ;
 
 };
 

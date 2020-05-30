@@ -38,9 +38,9 @@ int main (void)
 
 	CThreadMgr *p_mgr = CThreadMgr::getInstance();
 
-	CModuleA *p_moduleA = new CModuleA((char*)"ModuleA", 10);
-	CModuleB *p_moduleB = new CModuleB((char*)"ModuleB", 10);
-	CModuleC *p_moduleC = new CModuleC((char*)"ModuleC", 10);
+	CModuleA *p_moduleA = new CModuleA("ModuleA", 10);
+	CModuleB *p_moduleB = new CModuleB("ModuleB", 10);
+	CModuleC *p_moduleC = new CModuleC("ModuleC", 10);
 	std::vector<CThreadMgrBase*> threads;
 	threads.push_back(p_moduleA);
 	threads.push_back(p_moduleB);

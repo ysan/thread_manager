@@ -15,6 +15,7 @@ CThreadMgrBase::CThreadMgrBase (const char *pszName, uint8_t nQueNum)
 	,mSeqNum (0)
 	,mpExtIf (NULL)
 	,mpThmIf (NULL)
+	,mIdx (-1)
 {
 	if (pszName && (strlen(pszName) > 0)) {
 		memset (mName, 0x00, sizeof(mName));
@@ -27,6 +28,11 @@ CThreadMgrBase::CThreadMgrBase (const char *pszName, uint8_t nQueNum)
 	mQueNum = nQueNum;
 
 	mSeqs.clear();
+}
+
+CThreadMgrBase::CThreadMgrBase (std::string name, uint8_t nQueNum)
+{
+	CThreadMgrBase (name.c_str(), nQueNum);
 }
 
 CThreadMgrBase::~CThreadMgrBase (void)
@@ -77,7 +83,17 @@ void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE enType, uint8_t nSeqIdx, ST_THM
 	}
 }
 
-void CThreadMgrBase::setSeqs (const ST_SEQ_BASE pstSeqs [], uint8_t seqNum)
+void CThreadMgrBase::setIdx (uint8_t idx)
+{
+	mIdx = idx;
+}
+
+uint8_t CThreadMgrBase::getIdx (void)
+{
+	return mIdx;
+}
+
+void CThreadMgrBase::setSeqs (const SEQ_BASE_t pstSeqs [], uint8_t seqNum)
 {
 	if (pstSeqs && seqNum > 0) {
 		for (int i = 0; i < seqNum; ++ i) {
@@ -88,7 +104,7 @@ void CThreadMgrBase::setSeqs (const ST_SEQ_BASE pstSeqs [], uint8_t seqNum)
 	}
 }
 
-void CThreadMgrBase::setSeqs (const std::vector<ST_SEQ_BASE> &seqs)
+void CThreadMgrBase::setSeqs (const std::vector<SEQ_BASE_t> &seqs)
 {
 	if (seqs.size() > 0) {
 		mSeqs = seqs;

@@ -24,8 +24,8 @@ class CThreadMgr
 public:
 	static CThreadMgr *getInstance (void);
 
-	bool setup (const CThreadMgrBase *pThreads[], int threadNum);
-	bool setup (const std::vector<CThreadMgrBase*> &threads);
+	bool setup (CThreadMgrBase *pThreads[], int threadNum);
+	bool setup (std::vector<CThreadMgrBase*> &threads);
 	void wait (void);
 	void teardown (void);
 
@@ -37,8 +37,7 @@ private:
 	CThreadMgr (void);
 	virtual ~CThreadMgr (void);
 
-
-	bool registerThreads (const CThreadMgrBase *pThreads[], int threadNum);
+	bool registerThreads (CThreadMgrBase *pThreads[], int threadNum);
 	void unRegisterThreads (void);
 
 	bool setup (void);
@@ -49,7 +48,6 @@ private:
 
 	ST_THM_REG_TBL *mpRegTbl;
 	CThreadMgrExternalIf *mpExtIf;
-
 };
 
 } // namespace ThreadManager

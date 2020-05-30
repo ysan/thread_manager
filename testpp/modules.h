@@ -1,11 +1,5 @@
-#ifndef _MGR_REG_TBL_H_
-#define _MGR_REG_TBL_H_
-
-
-#include "ThreadMgrpp.h"
-
-
-using namespace ThreadManager;
+#ifndef _MODULES_H_
+#define _MODULES_H_
 
 enum {
 	EN_MODULE_A = 0,
@@ -14,9 +8,5 @@ enum {
 
 	EN_MODULE_NUM
 };
-
-
-extern CThreadMgrBase *gp_threads [];
-
 
 #endif

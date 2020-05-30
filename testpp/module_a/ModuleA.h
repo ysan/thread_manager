@@ -18,16 +18,15 @@ using namespace ThreadManager;
 class CModuleA : public CThreadMgrBase
 {
 public:
-	CModuleA (char *pszName, uint8_t nQueNum);
+	CModuleA (std::string name, uint8_t nQueNum);
 	virtual ~CModuleA (void);
 
 
+private:
 	void startUp (CThreadMgrIf *pIf);
 	void func00 (CThreadMgrIf *pIf);
 	void func01 (CThreadMgrIf *pIf);
 
-
-private:
 	uint32_t mTmpReqId;
 
 };

@@ -13,10 +13,11 @@ using namespace ThreadManager;
 
 
 
-CModuleC::CModuleC (char *pszName, uint8_t nQueNum) : CThreadMgrBase (pszName, nQueNum)
+CModuleC::CModuleC (std::string name, uint8_t nQueNum)
+	: CThreadMgrBase (name, nQueNum)
 {
-	vector<ST_SEQ_BASE> seqs;
-	seqs.push_back ({(PFN_SEQ_BASE)&CModuleC::startUp, (char*)"startUp"});
+	vector<SEQ_BASE_t> seqs;
+	seqs.push_back ({(PFN_SEQ_BASE)&CModuleC::startUp, "startUp"});
 	setSeqs (seqs);
 }
 

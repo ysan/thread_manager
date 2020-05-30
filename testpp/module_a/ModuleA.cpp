@@ -11,14 +11,13 @@
 
 
 
-CModuleA::CModuleA (char *pszName, uint8_t nQueNum)
-	:CThreadMgrBase (pszName, nQueNum)
+CModuleA::CModuleA (std::string name, uint8_t nQueNum)
+	:CThreadMgrBase (name, nQueNum)
 {
-	vector<ST_SEQ_BASE> seqs;
-	seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::startUp, (char*)"startUp"});
-	seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::startUp, (char*)"startUp"});
-	seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::func00, (char*)"func00"});
-	seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::func01, (char*)"func01"});
+	vector<SEQ_BASE_t> seqs;
+	seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::startUp, "startUp"});
+	seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::func00, "func00"});
+	seqs.push_back ({(PFN_SEQ_BASE)&CModuleA::func01, "func01"});
 	setSeqs (seqs);
 }
 
