@@ -32,8 +32,7 @@ Installation files:
 	    └── libthreadmgrpp.so
 
 
-Uninstall
-------------
+Uninstall:
 
 	$ sudo make clean INSTALLDIR=/usr/local/
 
@@ -208,7 +207,7 @@ void CModuleB::sequence1 (CThreadMgrIf *pIf)
 		// set next section id, and action.
 		// Return control to framework and wait for queue, by EN_THM_ACT_WAIT.
 		// During this time can handle another queue (another sequence).
-		pIf->setSectId (SECTID_WAIT_REPLY_MODULE_B_FUNC00, EN_THM_ACT_WAIT);
+		pIf->setSectId (SECTID_WAIT_REPLY_MODULE_A_SEQ_1, EN_THM_ACT_WAIT);
 		break;
 
 	case SECTID_WAIT_REPLY_MODULE_A_SEQ_1: {

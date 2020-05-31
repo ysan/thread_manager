@@ -24,8 +24,13 @@ public:
 
 
 private:
-	void startUp (CThreadMgrIf *pIf) ;
+	void startUp (CThreadMgrIf *pIf);
+	void func00 (CThreadMgrIf *pIf);
 
+	void onReceiveNotify (CThreadMgrIf *pIf);
+
+
+	uint8_t mClientId;
 };
 
 #endif

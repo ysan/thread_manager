@@ -86,11 +86,7 @@ int main (void)
 	p_mod_a_extern->reqFunc00 ((const char*)msg, strlen(msg));
 
 
-	kill (getpid(), SIGQUIT);
-
-
-//	p_mgr->wait ();
-sleep(3);
+	p_mgr->wait ();
 
 	p_mgr->teardown();
 

@@ -4,8 +4,12 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <sys/types.h>
+#include <signal.h>
+
 #include "ModuleB.h"
 #include "ModuleB_extern.h"
+#include "ModuleC_extern.h"
 #include "modules.h"
 
 
@@ -18,6 +22,7 @@ CModuleB::CModuleB (std::string name, uint8_t nQueNum)
 {
 	vector<SEQ_BASE_t> seqs;
 	seqs.push_back ({(PFN_SEQ_BASE)&CModuleB::startUp, "startUp"});
+	seqs.push_back ({(PFN_SEQ_BASE)&CModuleB::func00, "func00"});
 	setSeqs (seqs);
 }
 
@@ -39,35 +44,36 @@ void CModuleB::startUp (CThreadMgrIf *pIf)
 	};
 
 	nSectId = pIf->getSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	THM_LOG_I ("%s nSectId %d\n", __PRETTY_FUNCTION__, nSectId);
 
 	switch (nSectId) {
 	case SECTID_ENTRY:
-//		nSectId = SECTID_REQ_REG_NOTIFY_THC;
-		nSectId = SECTID_END;
+		nSectId = SECTID_REQ_REG_NOTIFY_THC;
 		enAct = EN_THM_ACT_CONTINUE;
 		break;
 
-//	case SECTID_REQ_REG_NOTIFY_THC:
-//		reqRegNotifyThreadC (NULL);
-//		nSectId = SECTID_WAIT_REG_NOTIFY_THC;
-//		enAct = EN_THM_ACT_WAIT;
-//		break;
-//
-//	case SECTID_WAIT_REG_NOTIFY_THC: {
-//		EN_THM_RSLT enRslt = pIf->pstSrcInfo->enRslt;
-//		gnClientId = *(pIf->pstSrcInfo->pszMsg);
-//		THM_LOG_I ("return reqRegNotifyThreadC [%d] gnClientId:[%d]\n", enRslt, gnClientId);
-//
-//		if (enRslt == EN_THM_RSLT_SUCCESS) {
-//			nSectId = SECTID_END;
-//			enAct = EN_THM_ACT_CONTINUE;
-//		} else {
-//			nSectId = SECTID_ERR_END;
-//			enAct = EN_THM_ACT_CONTINUE;
-//		}
-//
-//		} break;
+	case SECTID_REQ_REG_NOTIFY_THC: {
+		CModuleC_extern ex(getExternalIf());
+		ex.reqRegNotify ();
+		nSectId = SECTID_WAIT_REG_NOTIFY_THC;
+		enAct = EN_THM_ACT_WAIT;
+		}
+		break;
+
+	case SECTID_WAIT_REG_NOTIFY_THC: {
+		EN_THM_RSLT enRslt = pIf->getSrcInfo()->enRslt;
+		mClientId = *(pIf->getSrcInfo()->msg.pMsg);
+		THM_LOG_I ("return reqRegNotifyThreadC [%d] mClientId:[%d]\n", enRslt, mClientId);
+
+		if (enRslt == EN_THM_RSLT_SUCCESS) {
+			nSectId = SECTID_END;
+			enAct = EN_THM_ACT_CONTINUE;
+		} else {
+			nSectId = SECTID_ERR_END;
+			enAct = EN_THM_ACT_CONTINUE;
+		}
+
+		} break;
 
 	case SECTID_END: {
 		const char *msg = "ModuleB startup end.\0";
@@ -89,3 +95,38 @@ void CModuleB::startUp (CThreadMgrIf *pIf)
 	pIf->setSectId (nSectId, enAct);
 }
 
+void CModuleB::func00 (CThreadMgrIf *pIf)
+{
+	uint8_t nSectId;
+	EN_THM_ACT enAct;
+	enum {
+		SECTID_ENTRY = 0,
+		SECTID_END,
+	};
+
+	nSectId = pIf->getSectId();
+	THM_LOG_I ("%s nSectId %d\n", __PRETTY_FUNCTION__, nSectId);
+
+	THM_LOG_I ("execute. sleep 2sec.\n");
+	sleep (2);
+
+	char *msg = "thread_b func00 end.\0";
+	pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg)+1);
+
+	nSectId = 0;
+	enAct = EN_THM_ACT_DONE;
+	pIf->setSectId (nSectId, enAct);
+}
+
+void CModuleB::onReceiveNotify (CThreadMgrIf *pIf)
+{
+	THM_LOG_I ("%s\n", __PRETTY_FUNCTION__);
+
+	if (pIf->getSrcInfo()->nClientId == mClientId) {
+		THM_LOG_I ("recv notify  id:[%d] msg:[%s]\n", 
+						pIf->getSrcInfo()->nClientId, (char*)pIf->getSrcInfo()->msg.pMsg);
+
+		kill (getpid(), SIGQUIT);
+		kill (getpid(), SIGTERM);
+	}
+}

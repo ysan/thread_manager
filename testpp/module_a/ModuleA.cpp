@@ -36,7 +36,7 @@ void CModuleA::startUp (CThreadMgrIf *pIf)
 	};
 
 	nSectId = pIf->getSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	THM_LOG_I ("%s nSectId %d\n", __PRETTY_FUNCTION__, nSectId);
 
 	const char *msg = "ModuleA startup end.\0";
 	pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg)+1);
@@ -59,7 +59,7 @@ void CModuleA::func00 (CThreadMgrIf *pIf)
 	};
 
 	nSectId = pIf->getSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	THM_LOG_I ("%s nSectId %d\n", __PRETTY_FUNCTION__, nSectId);
 
 	switch (nSectId) {
 	case SECTID_ENTRY:
@@ -128,7 +128,7 @@ void CModuleA::func01 (CThreadMgrIf *pIf)
 	};
 
 	nSectId = pIf->getSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	THM_LOG_I ("%s nSectId %d\n", __PRETTY_FUNCTION__, nSectId);
 
 	switch (nSectId) {
 	case SECTID_ENTRY:

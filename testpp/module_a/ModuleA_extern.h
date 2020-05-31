@@ -40,9 +40,6 @@ public:
 		return requestAsync (EN_MODULE_A, EN_SEQ_FUNC01, (uint8_t*)pMsg, len);
 	};
 
-
-private:
-
 };
 
 #endif

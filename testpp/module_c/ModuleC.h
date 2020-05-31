@@ -25,6 +25,12 @@ public:
 
 private:
 	void startUp (CThreadMgrIf *pIf) ;
+	void regNotify (CThreadMgrIf *pIf) ;
+	void unregNotify (CThreadMgrIf *pIf) ;
+	void cycleFunc (CThreadMgrIf *pIf) ;
+	void func00 (CThreadMgrIf *pIf) ;
+
+	uint8_t mClientId;
 };
 
 #endif

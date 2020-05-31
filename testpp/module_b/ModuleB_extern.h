@@ -18,6 +18,7 @@ class CModuleB_extern : public CThreadMgrExternalIf
 public:
 	enum {
 		EN_SEQ_MODULE_B_STARTUP = 0,
+		EN_SEQ_MODULE_B_FUNC00,
 	};
 
 	explicit CModuleB_extern (CThreadMgrExternalIf *pIf) : CThreadMgrExternalIf (pIf) {
@@ -31,7 +32,9 @@ public:
 		return requestAsync (EN_MODULE_B, EN_SEQ_MODULE_B_STARTUP);
 	};
 
-private:
+	bool reqFunc00 (void) {
+		return requestAsync (EN_MODULE_B, EN_SEQ_MODULE_B_FUNC00);
+	};
 
 };
 
