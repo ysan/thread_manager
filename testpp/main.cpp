@@ -23,7 +23,6 @@
 
 using namespace ThreadManager;
 
-
 int main (void)
 {
 	initLogStdout();
@@ -57,29 +56,29 @@ int main (void)
 
 	p_mgr->getExternalIf()->createExternalCp();
 
-
+	ST_THM_SRC_INFO* r = NULL;
 	p_mod_a_extern-> reqStartUp ();
-	ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
+	r = p_mgr->getExternalIf()-> receiveExternal();
 	if (r) {
-		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->msg.pMsg);
+		THM_LOG_I ("r [%d][%s]", r->enRslt, r->msg.pMsg);
 	} else {
-		THM_LOG_E ("dddddddddddddddddd r null");
+		THM_LOG_E ("r null");
 	}
 
 	p_mod_b_extern-> reqStartUp ();
 	r = p_mgr->getExternalIf()-> receiveExternal();
 	if (r) {
-		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->msg.pMsg);
+		THM_LOG_I ("r [%d][%s]", r->enRslt, r->msg.pMsg);
 	} else {
-		THM_LOG_E ("dddddddddddddddddd r null");
+		THM_LOG_E ("r null");
 	}
 
 	p_mod_c_extern-> reqStartUp ();
 	r = p_mgr->getExternalIf()-> receiveExternal();
 	if (r) {
-		THM_LOG_I ("dddddddddddddddddd r [%d][%s]", r->enRslt, r->msg.pMsg);
+		THM_LOG_I ("r [%d][%s]", r->enRslt, r->msg.pMsg);
 	} else {
-		THM_LOG_E ("dddddddddddddddddd r null");
+		THM_LOG_E ("r null");
 	}
 
 

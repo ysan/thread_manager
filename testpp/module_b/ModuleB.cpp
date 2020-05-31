@@ -70,8 +70,8 @@ void CModuleB::startUp (CThreadMgrIf *pIf)
 //		} break;
 
 	case SECTID_END: {
-		const char *msg = "ModuleB startup end.";
-		pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
+		const char *msg = "ModuleB startup end.\0";
+		pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg)+1);
 		nSectId = THM_SECT_ID_INIT;
 		enAct = EN_THM_ACT_DONE;
 		} break;

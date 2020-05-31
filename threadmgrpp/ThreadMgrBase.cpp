@@ -31,8 +31,8 @@ CThreadMgrBase::CThreadMgrBase (const char *pszName, uint8_t nQueNum)
 }
 
 CThreadMgrBase::CThreadMgrBase (std::string name, uint8_t nQueNum)
+	: CThreadMgrBase (name.c_str(), nQueNum)
 {
-	CThreadMgrBase (name.c_str(), nQueNum);
 }
 
 CThreadMgrBase::~CThreadMgrBase (void)

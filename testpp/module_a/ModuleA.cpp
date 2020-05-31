@@ -38,8 +38,8 @@ void CModuleA::startUp (CThreadMgrIf *pIf)
 	nSectId = pIf->getSectId();
 	THM_LOG_I ("nSectId %d\n", nSectId);
 
-	const char *msg = "ModuleA startup end.";
-	pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
+	const char *msg = "ModuleA startup end.\0";
+	pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg)+1);
 
 	nSectId = THM_SECT_ID_INIT;
 	enAct = EN_THM_ACT_DONE;

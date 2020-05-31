@@ -12,18 +12,15 @@
 
 using namespace ThreadManager;
 
-enum {
-	EN_SEQ_STARTUP = 0,
-	EN_SEQ_FUNC00,
-	EN_SEQ_FUNC01,
-
-	EN_SEQ_NUM,
-};
-
-
 class CModuleA_extern : public CThreadMgrExternalIf
 {
 public:
+	enum {
+		EN_SEQ_STARTUP = 0,
+		EN_SEQ_FUNC00,
+		EN_SEQ_FUNC01,
+	};
+
 	explicit CModuleA_extern (CThreadMgrExternalIf *pIf) : CThreadMgrExternalIf (pIf) {
 	};
 

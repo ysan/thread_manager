@@ -13,16 +13,13 @@
 
 using namespace ThreadManager;
 
-enum {
-	EN_SEQ_MODULE_C_STARTUP = 0,
-
-	EN_SEQ_MODULE_C_NUM,
-};
-
-
 class CModuleC_extern : public CThreadMgrExternalIf
 {
 public:
+	enum {
+		EN_SEQ_MODULE_C_STARTUP = 0,
+	};
+
 	explicit CModuleC_extern (CThreadMgrExternalIf *pIf) : CThreadMgrExternalIf (pIf) {
 	};
 
