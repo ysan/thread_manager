@@ -6,9 +6,10 @@ thread manager
 Asynchronous I/O communication framework during multi threads and section sequence manager.  
   
 You can communicate threads N-to-N with patterns like request-reply and notify.  
-  
-Generally, the number of callback functions that receive events increases in asynchronous processing, and the readability of the source code deteriorates. However, this framework improves the readability of the source code by enabling the description through a series of processing sequences.
 
+<!--
+Generally, the number of callback functions that receive events increases in asynchronous processing, and the readability of the source code deteriorates. However, this framework improves the readability of the source code by enabling the description through a series of processing sequences.
+-->
 
 Build and install
 ------------
