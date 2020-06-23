@@ -82,12 +82,17 @@ int main (void)
 	}
 
 
-	const char *msg = "test request";
-	p_mod_a_extern->reqFunc00 ((const char*)msg, strlen(msg));
+	uint32_t opt = p_mgr->getExternalIf()->getRequestOption ();
+	opt |= REQUEST_OPTION__WITHOUT_REPLY;
+	p_mgr->getExternalIf()->setRequestOption (opt);
+	const char *msg = "test request\0";
+	p_mod_a_extern->reqFunc00 ((const char*)msg, strlen(msg)+1);
 
 
 	p_mgr->wait ();
 
+
+	p_mgr->getExternalIf()->destroyExternalCp();
 	p_mgr->teardown();
 
 	putsBackTrace();

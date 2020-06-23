@@ -27,7 +27,10 @@ private:
 	void func00 (CThreadMgrIf *pIf);
 	void func01 (CThreadMgrIf *pIf);
 
+	void onReceiveNotify (CThreadMgrIf *pIf);
+
 	uint32_t mTmpReqId;
+	uint8_t mClientId;
 
 };
 

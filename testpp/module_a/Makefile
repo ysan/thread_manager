@@ -8,6 +8,8 @@ CFLAGS		:=	-std=c++11
 INCLUDES	:= \
 	-I./ \
 	-I../ \
+	-I../module_b \
+	-I../module_c \
 	-I$(BASEDIR)/threadmgr \
 	-I$(BASEDIR)/threadmgrpp \
 

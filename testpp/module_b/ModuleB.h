@@ -15,20 +15,15 @@
 using namespace ThreadManager;
 
 
-
 class CModuleB : public CThreadMgrBase
 {
 public:
 	CModuleB (std::string name, uint8_t nQueNum);
 	virtual ~CModuleB (void);
 
-
 private:
 	void startUp (CThreadMgrIf *pIf);
 	void func00 (CThreadMgrIf *pIf);
-
-	void onReceiveNotify (CThreadMgrIf *pIf);
-
 
 	uint8_t mClientId;
 };

@@ -63,7 +63,7 @@ The framework first receives queue, identifies the sequence from the sent queue,
 How to use
 ------------
 #### Quick start (C++) ####
-##### include libary header #####
+##### include library header #####
 ```C++
 #include "ThreadMgrpp.h"
 ```
