@@ -65,7 +65,7 @@ How to use
 #### Quick start (C++) ####
 ##### include library header #####
 ```C++
-#include "ThreadMgrpp.h"
+#include <threadmgr/ThreadMgrpp.h>
 ```
 
 ##### setup ThreadManager and register your class instances #####
