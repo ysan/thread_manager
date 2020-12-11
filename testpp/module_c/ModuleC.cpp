@@ -21,7 +21,6 @@ CModuleC::CModuleC (std::string name, uint8_t nQueNum)
 	seqs.push_back ({(PFN_SEQ_BASE)&CModuleC::regNotify, "regNotify"});
 	seqs.push_back ({(PFN_SEQ_BASE)&CModuleC::unregNotify, "unregNotify"});
 	seqs.push_back ({(PFN_SEQ_BASE)&CModuleC::cycleFunc, "cycleFunc"});
-	seqs.push_back ({(PFN_SEQ_BASE)&CModuleC::func00, "func00"});
 	setSeqs (seqs);
 }
 
@@ -196,26 +195,5 @@ void CModuleC::cycleFunc (CThreadMgrIf *pIf)
 		break;
 	}
 
-	pIf->setSectId (nSectId, enAct);
-}
-
-void CModuleC::func00 (CThreadMgrIf *pIf)
-{
-	uint8_t nSectId;
-	EN_THM_ACT enAct;
-	enum {
-		SECTID_ENTRY = THM_SECT_ID_INIT,
-		SECTID_END,
-	};
-
-	nSectId = pIf->getSectId();
-	THM_LOG_I ("%s nSectId %d\n", __PRETTY_FUNCTION__, nSectId);
-
-	sleep (60);
-	THM_LOG_I ("reply");
-	pIf->reply (EN_THM_RSLT_SUCCESS);
-
-	nSectId = THM_SECT_ID_INIT;
-	enAct = EN_THM_ACT_DONE;
 	pIf->setSectId (nSectId, enAct);
 }

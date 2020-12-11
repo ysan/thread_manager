@@ -21,7 +21,6 @@ public:
 		EN_SEQ_REG_NOTIFY,
 		EN_SEQ_UNREG_NOTIFY,
 		EN_SEQ_CYCLE_FUNC,
-		EN_SEQ_FUNC00,
 	};
 
 	enum {
@@ -47,10 +46,6 @@ public:
 
 	bool reqUnregNotify (void) {
 		return requestAsync (EN_MODULE_C, EN_SEQ_UNREG_NOTIFY);
-	};
-
-	bool reqFunc00 (void) {
-		return requestAsync (EN_MODULE_C, EN_SEQ_FUNC00);
 	};
 
 };

@@ -14,6 +14,7 @@
 #include "ModuleC_extern.h"
 
 #include "modules.h"
+#include "threadmgr_if.h"
 
 
 
@@ -127,8 +128,14 @@ void CModuleA::func01 (CThreadMgrIf *pIf)
 	EN_THM_ACT enAct;
 	enum {
 		SECTID_ENTRY = THM_SECT_ID_INIT,
+		SECTID_SYNC_REQ_THREAD_B_FUNC00,
+		SECTID_SYNC_REQ_THREAD_B_FUNC00_TIMEOUT,
 		SECTID_REQ_THREAD_B_FUNC00,
 		SECTID_WAIT_THREAD_B_FUNC00,
+		SECTID_REQ_THREAD_B_FUNC00_TIMEOUT,
+		SECTID_WAIT_THREAD_B_FUNC00_TIMEOUT,
+		SECTID_REQ_THREAD_B_FUNC00_MULTI,
+		SECTID_WAIT_THREAD_B_FUNC00_MULTI,
 		SECTID_REQ_REG_NOTIFY_THC,
 		SECTID_WAIT_REG_NOTIFY_THC,
 		SECTID_END,
@@ -142,20 +149,57 @@ void CModuleA::func01 (CThreadMgrIf *pIf)
 	case SECTID_ENTRY:
 		THM_LOG_I ("msg [%s]\n", (char*)pIf->getSrcInfo()->msg.pMsg);
 
+		nSectId = SECTID_SYNC_REQ_THREAD_B_FUNC00;
+		enAct = EN_THM_ACT_CONTINUE;
+		break;
+
+	case SECTID_SYNC_REQ_THREAD_B_FUNC00: {
+
+		// スレッドBのfunc00に同期リクエスト
+		CModuleB_extern ex (getExternalIf());
+		ex.syncReqFunc00 ();
+
+		EN_THM_RSLT enRslt = pIf->getSrcInfo()->enRslt;
+		THM_LOG_I ("syncReqFunc00ThreadB return [%d] msg:[%s]\n", enRslt, pIf->getSrcInfo()->msg.pMsg);
+
+		nSectId = SECTID_SYNC_REQ_THREAD_B_FUNC00_TIMEOUT;
+		enAct = EN_THM_ACT_CONTINUE;
+
+		}
+		break;
+
+	case SECTID_SYNC_REQ_THREAD_B_FUNC00_TIMEOUT: {
+
+		// set req-timeout
+		uint32_t opt = getRequestOption ();
+		opt |= REQUEST_OPTION__WITH_TIMEOUT_MSEC;
+		opt &= 0x0000ffff; // clear timeout val
+		opt |= 1000 << 16; // set timeout 1sec
+		setRequestOption (opt);
+
+		// スレッドBのfunc00に同期リクエスト
+		CModuleB_extern ex (getExternalIf());
+		ex.syncReqFunc00 ();
+
+		// reset req-timeout
+		opt &= ~REQUEST_OPTION__WITH_TIMEOUT_MSEC;
+		setRequestOption (opt);
+
+		// タイムアウトになる
+		EN_THM_RSLT enRslt = pIf->getSrcInfo()->enRslt;
+		THM_LOG_I ("syncReqFunc00ThreadB return [%d] msg:[%s]\n", enRslt, pIf->getSrcInfo()->msg.pMsg);
+
 		nSectId = SECTID_REQ_THREAD_B_FUNC00;
 		enAct = EN_THM_ACT_CONTINUE;
+
+		}
 		break;
 
 	case SECTID_REQ_THREAD_B_FUNC00: {
 
 		// スレッドBのfunc00にリクエスト
 		CModuleB_extern ex (getExternalIf());
-		ex.reqFunc00 (NULL);
-		ex.reqFunc00 (NULL);
-		ex.reqFunc00 (NULL);
-		ex.reqFunc00 (NULL);
-		ex.reqFunc00 (&mTmpReqId);
-		THM_LOG_I ("reqFunc00ThreadB reqid:[%d]\n", mTmpReqId);
+		ex.reqFunc00 ();
 
 		nSectId = SECTID_WAIT_THREAD_B_FUNC00;
 		enAct = EN_THM_ACT_WAIT;
@@ -164,9 +208,81 @@ void CModuleA::func01 (CThreadMgrIf *pIf)
 		break;
 
 	case SECTID_WAIT_THREAD_B_FUNC00: {
+
+		EN_THM_RSLT enRslt = pIf->getSrcInfo()->enRslt;
+		THM_LOG_I ("reqFunc00ThreadB return [%d] msg:[%s]\n", enRslt, pIf->getSrcInfo()->msg.pMsg);
+
+		if (enRslt == EN_THM_RSLT_SUCCESS) {
+			nSectId = SECTID_REQ_THREAD_B_FUNC00_TIMEOUT;
+			enAct = EN_THM_ACT_CONTINUE;
+		} else {
+			nSectId = SECTID_ERR_END;
+			enAct = EN_THM_ACT_CONTINUE;
+		}
+
+		} break;
+
+	case SECTID_REQ_THREAD_B_FUNC00_TIMEOUT: {
+
+		// set req-timeout
+		uint32_t opt = getRequestOption ();
+		opt |= REQUEST_OPTION__WITH_TIMEOUT_MSEC;
+		opt &= 0x0000ffff; // clear timeout val
+		opt |= 1000 << 16; // set timeout 1sec
+		setRequestOption (opt);
+
+		// スレッドBのfunc00にリクエスト
+		CModuleB_extern ex (getExternalIf());
+		ex.reqFunc00 ();
+
+		// reset req-timeout
+		opt &= ~REQUEST_OPTION__WITH_TIMEOUT_MSEC;
+		setRequestOption (opt);
+
+		nSectId = SECTID_WAIT_THREAD_B_FUNC00_TIMEOUT;
+		enAct = EN_THM_ACT_WAIT;
+
+		}
+		break;
+
+	case SECTID_WAIT_THREAD_B_FUNC00_TIMEOUT: {
+
+		EN_THM_RSLT enRslt = pIf->getSrcInfo()->enRslt;
+		THM_LOG_I ("reqFunc00ThreadB return [%d] msg:[%s]\n", enRslt, pIf->getSrcInfo()->msg.pMsg);
+
+		// タイムアウトになる
+		if (enRslt == EN_THM_RSLT_REQ_TIMEOUT) {
+			nSectId = SECTID_REQ_THREAD_B_FUNC00_MULTI;
+			enAct = EN_THM_ACT_CONTINUE;
+		} else {
+			nSectId = SECTID_ERR_END;
+			enAct = EN_THM_ACT_CONTINUE;
+		}
+
+		} break;
+
+	case SECTID_REQ_THREAD_B_FUNC00_MULTI: {
+
+		// スレッドBのfunc00にリクエスト(セクション中に複数リクエスト)
+		CModuleB_extern ex (getExternalIf());
+		ex.reqFunc00 ();
+		ex.reqFunc00 ();
+		ex.reqFunc00 ();
+		ex.reqFunc00 ();
+		ex.reqFunc00 (&mTmpReqId);
+		THM_LOG_I ("reqFunc00ThreadB reqid:[%d]\n", mTmpReqId);
+
+		nSectId = SECTID_WAIT_THREAD_B_FUNC00_MULTI;
+		enAct = EN_THM_ACT_WAIT;
+
+		}
+		break;
+
+	case SECTID_WAIT_THREAD_B_FUNC00_MULTI: {
+		// 最後に送ったリクエストのIDを期待する
 		if (pIf->getSrcInfo()->nReqId != mTmpReqId) {
 			THM_LOG_W ("different reqid %d\n", pIf->getSrcInfo()->nReqId);
-			nSectId = SECTID_WAIT_THREAD_B_FUNC00;
+			nSectId = SECTID_WAIT_THREAD_B_FUNC00_MULTI;
 			enAct = EN_THM_ACT_WAIT;
 
 		} else {

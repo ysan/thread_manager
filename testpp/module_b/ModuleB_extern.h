@@ -32,6 +32,10 @@ public:
 		return requestAsync (EN_MODULE_B, EN_SEQ_MODULE_B_STARTUP);
 	};
 
+	bool syncReqFunc00 (void) {
+		return requestSync (EN_MODULE_B, EN_SEQ_MODULE_B_FUNC00);
+	};
+
 	bool reqFunc00 (uint32_t *pOutReqId=NULL) {
 		return requestAsync (EN_MODULE_B, EN_SEQ_MODULE_B_FUNC00, pOutReqId);
 	};

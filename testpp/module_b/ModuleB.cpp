@@ -64,7 +64,7 @@ void CModuleB::func00 (CThreadMgrIf *pIf)
 	THM_LOG_I ("execute. sleep 2sec.\n");
 	sleep (2);
 
-	char *msg = "thread_b func00 end.\0";
+	char *msg = (char*)"thread_b func00 end.\0";
 	pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg)+1);
 
 	nSectId = 0;
