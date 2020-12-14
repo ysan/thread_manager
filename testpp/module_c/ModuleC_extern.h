@@ -44,8 +44,8 @@ public:
 		return requestAsync (EN_MODULE_C, EN_SEQ_REG_NOTIFY);
 	};
 
-	bool reqUnregNotify (void) {
-		return requestAsync (EN_MODULE_C, EN_SEQ_UNREG_NOTIFY);
+	bool reqUnregNotify (uint8_t client_id) {
+		return requestAsync (EN_MODULE_C, EN_SEQ_UNREG_NOTIFY, &client_id, sizeof(uint8_t));
 	};
 
 };

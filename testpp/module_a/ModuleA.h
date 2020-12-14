@@ -26,6 +26,7 @@ private:
 	void startUp (CThreadMgrIf *pIf);
 	void func00 (CThreadMgrIf *pIf);
 	void func01 (CThreadMgrIf *pIf);
+	void func02 (CThreadMgrIf *pIf);
 
 	void onReceiveNotify (CThreadMgrIf *pIf);
 

@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +9,8 @@
 #include <signal.h>
 
 #include <vector>
+#include <string>
+#include <cassert>
 
 #include "ThreadMgrpp.h"
 
@@ -19,9 +22,10 @@
 #include "ModuleC_extern.h"
 
 #include "modules.h"
+#include "threadmgr_if.h"
 
 
-using namespace ThreadManager;
+namespace THM = ThreadManager;
 
 int main (void)
 {
@@ -46,6 +50,7 @@ int main (void)
 	threads.push_back(p_moduleC);
 
 	if (!p_mgr->setup (threads)) {
+		THM_LOG_E ("setup failure.");
 		exit (EXIT_FAILURE);
 	}
 
@@ -56,37 +61,41 @@ int main (void)
 
 	p_mgr->getExternalIf()->createExternalCp();
 
-	ST_THM_SRC_INFO* r = NULL;
-	p_mod_a_extern-> reqStartUp ();
-	r = p_mgr->getExternalIf()-> receiveExternal();
-	if (r) {
-		THM_LOG_I ("r [%d][%s]", r->enRslt, r->msg.pMsg);
-	} else {
-		THM_LOG_E ("r null");
+	{
+		p_mod_a_extern-> reqStartUp ();
+		ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
+		assert(r != NULL);
+		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
+		std::string s = (char*)r->msg.pMsg;
+		assert (s == std::string("ModuleA startup end."));
+	}
+	{
+		p_mod_b_extern-> reqStartUp ();
+		ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
+		assert(r != NULL);
+		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
+		std::string s = (char*)r->msg.pMsg;
+		assert (s == std::string("ModuleB startup end."));
+	}
+	{
+		p_mod_c_extern-> reqStartUp ();
+		ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
+		assert(r != NULL);
+		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
+		std::string s = (char*)r->msg.pMsg;
+		assert (s == std::string("ModuleC startup end."));
 	}
 
-	p_mod_b_extern-> reqStartUp ();
-	r = p_mgr->getExternalIf()-> receiveExternal();
-	if (r) {
-		THM_LOG_I ("r [%d][%s]", r->enRslt, r->msg.pMsg);
-	} else {
-		THM_LOG_E ("r null");
-	}
-
-	p_mod_c_extern-> reqStartUp ();
-	r = p_mgr->getExternalIf()-> receiveExternal();
-	if (r) {
-		THM_LOG_I ("r [%d][%s]", r->enRslt, r->msg.pMsg);
-	} else {
-		THM_LOG_E ("r null");
-	}
-
-
+	// set without-reply
 	uint32_t opt = p_mgr->getExternalIf()->getRequestOption ();
 	opt |= REQUEST_OPTION__WITHOUT_REPLY;
 	p_mgr->getExternalIf()->setRequestOption (opt);
-	const char *msg = "test request\0";
-	p_mod_a_extern->reqFunc00 ((const char*)msg, strlen(msg)+1);
+
+	p_mod_a_extern->reqFunc00 ();
+
+	// reset without-reply
+	opt &= ~REQUEST_OPTION__WITHOUT_REPLY;
+	p_mgr->getExternalIf()->setRequestOption (opt);
 
 
 	p_mgr->wait ();
@@ -99,6 +108,10 @@ int main (void)
 
 	finalizSyslog();
 	finalizLog();
+
+	delete p_mod_a_extern;
+	delete p_mod_b_extern;
+	delete p_mod_c_extern;
 
 	for (const auto &th : threads)
 		delete th;

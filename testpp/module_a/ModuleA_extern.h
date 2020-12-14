@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "ThreadMgrpp.h"
 #include "modules.h"
 
 
@@ -19,6 +20,7 @@ public:
 		EN_SEQ_STARTUP = 0,
 		EN_SEQ_FUNC00,
 		EN_SEQ_FUNC01,
+		EN_SEQ_FUNC02,
 	};
 
 	explicit CModuleA_extern (CThreadMgrExternalIf *pIf) : CThreadMgrExternalIf (pIf) {
@@ -32,12 +34,8 @@ public:
 		return requestAsync (EN_MODULE_A, EN_SEQ_STARTUP);
 	};
 
-	bool reqFunc00 (const char *pMsg, size_t len) {
-		return requestAsync (EN_MODULE_A, EN_SEQ_FUNC00, (uint8_t*)pMsg, len);
-	};
-
-	bool reqFunc01 (const char *pMsg, size_t len) {
-		return requestAsync (EN_MODULE_A, EN_SEQ_FUNC01, (uint8_t*)pMsg, len);
+	bool reqFunc00 (void) {
+		return requestAsync (EN_MODULE_A, EN_SEQ_FUNC00);
 	};
 
 };

@@ -178,6 +178,7 @@ void CModuleC::cycleFunc (CThreadMgrIf *pIf)
 		enAct = EN_THM_ACT_CONTINUE;
 		break;
 	case SECTID_CYCLE:
+		pIf->clearTimeout ();
 		pIf->setTimeout (15000);
 		nSectId = SECTID_SEND_NOTIFY;
 		enAct = EN_THM_ACT_WAIT;
