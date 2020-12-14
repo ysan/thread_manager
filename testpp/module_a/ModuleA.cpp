@@ -72,8 +72,6 @@ void CModuleA::func00 (CThreadMgrIf *pIf)
 
 	switch (nSectId) {
 	case SECTID_ENTRY:
-		THM_LOG_I ("msg [%s]\n", (char*)pIf->getSrcInfo()->msg.pMsg);
-
 		nSectId = SECTID_REQ_THREAD_A_FUNC01;
 		enAct = EN_THM_ACT_CONTINUE;
 		break;

@@ -15,7 +15,7 @@ script:
   - cd testpp
   - ./run.sh
   - cd ..
-  - make WITH_COVERAGE=1
+  - make gcov
 
 after_success:
   - coveralls -n --include threadmgr --include threadmgrpp
