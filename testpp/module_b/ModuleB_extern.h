@@ -11,14 +11,14 @@
 #include "modules.h"
 
 
-using namespace ThreadManager;
-
-class CModuleB_extern : public CThreadMgrExternalIf
+class CModuleB_extern : public ThreadManager::CThreadMgrExternalIf
 {
 public:
 	enum {
-		EN_SEQ_MODULE_B_STARTUP = 0,
-		EN_SEQ_MODULE_B_FUNC00,
+		EN_SEQ_STARTUP = 0,
+		EN_SEQ_ECHO00,
+		EN_SEQ_ECHO01,
+		EN_SEQ_ECHO02,
 	};
 
 	explicit CModuleB_extern (CThreadMgrExternalIf *pIf) : CThreadMgrExternalIf (pIf) {
@@ -29,15 +29,31 @@ public:
 
 
 	bool reqStartUp (void) {
-		return requestAsync (EN_MODULE_B, EN_SEQ_MODULE_B_STARTUP);
+		return requestAsync (EN_MODULE_B, EN_SEQ_STARTUP);
 	};
 
-	bool syncReqFunc00 (void) {
-		return requestSync (EN_MODULE_B, EN_SEQ_MODULE_B_FUNC00);
+	bool reqEcho00 (uint32_t *pOutReqId=NULL) {
+		return requestAsync (EN_MODULE_B, EN_SEQ_ECHO00, pOutReqId);
 	};
 
-	bool reqFunc00 (uint32_t *pOutReqId=NULL) {
-		return requestAsync (EN_MODULE_B, EN_SEQ_MODULE_B_FUNC00, pOutReqId);
+	bool reqEcho00sync (void) {
+		return requestSync (EN_MODULE_B, EN_SEQ_ECHO00);
+	};
+
+	bool reqEcho01 (uint32_t *pOutReqId=NULL) {
+		return requestAsync (EN_MODULE_B, EN_SEQ_ECHO01, pOutReqId);
+	};
+
+	bool reqEcho01sync (void) {
+		return requestSync (EN_MODULE_B, EN_SEQ_ECHO01);
+	};
+
+	bool reqEcho02 (uint32_t *pOutReqId=NULL) {
+		return requestAsync (EN_MODULE_B, EN_SEQ_ECHO02, pOutReqId);
+	};
+
+	bool reqEcho02sync (void) {
+		return requestSync (EN_MODULE_B, EN_SEQ_ECHO02);
 	};
 
 };

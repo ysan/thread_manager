@@ -7,15 +7,15 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <string>
+#include <sstream>
+
 #include "ThreadMgrpp.h"
 
 #include "ModuleA_extern.h"
 
 
-using namespace ThreadManager;
-
-
-class CModuleA : public CThreadMgrBase
+class CModuleA : public ThreadManager::CThreadMgrBase
 {
 public:
 	CModuleA (std::string name, uint8_t nQueNum);
@@ -23,16 +23,22 @@ public:
 
 
 private:
-	void startUp (CThreadMgrIf *pIf);
-	void func00 (CThreadMgrIf *pIf);
-	void func01 (CThreadMgrIf *pIf);
-	void func02 (CThreadMgrIf *pIf);
+	void startUp (ThreadManager::CThreadMgrIf *pIf);
+	void testReqRep (ThreadManager::CThreadMgrIf *pIf);
+	void testReqRepNotify (ThreadManager::CThreadMgrIf *pIf);
+	void testLock (ThreadManager::CThreadMgrIf *pIf);
+	void testLockIntr (ThreadManager::CThreadMgrIf *pIf);
+	void testOverwrite (ThreadManager::CThreadMgrIf *pIf);
+	void testDestroy (ThreadManager::CThreadMgrIf *pIf);
 
-	void onReceiveNotify (CThreadMgrIf *pIf);
+	void onReceiveNotify (ThreadManager::CThreadMgrIf *pIf);
 
-	uint32_t mTmpReqId;
-	uint8_t mClientId;
 
+	uint32_t m_tmp_req_id;
+	uint8_t m_client_id;
+	bool m_is_notified;
+	std::stringstream m_lock_check;
+	std::stringstream m_ow_check;
 };
 
 #endif

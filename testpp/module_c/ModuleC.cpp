@@ -9,19 +9,19 @@
 #include "modules.h"
 
 
-using namespace ThreadManager;
-
-
-
 CModuleC::CModuleC (std::string name, uint8_t nQueNum)
 	: CThreadMgrBase (name, nQueNum)
 {
-	vector<SEQ_BASE_t> seqs;
-	seqs.push_back ({(PFN_SEQ_BASE)&CModuleC::startUp, "startUp"});
-	seqs.push_back ({(PFN_SEQ_BASE)&CModuleC::regNotify, "regNotify"});
-	seqs.push_back ({(PFN_SEQ_BASE)&CModuleC::unregNotify, "unregNotify"});
-	seqs.push_back ({(PFN_SEQ_BASE)&CModuleC::cycleFunc, "cycleFunc"});
-	setSeqs (seqs);
+	ThreadManager::SEQ_BASE_t seqs[CModuleC_extern::EN_SEQ_NUM] = {
+		{(ThreadManager::PFN_SEQ_BASE)&CModuleC::startUp, "startUp"},
+		{(ThreadManager::PFN_SEQ_BASE)&CModuleC::testRegNotify, "testRegNotify"},
+		{(ThreadManager::PFN_SEQ_BASE)&CModuleC::testUnregNotify, "testUnregNotify"},
+		{(ThreadManager::PFN_SEQ_BASE)&CModuleC::testNotify, "testNotify"},
+		{(ThreadManager::PFN_SEQ_BASE)&CModuleC::echo00, "echo00"},
+		{(ThreadManager::PFN_SEQ_BASE)&CModuleC::echo01, "echo01"},
+		{(ThreadManager::PFN_SEQ_BASE)&CModuleC::echo02, "echo02"},
+	};
+	setSeqs (seqs, CModuleC_extern::EN_SEQ_NUM);
 }
 
 CModuleC::~CModuleC (void)
@@ -29,14 +29,14 @@ CModuleC::~CModuleC (void)
 }
 
 
-void CModuleC::startUp (CThreadMgrIf *pIf)
+void CModuleC::startUp (ThreadManager::CThreadMgrIf *pIf)
 {
 	uint8_t nSectId;
 	EN_THM_ACT enAct;
 	enum {
 		SECTID_ENTRY = THM_SECT_ID_INIT,
-		SECTID_REQ_CYCLE_FUNC,
-		SECTID_WAIT_CYCLE_FUNC,
+		SECTID_REQ_TEST_NOTIFY,
+		SECTID_WAIT_TEST_NOTIFY,
 		SECTID_END,
 		SECTID_ERR_END,
 	};
@@ -46,17 +46,17 @@ void CModuleC::startUp (CThreadMgrIf *pIf)
 
 	switch (nSectId) {
 	case SECTID_ENTRY:
-		nSectId = SECTID_REQ_CYCLE_FUNC;
+		nSectId = SECTID_REQ_TEST_NOTIFY;
 		enAct = EN_THM_ACT_CONTINUE;
 		break;
 
-	case SECTID_REQ_CYCLE_FUNC:
-		requestAsync (EN_MODULE_C, CModuleC_extern::EN_SEQ_CYCLE_FUNC);
-		nSectId = SECTID_WAIT_CYCLE_FUNC;
+	case SECTID_REQ_TEST_NOTIFY:
+		requestAsync (EN_MODULE_C, CModuleC_extern::EN_SEQ_TEST_NOTIFY);
+		nSectId = SECTID_WAIT_TEST_NOTIFY;
 		enAct = EN_THM_ACT_WAIT;
 		break;
 
-	case SECTID_WAIT_CYCLE_FUNC: {
+	case SECTID_WAIT_TEST_NOTIFY: {
 		EN_THM_RSLT enRslt = pIf->getSrcInfo()->enRslt;
 		if (enRslt == EN_THM_RSLT_SUCCESS) {
 			nSectId = SECTID_END;
@@ -70,7 +70,7 @@ void CModuleC::startUp (CThreadMgrIf *pIf)
 		break;
 
 	case SECTID_END: {
-		const char *msg = "ModuleC startup end.\0";
+		const char *msg = "ModuleC startup end.";
 		pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg)+1);
 		nSectId = THM_SECT_ID_INIT;
 		enAct = EN_THM_ACT_DONE;
@@ -89,7 +89,7 @@ void CModuleC::startUp (CThreadMgrIf *pIf)
 	pIf->setSectId (nSectId, enAct);
 }
 
-void CModuleC::regNotify (CThreadMgrIf *pIf)
+void CModuleC::testRegNotify (ThreadManager::CThreadMgrIf *pIf)
 {
 	uint8_t nSectId;
 	EN_THM_ACT enAct;
@@ -101,8 +101,8 @@ void CModuleC::regNotify (CThreadMgrIf *pIf)
 	nSectId = pIf->getSectId();
 	THM_LOG_I ("%s nSectId %d\n", __PRETTY_FUNCTION__, nSectId);
 
-	// 複数クライアントがいるときはちゃんとid管理すること
-	bool rslt = pIf->regNotify (CModuleC_extern::EN_NOTIFY_CAT_1, &mClientId);
+	uint8_t client_id;
+	bool rslt = pIf->regNotify (CModuleC_extern::EN_NOTIFY_CAT_1, &client_id);
 
 	EN_THM_RSLT enRslt;
 	if (rslt) {
@@ -111,15 +111,15 @@ void CModuleC::regNotify (CThreadMgrIf *pIf)
 		enRslt = EN_THM_RSLT_ERROR;
 	}
 
-	// clientIdをmsgで返す
-	pIf->reply (enRslt, (uint8_t*)&mClientId, sizeof(mClientId));
+	// client_idをmsgで返す
+	pIf->reply (enRslt, (uint8_t*)&client_id, sizeof(client_id));
 
 	nSectId = THM_SECT_ID_INIT;
 	enAct = EN_THM_ACT_DONE;
 	pIf->setSectId (nSectId, enAct);
 }
 
-void CModuleC::unregNotify (CThreadMgrIf *pIf)
+void CModuleC::testUnregNotify (ThreadManager::CThreadMgrIf *pIf)
 {
 	uint8_t nSectId;
 	EN_THM_ACT enAct;
@@ -132,20 +132,14 @@ void CModuleC::unregNotify (CThreadMgrIf *pIf)
 	THM_LOG_I ("%s nSectId %d\n", __PRETTY_FUNCTION__, nSectId);
 
 	EN_THM_RSLT enRslt;
+
 	// msgからidを取得
 	uint8_t id = *(pIf->getSrcInfo()->msg.pMsg);
-	if (id != mClientId) {
-		// ここではidの一致だけ確認 本来はちゃんと管理すべき
-		THM_LOG_E ("clientId is not match.");
-		pIf->reply (EN_THM_RSLT_ERROR);
-		enRslt = EN_THM_RSLT_ERROR;
+	bool rslt = pIf->unregNotify (CModuleC_extern::EN_NOTIFY_CAT_1, id);
+	if (rslt) {
+		enRslt = EN_THM_RSLT_SUCCESS;
 	} else {
-		bool rslt = pIf->unregNotify (CModuleC_extern::EN_NOTIFY_CAT_1, id);
-		if (rslt) {
-			enRslt = EN_THM_RSLT_SUCCESS;
-		} else {
-			enRslt = EN_THM_RSLT_ERROR;
-		}
+		enRslt = EN_THM_RSLT_ERROR;
 	}
 
 	pIf->reply (enRslt);
@@ -155,7 +149,7 @@ void CModuleC::unregNotify (CThreadMgrIf *pIf)
 	pIf->setSectId (nSectId, enAct);
 }
 
-void CModuleC::cycleFunc (CThreadMgrIf *pIf)
+void CModuleC::testNotify (ThreadManager::CThreadMgrIf *pIf)
 {
 	uint8_t nSectId;
 	EN_THM_ACT enAct;
@@ -179,12 +173,12 @@ void CModuleC::cycleFunc (CThreadMgrIf *pIf)
 		break;
 	case SECTID_CYCLE:
 		pIf->clearTimeout ();
-		pIf->setTimeout (15000);
+		pIf->setTimeout (10000);
 		nSectId = SECTID_SEND_NOTIFY;
 		enAct = EN_THM_ACT_WAIT;
 		break;
 	case SECTID_SEND_NOTIFY: {
-		const char *msg = "this is notify message...\0";
+		const char *msg = "this is notify message...";
 		pIf->notify (CModuleC_extern::EN_NOTIFY_CAT_1, (uint8_t*)msg, strlen(msg)+1);
 
 		nSectId = SECTID_CYCLE;
@@ -196,5 +190,86 @@ void CModuleC::cycleFunc (CThreadMgrIf *pIf)
 		break;
 	}
 
+	pIf->setSectId (nSectId, enAct);
+}
+
+void CModuleC::echo00 (ThreadManager::CThreadMgrIf *pIf)
+{
+	uint8_t nSectId;
+	EN_THM_ACT enAct;
+	enum {
+		SECTID_ENTRY = 0,
+		SECTID_END,
+	};
+
+	nSectId = pIf->getSectId();
+	THM_LOG_I ("%s nSectId %d\n", __PRETTY_FUNCTION__, nSectId);
+
+	size_t msglen = pIf->getSrcInfo()->msg.size;
+	if (msglen == 0) {
+		pIf->reply (EN_THM_RSLT_SUCCESS);
+	} else {
+		char *msg = (char*)pIf->getSrcInfo()->msg.pMsg;
+		pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, msglen);
+	}
+
+	nSectId = 0;
+	enAct = EN_THM_ACT_DONE;
+	pIf->setSectId (nSectId, enAct);
+}
+
+void CModuleC::echo01 (ThreadManager::CThreadMgrIf *pIf)
+{
+	uint8_t nSectId;
+	EN_THM_ACT enAct;
+	enum {
+		SECTID_ENTRY = 0,
+		SECTID_END,
+	};
+
+	nSectId = pIf->getSectId();
+	THM_LOG_I ("%s nSectId %d\n", __PRETTY_FUNCTION__, nSectId);
+
+	THM_LOG_I ("execute. sleep 1sec.\n");
+	sleep (1);
+
+	size_t msglen = pIf->getSrcInfo()->msg.size;
+	if (msglen == 0) {
+		pIf->reply (EN_THM_RSLT_SUCCESS);
+	} else {
+		char *msg = (char*)pIf->getSrcInfo()->msg.pMsg;
+		pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, msglen);
+	}
+
+	nSectId = 0;
+	enAct = EN_THM_ACT_DONE;
+	pIf->setSectId (nSectId, enAct);
+}
+
+void CModuleC::echo02 (ThreadManager::CThreadMgrIf *pIf)
+{
+	uint8_t nSectId;
+	EN_THM_ACT enAct;
+	enum {
+		SECTID_ENTRY = 0,
+		SECTID_END,
+	};
+
+	nSectId = pIf->getSectId();
+	THM_LOG_I ("%s nSectId %d\n", __PRETTY_FUNCTION__, nSectId);
+
+	THM_LOG_I ("execute. sleep 2sec.\n");
+	sleep (2);
+
+	size_t msglen = pIf->getSrcInfo()->msg.size;
+	if (msglen == 0) {
+		pIf->reply (EN_THM_RSLT_SUCCESS);
+	} else {
+		char *msg = (char*)pIf->getSrcInfo()->msg.pMsg;
+		pIf->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, msglen);
+	}
+
+	nSectId = 0;
+	enAct = EN_THM_ACT_DONE;
 	pIf->setSectId (nSectId, enAct);
 }

@@ -12,20 +12,17 @@
 #include "ModuleB_extern.h"
 
 
-using namespace ThreadManager;
-
-
-class CModuleB : public CThreadMgrBase
+class CModuleB : public ThreadManager::CThreadMgrBase
 {
 public:
 	CModuleB (std::string name, uint8_t nQueNum);
 	virtual ~CModuleB (void);
 
 private:
-	void startUp (CThreadMgrIf *pIf);
-	void func00 (CThreadMgrIf *pIf);
-
-	uint8_t mClientId;
+	void startUp (ThreadManager::CThreadMgrIf *pIf);
+	void echo00 (ThreadManager::CThreadMgrIf *pIf);
+	void echo01 (ThreadManager::CThreadMgrIf *pIf);
+	void echo02 (ThreadManager::CThreadMgrIf *pIf);
 };
 
 #endif

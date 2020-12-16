@@ -12,11 +12,7 @@
 #include "ModuleC_extern.h"
 
 
-using namespace ThreadManager;
-
-
-
-class CModuleC : public CThreadMgrBase
+class CModuleC : public ThreadManager::CThreadMgrBase
 {
 public:
 	CModuleC (std::string name, uint8_t nQueNum);
@@ -24,13 +20,14 @@ public:
 
 
 private:
-	void startUp (CThreadMgrIf *pIf) ;
-	void regNotify (CThreadMgrIf *pIf) ;
-	void unregNotify (CThreadMgrIf *pIf) ;
-	void cycleFunc (CThreadMgrIf *pIf) ;
-	void func00 (CThreadMgrIf *pIf) ;
+	void startUp (ThreadManager::CThreadMgrIf *pIf) ;
+	void testRegNotify (ThreadManager::CThreadMgrIf *pIf) ;
+	void testUnregNotify (ThreadManager::CThreadMgrIf *pIf) ;
+	void testNotify (ThreadManager::CThreadMgrIf *pIf) ;
+	void echo00 (ThreadManager::CThreadMgrIf *pIf) ;
+	void echo01 (ThreadManager::CThreadMgrIf *pIf) ;
+	void echo02 (ThreadManager::CThreadMgrIf *pIf) ;
 
-	uint8_t mClientId;
 };
 
 #endif
