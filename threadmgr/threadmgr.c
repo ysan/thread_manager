@@ -1236,6 +1236,7 @@ static bool enQueWorker (
 				if (msgSize > MSG_SIZE) {
 					THM_INNER_FORCE_LOG_W ("truncate request message. size:[%d]->[%d] thIdx:[%d]\n", msgSize, MSG_SIZE, nThreadIdx);
 				}
+				memset (pstQueWorker->msg.msg, 0x00, MSG_SIZE);
 				memcpy (pstQueWorker->msg.msg, pMsg, msgSize < MSG_SIZE ? msgSize : MSG_SIZE);
 				pstQueWorker->msg.size = msgSize < MSG_SIZE ? msgSize : MSG_SIZE;
 				pstQueWorker->msg.isUsed = true;
@@ -3237,6 +3238,7 @@ static bool replyOuter (
 	}
 	pstExtInfo->stThmSrcInfo.enRslt = enRslt;
 	if (pMsg && msgSize > 0) {
+		memset (pstExtInfo->msgEntity.msg, 0x00, MSG_SIZE);
 		memcpy (pstExtInfo->msgEntity.msg, pMsg, msgSize < MSG_SIZE ? msgSize : MSG_SIZE);
 		pstExtInfo->msgEntity.size = msgSize < MSG_SIZE ? msgSize : MSG_SIZE;
 		pstExtInfo->stThmSrcInfo.msg.pMsg = pstExtInfo->msgEntity.msg;
