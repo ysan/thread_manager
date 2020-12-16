@@ -3167,7 +3167,7 @@ static bool replyInner (
 	/* Reqタイムアウトしてないか確認する */
 	EN_TIMEOUT_STATE enState = getReqTimeoutState (nThreadIdx, nReqId);
 	if ((enState != EN_TIMEOUT_STATE_MEAS) && (enState != EN_TIMEOUT_STATE_MEAS_COND_TIMEDWAIT)) {
-		THM_INNER_LOG_E ("getReqTimeoutState() is unexpected. [%d]   maybe timeout occured. not reply...\n", enState);
+		THM_INNER_FORCE_LOG_W ("getReqTimeoutState() is unexpected. [%d]   maybe timeout occured. not reply...\n", enState);
 
 		/* unlock */
 		pthread_mutex_unlock (&gMutexWorker [nThreadIdx]);
@@ -3289,7 +3289,7 @@ static bool reply (EN_THM_RSLT enRslt, uint8_t *pMsg, size_t msgSize)
 		}
 
 		if (!isActiveRequestId (THREAD_IDX_EXTERNAL, nReqId)) {
-			THM_INNER_LOG_E ("reqId:[0x%x] is inActive. maybe timeout occured. not reply...\n", nReqId);
+			THM_INNER_FORCE_LOG_W ("reqId:[0x%x] is inActive. maybe timeout occured. not reply...\n", nReqId);
 			return false;
 		}
 
@@ -3311,7 +3311,7 @@ static bool reply (EN_THM_RSLT enRslt, uint8_t *pMsg, size_t msgSize)
 		}
 
 		if (!isActiveRequestId (nThreadIdx, nReqId)) {
-			THM_INNER_LOG_E ("reqId:[0x%x] is inActive. maybe timeout occured. not reply...\n", nReqId);
+			THM_INNER_FORCE_LOG_W ("reqId:[0x%x] is inActive. maybe timeout occured. not reply...\n", nReqId);
 			return false;
 		}
 
