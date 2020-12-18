@@ -7,4 +7,5 @@
 *gcov
 test/test
 testpp/testpp
+samples/sample
 compile_commands.json

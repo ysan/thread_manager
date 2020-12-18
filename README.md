@@ -263,7 +263,7 @@ Include `<threadmgr/threadmgr_if.h>` `<threadmgr/threadmgr_util.h>` in your appl
 #### C++ ####
 Include `<threadmgr/ThreadMgrpp.h>` in your application and link with `libthreadmgr` `libthreadmgrpp` and `libpthread`.  
 
-	$ g++ myapp.cpp -o myapp -lthreadmgr -lthreadmgrpp -lpthread
+	$ g++ myapp.cpp -o myapp -lthreadmgr -lthreadmgrpp -lpthread -std=c++11
 
 
 Platforms
