@@ -744,6 +744,7 @@ static void setupSignal (void)
 	sigemptyset (&gSigset);
 
 	sigaddset (&gSigset, SIGQUIT); //TODO terminal (ctrl + \)
+	sigaddset (&gSigset, SIGINT);
 	sigaddset (&gSigset, SIGTERM);
 	sigprocmask (SIG_BLOCK, &gSigset, NULL);
 }
@@ -2011,8 +2012,9 @@ static void *sigwaitThread (void *pArg)
 				THM_INNER_FORCE_LOG_I ("catch SIGQUIT\n");
 				requestBaseThread (EN_MONI_TYPE_DEBUG);
 				break;
+			case SIGINT:
 			case SIGTERM:
-				THM_INNER_FORCE_LOG_I ("catch SIGTERM\n");
+				THM_INNER_FORCE_LOG_I ("catch SIGINT or SIGTERM\n");
 				requestBaseThread (EN_MONI_TYPE_DESTROY);
 				destroyAllWorkerThread();
 				isDestroy = true;
