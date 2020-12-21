@@ -1,0 +1,114 @@
+@startuml
+
+skinparam ParticipantPadding 50
+skinparam BoxPadding 200
+skinparam roundcorner 10
+
+participant main
+box "managed modules per pthread" #LightBlue
+participant ModuleA
+participant ModuleB
+participant ModuleC
+end box
+hide footbox
+
+activate main
+
+note over of main 
+Create an instances of 
+ModuleA, ModuleB, ModuleC
+and register with setup().
+end note
+
+main -> main: CThreadMgr::setup()
+activate main
+main->>ModuleA: onCreate
+'activate ModuleA
+'deactivate ModuleA
+main->>ModuleB: onCreate
+'activate ModuleB
+'deactivate ModuleB
+main->>ModuleC: onCreate
+'activate ModuleC
+'deactivate ModuleC
+deactivate main
+
+== ThreadManager-framework was ready. ==
+
+main -> main: CThreadMgrExternalIf::\ncreateExternalCp()
+activate main
+deactivate main
+
+main->main: requestSync\nmsg:"test-message"
+activate main
+main->>ModuleA: sequence1
+
+activate ModuleA
+note over of ModuleA 
+simple-echo
+end note
+
+ModuleA->>main: reply\nmsg:"test-message"
+deactivate ModuleA
+
+deactivate main
+
+main->main: receiveExternal
+activate main
+note over of main 
+getting result -> success
+msg:"test-message"
+end note
+'deactivate main
+return
+
+main->main: requestSync
+activate main
+main->>ModuleA: sequence2
+
+activate ModuleA
+ModuleA->>ModuleB: requestAsync\nsequence2
+deactivate ModuleA
+
+note over of ModuleA 
+waiting for reply
+while waiting ModuleA
+can execute other sequences.
+end note
+
+activate ModuleB
+ModuleB->>ModuleC: requestAsync\nsequence4
+deactivate ModuleB
+
+note over of ModuleB
+wait for reply
+while waiting ModuleB
+can execute other sequences.
+end note
+
+activate ModuleC
+ModuleC->>ModuleB: reply
+deactivate ModuleC
+
+activate ModuleB
+ModuleB->>ModuleA: reply
+deactivate ModuleB
+
+
+activate ModuleA
+ModuleA->>main: reply
+deactivate ModuleA
+
+deactivate main
+
+main->main: receiveExternal
+activate main
+note over of main 
+getting result -> success
+end note
+'deactivate main
+return
+
+
+
+@enduml

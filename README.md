@@ -64,6 +64,9 @@ How to use
 ------------
 #### Quick start (C++) ####
 Here is an excerpt of [`samples`](/samples).  
+reqrep sequence diagram  
+<img src="https://github.com/ysan/thread_manager/blob/master/etc/sample_seq_reqrep.png" width="50%" height="50%">
+
 also one can look at the example implementations in the [`testpp`](/testpp) folder to get an idea of how thread manager is integrated into an application.
 
 
@@ -193,21 +196,21 @@ void CModuleA::sequence1 (ThreadManager::CThreadMgrIf *pIf)
 void CModuleB::sequence1 (ThreadManager::CThreadMgrIf *pIf)
 {
 	enum {
-		SECTID_REQ_SEQ1_MODB = THM_SECT_ID_INIT,
-		SECTID_WAIT_SEQ1_MODB,
+		SECTID_REQ_MODB_SEQ1 = THM_SECT_ID_INIT,
+		SECTID_WAIT_MODB_SEQ1,
 		SECTID_END,
 	};
 
 	EN_THM_ACT action;
 	uint8_t section_id = pIf->getSectId();
 	switch (section_id) {
-	case SECTID_REQ_SEQ1_MODB: {
+	case SECTID_REQ_MODB_SEQ1: {
 
 		// request to CModuleB::sequence1
 		requestAsync(_MODULE_B, _SEQ_1);
 
 		// set next section_id and action
-		section_id = SECTID_WAIT_SEQ1_MODB;
+		section_id = SECTID_WAIT_MODB_SEQ1;
 		// wait for reply
 		// while waiting this module can execute other sequences.
 		action = EN_THM_ACT_WAIT;
@@ -217,7 +220,7 @@ void CModuleB::sequence1 (ThreadManager::CThreadMgrIf *pIf)
 		}
 		break;
 
-	case SECTID_REQ_SEQ1_MODB: {
+	case SECTID_REQ_MODB_SEQ1: {
 		EN_THM_RSLT r = pIf->getSrcInfo()->enRslt;
 
 		std::cout << "[" << enRslt << "]" << std::endl; // "[1]" --> EN_THM_RSLT_SUCCESS

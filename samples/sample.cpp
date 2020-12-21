@@ -16,6 +16,7 @@ enum {
 	_SEQ_1 = 0,
 	_SEQ_2,
 	_SEQ_3,
+	_SEQ_4,
 };
 
 class CModuleA : public ThreadManager::CThreadMgrBase
@@ -25,7 +26,6 @@ public:
 		std::vector<ThreadManager::SEQ_BASE_t> seqs;
 		seqs.push_back ({(ThreadManager::PFN_SEQ_BASE)&CModuleA::sequence1, "sequence1"}); // enum _SEQ_1
 		seqs.push_back ({(ThreadManager::PFN_SEQ_BASE)&CModuleA::sequence2, "sequence2"}); // enum _SEQ_2
-		seqs.push_back ({(ThreadManager::PFN_SEQ_BASE)&CModuleA::sequence3, "sequence3"}); // enum _SEQ_3
 		// register your sequences (maximum of registration: 64)
 		setSeqs (seqs);
 	}
@@ -51,21 +51,23 @@ private:
 	// separated section sequence
 	void sequence2 (ThreadManager::CThreadMgrIf *pIf) {
 		enum {
-			SECTID_REQ_SEQ1_MODB = THM_SECT_ID_INIT,
-			SECTID_WAIT_SEQ1_MODB,
+			SECTID_REQ_MODB_SEQ2 = THM_SECT_ID_INIT,
+			SECTID_WAIT_MODB_SEQ2,
 			SECTID_END,
 		};
 
 		EN_THM_ACT action;
 		uint8_t section_id = pIf->getSectId();
 		switch (section_id) {
-		case SECTID_REQ_SEQ1_MODB: {
+		case SECTID_REQ_MODB_SEQ2: {
 
-			// request to CModuleB::sequence1
-			requestAsync(_MODULE_B, _SEQ_1);
+			// request to CModuleB::sequence2
+			requestAsync(_MODULE_B, _SEQ_2);
+	
+			std::cout << __PRETTY_FUNCTION__ << " request CModuleB::sequence1" << std::endl;
 
 			// set next section_id and action
-			section_id = SECTID_WAIT_SEQ1_MODB;
+			section_id = SECTID_WAIT_MODB_SEQ2;
 			// wait for reply
 			// while waiting this module can execute other sequences.
 			action = EN_THM_ACT_WAIT;
@@ -75,10 +77,10 @@ private:
 			}
 			break;
 
-		case SECTID_WAIT_SEQ1_MODB: {
+		case SECTID_WAIT_MODB_SEQ2: {
 			EN_THM_RSLT enRslt = pIf->getSrcInfo()->enRslt;
 
-			std::cout << "[" << enRslt << "]" << std::endl; // "[1]" --> EN_THM_RSLT_SUCCESS
+			std::cout << __PRETTY_FUNCTION__ << " reply CModuleB::sequence1 [" << enRslt << "]" << std::endl; // "[1]" --> EN_THM_RSLT_SUCCESS
 
 			// set next section_id and action
 			section_id = SECTID_END;
@@ -106,8 +108,6 @@ private:
 		pIf->setSectId (section_id, action);
 	}
 
-	void sequence3 (ThreadManager::CThreadMgrIf *pIf) {
-	}
 };
 
 class CModuleB : public ThreadManager::CThreadMgrBase
@@ -117,7 +117,6 @@ public:
 		std::vector<ThreadManager::SEQ_BASE_t> seqs;
 		seqs.push_back ({(ThreadManager::PFN_SEQ_BASE)&CModuleB::sequence1, "sequence1"}); // enum _SEQ_1
 		seqs.push_back ({(ThreadManager::PFN_SEQ_BASE)&CModuleB::sequence2, "sequence2"}); // enum _SEQ_2
-		seqs.push_back ({(ThreadManager::PFN_SEQ_BASE)&CModuleB::sequence3, "sequence3"}); // enum _SEQ_3
 		// register your sequences (maximum of registration: 64)
 		setSeqs (seqs);
 	}
@@ -141,11 +140,64 @@ private:
 	 	pIf->setSectId (THM_SECT_ID_INIT, EN_THM_ACT_DONE);
 	}
 
+	// separated section sequence
 	void sequence2 (ThreadManager::CThreadMgrIf *pIf) {
-		
-	}
+		enum {
+			SECTID_REQ_MODC_SEQ4 = THM_SECT_ID_INIT,
+			SECTID_WAIT_MODC_SEQ4,
+			SECTID_END,
+		};
 
-	void sequence3 (ThreadManager::CThreadMgrIf *pIf) {
+		EN_THM_ACT action;
+		uint8_t section_id = pIf->getSectId();
+		switch (section_id) {
+		case SECTID_REQ_MODC_SEQ4: {
+
+			// request to CModuleC::sequence4
+			requestAsync(_MODULE_C, _SEQ_4);
+	
+			std::cout << __PRETTY_FUNCTION__ << " request CModuleC::sequence3" << std::endl;
+
+			// set next section_id and action
+			section_id = SECTID_WAIT_MODC_SEQ4;
+			// wait for reply
+			// while waiting this module can execute other sequences.
+			action = EN_THM_ACT_WAIT;
+
+			// If you don't want to execute other sequences, call lock() in advance.
+			//pIf->lock();
+			}
+			break;
+
+		case SECTID_WAIT_MODC_SEQ4: {
+			EN_THM_RSLT enRslt = pIf->getSrcInfo()->enRslt;
+
+			std::cout << __PRETTY_FUNCTION__ << " reply CModuleC::sequence4 [" << enRslt << "]" << std::endl; // "[1]" --> EN_THM_RSLT_SUCCESS
+
+			// set next section_id and action
+			section_id = SECTID_END;
+			action = EN_THM_ACT_CONTINUE;
+
+			// don't forget to unlock() when you call lock()
+			//pIf->unlock();
+			}
+			break;
+
+		case SECTID_END:
+			// send reply
+			pIf->reply (EN_THM_RSLT_SUCCESS);
+
+			// at the end of sequence, 
+			// set THM_SECT_ID_INIT, EN_THM_ACT_DONE with setSectId().
+			section_id = THM_SECT_ID_INIT;
+			action = EN_THM_ACT_DONE;
+			break;
+
+		default:
+			break;
+		}
+
+		pIf->setSectId (section_id, action);
 	}
 };
 
@@ -157,6 +209,7 @@ public:
 		seqs.push_back ({(ThreadManager::PFN_SEQ_BASE)&CModuleC::sequence1, "sequence1"}); // enum _SEQ_1
 		seqs.push_back ({(ThreadManager::PFN_SEQ_BASE)&CModuleC::sequence2, "sequence2"}); // enum _SEQ_2
 		seqs.push_back ({(ThreadManager::PFN_SEQ_BASE)&CModuleC::sequence3, "sequence3"}); // enum _SEQ_3
+		seqs.push_back ({(ThreadManager::PFN_SEQ_BASE)&CModuleC::sequence4, "sequence4"}); // enum _SEQ_4
 		// register your sequences (maximum of registration: 64)
 		setSeqs (seqs);
 	}
@@ -244,6 +297,22 @@ private:
 		pIf->setSectId (THM_SECT_ID_INIT, EN_THM_ACT_DONE);
 
 	}
+
+	// 1-shot sequence
+	void sequence4 (ThreadManager::CThreadMgrIf *pIf) {
+
+		// implement something
+		sleep (1);
+		std::cout << __PRETTY_FUNCTION__ << " done." << std::endl;
+
+		// send reply
+		pIf->reply (EN_THM_RSLT_SUCCESS);
+		//pIf->reply (EN_THM_RSLT_ERROR);
+		
+	 	// at the end of sequence, set THM_SECT_ID_INIT, EN_THM_ACT_DONE with setSectId().
+	 	pIf->setSectId (THM_SECT_ID_INIT, EN_THM_ACT_DONE);
+	}
+
 };
 
 int main (void)
@@ -273,28 +342,25 @@ int main (void)
 	p_mgr->getExternalIf()->createExternalCp();
 
 	{
+		std::cout << "request CModuleA::sequence1" << std::endl;
 		std::string msg = "test-message";
 		// syncronized request to simple-echo of CModuleA.
 		p_mgr->getExternalIf()->requestSync(_MODULE_A, _SEQ_1, (uint8_t*)msg.c_str(), msg.length());
 		// main-thread wait for reply.
 		ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
-		std::cout << "[" << r->enRslt << "]" << std::endl;          // "[1]" --> EN_THM_RSLT_SUCCESS
-		std::cout << "[" << (char*)r->msg.pMsg << "]" << std::endl; // "[test-message]"
+		std::cout << "reply CModuleA::sequence1 [" << r->enRslt << "]" << std::endl;          // "[1]" --> EN_THM_RSLT_SUCCESS
+		std::cout << "reply CModuleA::sequence1 [" << (char*)r->msg.pMsg << "]" << std::endl; // "[test-message]"
 	}
 
 
 	{
-		// set request option -> without-reply
-		uint32_t opt = p_mgr->getExternalIf()->getRequestOption ();
-		opt |= REQUEST_OPTION__WITHOUT_REPLY;
-		p_mgr->getExternalIf()->setRequestOption (opt);
-
-		// asynchronous request to CModuleA::sequence2.
+		std::cout << "request CModuleA::sequence2" << std::endl;
+		std::string msg = "test-message";
+		// syncronized request to CModuleA::sequence2.
 		p_mgr->getExternalIf()->requestSync(_MODULE_A, _SEQ_2);
-
-		// reset request option -> without-reply
-		opt &= ~REQUEST_OPTION__WITHOUT_REPLY;
-		p_mgr->getExternalIf()->setRequestOption (opt);
+		// main-thread wait for reply.
+		ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
+		std::cout << "reply CModuleA::sequence2 [" << r->enRslt << "]" << std::endl;          // "[1]" --> EN_THM_RSLT_SUCCESS
 	}
 
 
