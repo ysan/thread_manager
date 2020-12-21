@@ -1865,9 +1865,6 @@ static void *baseThread (void *pArg)
 	/* set thread name */
 	setThreadName (BASE_THREAD_NAME);
 
-	/* スレッド立ち上がり通知 */
-	postSem ();
-
 	int policy;
 	struct sched_param param;
 	if (pthread_getschedparam (pthread_self(), &policy, &param) != 0) {
@@ -1875,7 +1872,7 @@ static void *baseThread (void *pArg)
 	}
 
 	THM_INNER_FORCE_LOG_I (
-		"-----> %s created. (pthread_id:[%lu] policy:[%s] priority:[%d])\n",
+		"----- %s created. ----- (pthread_id:[%lu] policy:[%s] priority:[%d])\n",
 		BASE_THREAD_NAME,
 		pthread_self(),
 		policy == SCHED_FIFO ? "SCHED_FIFO" :
@@ -1884,6 +1881,9 @@ static void *baseThread (void *pArg)
 					"???",
 		param.sched_priority
 	);
+
+	/* スレッド立ち上がり通知 */
+	postSem ();
 
 
 	while (1) {
@@ -1984,9 +1984,6 @@ static void *sigwaitThread (void *pArg)
 	/* set thread name */
 	setThreadName (SIGWAIT_THREAD_NAME);
 
-	/* スレッド立ち上がり通知 */
-	postSem ();
-
 	int policy;
 	struct sched_param param;
 	if (pthread_getschedparam (pthread_self(), &policy, &param) != 0) {
@@ -1994,7 +1991,7 @@ static void *sigwaitThread (void *pArg)
 	}
 
 	THM_INNER_FORCE_LOG_I (
-		"-----> %s created. (pthread_id:[%lu] policy:[%s] priority:[%d])\n",
+		"----- %s created. ----- (pthread_id:[%lu] policy:[%s] priority:[%d])\n",
 		SIGWAIT_THREAD_NAME,
 		pthread_self(),
 		policy == SCHED_FIFO ? "SCHED_FIFO" :
@@ -2003,6 +2000,9 @@ static void *sigwaitThread (void *pArg)
 					"???",
 		param.sched_priority
 	);
+
+	/* スレッド立ち上がり通知 */
+	postSem ();
 
 
 	while (1) {
@@ -2239,9 +2239,6 @@ static void *workerThread (void *pArg)
 
 	setState (pstInnerInfo->nThreadIdx, EN_STATE_READY);
 
-	/* スレッド立ち上がり通知 */
-	postSem ();
-
 	int policy;
 	struct sched_param param;
 	if (pthread_getschedparam (pstInnerInfo->nPthreadId, &policy, &param) != 0) {
@@ -2249,7 +2246,7 @@ static void *workerThread (void *pArg)
 	}
 
 	THM_INNER_FORCE_LOG_I (
-		"-----> %s created. (thIdx:[%d] pthread_id:[%lu] policy:[%s] priority:[%d])\n",
+		"----- %s created. ----- (thIdx:[%d] pthread_id:[%lu] policy:[%s] priority:[%d])\n",
 		pstInnerInfo->pszName,
 		pstInnerInfo->nThreadIdx,
 		pstInnerInfo->nPthreadId,
@@ -2259,6 +2256,9 @@ static void *workerThread (void *pArg)
 					"???",
 		param.sched_priority
 	);
+
+	/* スレッド立ち上がり通知 */
+	postSem ();
 
 
 	while (1) {
