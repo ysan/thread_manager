@@ -668,12 +668,17 @@ static void init (void)
 		clearNotifyClientInfo (&gstNotifyClientInfo [i]);
 	}
 
-	gpstExtInfoListTop = NULL;
-	gpstExtInfoListBtm = NULL;
-
 
 	initQue();
 	initCondMutex();
+
+
+	/* lock */
+	pthread_mutex_lock (&gMutexOpeExtInfoList);
+	gpstExtInfoListTop = NULL;
+	gpstExtInfoListBtm = NULL;
+	/* unlock */
+	pthread_mutex_unlock (&gMutexOpeExtInfoList);
 }
 
 /**
