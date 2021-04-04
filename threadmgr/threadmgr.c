@@ -2727,6 +2727,8 @@ bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msg
 			return false;
 		}
 
+		/* lock */
+		pthread_mutex_lock (&(pstExtInfo->mutex));
 
 		if (pstExtInfo->requestOption & REQUEST_OPTION__WITHOUT_REPLY) {
 			/* 
@@ -2739,17 +2741,20 @@ bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msg
 		/* requestId */
 		reqId = getRequestId (THREAD_IDX_EXTERNAL, SEQ_IDX_BLANK);
 		if (reqId == REQUEST_ID_BLANK) {
+
+			/* unlock */
+			pthread_mutex_unlock (&(pstExtInfo->mutex));
 			return false;
 		}
 
-		/* lock */
-		pthread_mutex_lock (&(pstExtInfo->mutex));
 		pstExtInfo->nReqId = reqId;
-		pthread_mutex_unlock (&(pstExtInfo->mutex));
 
 		/* リクエスト投げる */
 		if (!requestInner (nThreadIdx, nSeqIdx, reqId, &stContext, pMsg, msgSize)) {
 			releaseRequestId (THREAD_IDX_EXTERNAL, reqId);
+
+			/* unlock */
+			pthread_mutex_unlock (&(pstExtInfo->mutex));
 			return false;
 		}
 
@@ -2758,6 +2763,8 @@ bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msg
 		enableReqTimeout (THREAD_IDX_EXTERNAL, reqId, pstExtInfo->requestTimeoutMsec);
 #endif
 
+		/* unlock */
+		pthread_mutex_unlock (&(pstExtInfo->mutex));
 		return true;
 	}
 
@@ -2970,6 +2977,8 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t ms
 			return false;
 		}
 
+		/* lock */
+		pthread_mutex_lock (&(pstExtInfo->mutex));
 
 		if (pstExtInfo->requestOption & REQUEST_OPTION__WITHOUT_REPLY) {
 			/* reply不要 reqIdは取得しない */
@@ -2979,6 +2988,9 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t ms
 			/* requestId */
 			reqId = getRequestId (THREAD_IDX_EXTERNAL, SEQ_IDX_BLANK);
 			if (reqId == REQUEST_ID_BLANK) {
+
+				/* unlock */
+				pthread_mutex_unlock (&(pstExtInfo->mutex));
 				return false;
 			}
 		}
@@ -2997,6 +3009,9 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t ms
 		/* リクエスト投げる */
 		if (!requestInner (nThreadIdx, nSeqIdx, reqId, &stContext, pMsg, msgSize)) {
 			releaseRequestId (THREAD_IDX_EXTERNAL, reqId);
+
+			/* unlock */
+			pthread_mutex_unlock (&(pstExtInfo->mutex));
 			return false;
 		}
 
@@ -3005,6 +3020,8 @@ bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t ms
 		enableReqTimeout (THREAD_IDX_EXTERNAL, reqId, pstExtInfo->requestTimeoutMsec);
 #endif
 
+		/* unlock */
+		pthread_mutex_unlock (&(pstExtInfo->mutex));
 		return true;
 	}
 
