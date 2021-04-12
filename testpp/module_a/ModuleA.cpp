@@ -21,6 +21,9 @@
 
 CModuleA::CModuleA (std::string name, uint8_t nQueNum)
 	:CThreadMgrBase (name, nQueNum)
+	,m_tmp_req_id (0)
+	,m_client_id (0)
+	,m_is_notified (false)
 {
 	vector<ThreadManager::SEQ_BASE_t> seqs;
 	seqs.push_back ({(ThreadManager::PFN_SEQ_BASE)&CModuleA::startUp, "startUp"});
