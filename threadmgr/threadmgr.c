@@ -2231,7 +2231,7 @@ static void *workerThread (void *pArg)
 			gpfnDispatcher (
 				EN_THM_DISPATCH_TYPE_CREATE,
 				pstInnerInfo->nThreadIdx,
-				stRtnQue.nDestSeqIdx,
+				SEQ_IDX_BLANK,
 				NULL
 			);
 
