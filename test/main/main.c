@@ -64,7 +64,7 @@ int main( void )
 	while (1) {
 		THM_LOG_I ("wait stdin...");
 
-		if (read (STDIN_FILENO, (uint8_t*)szIn, sizeof(szIn)) < 0) {
+		if (read (STDIN_FILENO, (uint8_t*)szIn, sizeof(szIn) -1) < 0) {
 			THM_PERROR ("read()");
 			continue;
 		}
