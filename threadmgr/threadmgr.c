@@ -1240,7 +1240,7 @@ static bool enQueWorker (
 			pstQueWorker->nClientId = nClientId;
 			if (pMsg && msgSize > 0) {
 				if (msgSize > MSG_SIZE) {
-					THM_INNER_FORCE_LOG_W ("truncate request message. size:[%d]->[%d] thIdx:[%d]\n", msgSize, MSG_SIZE, nThreadIdx);
+					THM_INNER_FORCE_LOG_W ("truncate request message. size:[%lu]->[%d] thIdx:[%d]\n", msgSize, MSG_SIZE, nThreadIdx);
 				}
 				memset (pstQueWorker->msg.msg, 0x00, MSG_SIZE);
 				memcpy (pstQueWorker->msg.msg, pMsg, msgSize < MSG_SIZE ? msgSize : MSG_SIZE);
@@ -3959,7 +3959,7 @@ static bool cashSyncReplyInfo (uint8_t nThreadIdx, EN_THM_RSLT enRslt, uint8_t *
 	/* message 保存 */
 	if (pMsg && msgSize > 0) {
 		if (msgSize > MSG_SIZE) {
-			THM_INNER_FORCE_LOG_W ("truncate request message. size:[%d]->[%d]\n", msgSize, MSG_SIZE);
+			THM_INNER_FORCE_LOG_W ("truncate request message. size:[%lu]->[%d]\n", msgSize, MSG_SIZE);
 		}
 		memcpy (gstSyncReplyInfo [nThreadIdx].msg.msg, pMsg, msgSize < MSG_SIZE ? msgSize : MSG_SIZE);
 		gstSyncReplyInfo [nThreadIdx].msg.size = msgSize < MSG_SIZE ? msgSize : MSG_SIZE;
