@@ -140,7 +140,7 @@ static void unregNotify (ST_THM_IF *pIf)
 static void cycleFunc (ST_THM_IF *pIf)
 {
 	uint8_t nSectId;
-	EN_THM_ACT enAct;
+	EN_THM_ACT enAct = EN_THM_ACT_INIT;
 	enum {
 		SECTID_ENTRY = 0,
 		SECTID_CYCLE,

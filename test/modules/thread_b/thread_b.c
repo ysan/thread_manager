@@ -51,7 +51,7 @@ void recvNotifyThreadB (ST_THM_IF *pIf)
 static void startup (ST_THM_IF *pIf)
 {
 	uint8_t nSectId;
-	EN_THM_ACT enAct;
+	EN_THM_ACT enAct = EN_THM_ACT_INIT;
 	enum {
 		SECTID_ENTRY = 0,
 		SECTID_REQ_REG_NOTIFY_THC,
@@ -156,7 +156,7 @@ static void func01 (ST_THM_IF *pIf)
 static void func02 (ST_THM_IF *pIf)
 {
 	uint8_t nSectId;
-	EN_THM_ACT enAct;
+	EN_THM_ACT enAct = EN_THM_ACT_INIT;
 	enum {
 		SECTID_ENTRY = 0,
 		SECTID_REQ_FUNC00_THREAD_C,

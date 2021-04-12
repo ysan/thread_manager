@@ -71,7 +71,7 @@ static void startup (ST_THM_IF *pIf)
 static void func00 (ST_THM_IF *pIf)
 {
 	uint8_t nSectId;
-	EN_THM_ACT enAct;
+	EN_THM_ACT enAct = EN_THM_ACT_INIT;
 	enum {
 		SECTID_ENTRY = THM_SECT_ID_INIT,
 		SECTID_REQ_THREAD_A_FUNC01,
@@ -137,7 +137,7 @@ static uint32_t gnTmpReqId;
 static void func01 (ST_THM_IF *pIf)
 {
 	uint8_t nSectId;
-	EN_THM_ACT enAct;
+	EN_THM_ACT enAct = EN_THM_ACT_INIT;
 	enum {
 		SECTID_ENTRY = THM_SECT_ID_INIT,
 		SECTID_REQ_THREAD_B_FUNC00,
@@ -317,7 +317,7 @@ static void func02 (ST_THM_IF *pIf)
 static void func03 (ST_THM_IF *pIf)
 {
 	uint8_t nSectId;
-	EN_THM_ACT enAct;
+	EN_THM_ACT enAct = EN_THM_ACT_INIT;
 	enum {
 		SECTID_ENTRY = THM_SECT_ID_INIT,
 		SECTID_1,
