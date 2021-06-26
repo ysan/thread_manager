@@ -6,9 +6,12 @@ BASEDIR		:=	../
 INCLUDES	:= \
 	-I./ \
 
+CFLAGS		:= \
+	-rdynamic \
+	-funwind-tables \
+
 LIBS		:= \
 	-lpthread \
-	-rdynamic \
 
 USERDEFS	:= \
 	-D_MULTI_REQUESTING \

@@ -3,7 +3,10 @@
 #
 BASEDIR		:=	../
 
-CFLAGS		:=	-std=c++11
+CFLAGS		:= \
+	-std=c++11 \
+	-rdynamic \
+	-funwind-tables \
 
 INCLUDES	:= \
 	-I./ \
@@ -11,7 +14,6 @@ INCLUDES	:= \
 
 LIBS		:= \
 	-lpthread \
-	-rdynamic \
 	-L../threadmgr -lthreadmgr \
 
 USERDEFS	:= \

@@ -53,6 +53,7 @@ int main (void)
 		exit (EXIT_FAILURE);
 	}
 
+
 	CModuleA_extern *p_mod_a_extern = new CModuleA_extern (p_mgr->getExternalIf());
 	CModuleB_extern *p_mod_b_extern = new CModuleB_extern (p_mgr->getExternalIf());
 	CModuleC_extern *p_mod_c_extern = new CModuleC_extern (p_mgr->getExternalIf());
@@ -163,6 +164,10 @@ int main (void)
 		assert (s == std::string("chchchchecked."));
 	}
 
+	// dump
+	kill (getpid(), SIGQUIT);
+	sleep(5);
+
 	// test destroy
 	{
 		// set without-reply
@@ -183,8 +188,6 @@ int main (void)
 
 	p_mgr->getExternalIf()->destroyExternalCp();
 	p_mgr->teardown();
-
-	putsBackTrace();
 
 	finalizSyslog();
 	finalizLog();

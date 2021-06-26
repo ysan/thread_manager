@@ -560,7 +560,7 @@ void CModuleA::testDestroy (ThreadManager::CThreadMgrIf *pIf)
 
 
 	// dump
-	kill (getpid(), SIGQUIT);
+//	kill (getpid(), SIGQUIT);
 	// req-destroy
 	kill (getpid(), SIGTERM);
 
