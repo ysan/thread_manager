@@ -798,11 +798,6 @@ static void setupSignal (void)
  */
 static void finalizSignal (void)
 {
-	sigemptyset (&gSigset);
-
-	sigaddset (&gSigset, SIGQUIT); //TODO terminal (ctrl + \)
-	sigaddset (&gSigset, SIGINT);
-	sigaddset (&gSigset, SIGTERM);
 	sigprocmask (SIG_UNBLOCK, &gSigset, NULL);
 }
 
@@ -5400,7 +5395,7 @@ void finaliz (void)
 	kill (getpid(), SIGTERM);
 	waitAll ();
 	finalizSem();
-	finalizSignal();
+//	finalizSignal();
 }
 
 /**
