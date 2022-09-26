@@ -19,7 +19,7 @@ ST_THM_EXTERNAL_IF *gpIf;
 
 int main( void )
 {
-	initLogStdout ();
+	setLogFileptr(stdout);
 
 	THM_LOG_E ("start");
 

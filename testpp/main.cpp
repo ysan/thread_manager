@@ -24,12 +24,12 @@
 
 #include "modules.h"
 #include "threadmgr_if.h"
+#include "threadmgr_util.h"
 
 
 int main (void)
 {
-	initLogStdout();
-	initSyslog();
+	setLogFileptr(stdout);
 
 	THM_LOG_D ("test THM_LOG_D");
 	THM_LOG_I ("test THM_LOG_I");
@@ -188,9 +188,6 @@ int main (void)
 
 	p_mgr->getExternalIf()->destroyExternalCp();
 	p_mgr->teardown();
-
-	finalizSyslog();
-	finalizLog();
 
 	delete p_mod_a_extern;
 	delete p_mod_b_extern;
