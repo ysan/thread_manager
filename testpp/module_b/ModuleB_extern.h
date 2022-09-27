@@ -11,51 +11,63 @@
 #include "modules.h"
 
 
-class CModuleB_extern : public ThreadManager::CThreadMgrExternalIf
+class CModuleB_extern : public threadmgr::CThreadMgrExternalIf
 {
 public:
-	enum {
-		EN_SEQ_STARTUP = 0,
-		EN_SEQ_ECHO00,
-		EN_SEQ_ECHO01,
-		EN_SEQ_ECHO02,
+	enum class seq : int {
+		startup = 0,
+		echo00,
+		echo01,
+		echo02,
 	};
 
-	explicit CModuleB_extern (CThreadMgrExternalIf *pIf) : CThreadMgrExternalIf (pIf) {
+	explicit CModuleB_extern (CThreadMgrExternalIf *p_if)
+		: CThreadMgrExternalIf (p_if)
+		, m_module_id (static_cast<int>(module::module_b))
+	{
 	};
 
 	virtual ~CModuleB_extern (void) {
 	};
 
 
-	bool reqStartUp (void) {
-		return requestAsync (EN_MODULE_B, EN_SEQ_STARTUP);
+	bool req_startup (void) {
+		int seq = static_cast<int>(seq::startup);
+		return request_async (m_module_id, seq);
 	};
 
-	bool reqEcho00 (uint32_t *pOutReqId=NULL) {
-		return requestAsync (EN_MODULE_B, EN_SEQ_ECHO00, pOutReqId);
+	bool req_echo00 (uint32_t *out_req_id=NULL) {
+		int seq = static_cast<int>(seq::echo00);
+		return request_async (m_module_id, seq, out_req_id);
 	};
 
-	bool reqEcho00sync (void) {
-		return requestSync (EN_MODULE_B, EN_SEQ_ECHO00);
+	bool req_echo00_sync (void) {
+		int seq = static_cast<int>(seq::echo00);
+		return request_sync (m_module_id, seq);
 	};
 
-	bool reqEcho01 (uint32_t *pOutReqId=NULL) {
-		return requestAsync (EN_MODULE_B, EN_SEQ_ECHO01, pOutReqId);
+	bool req_echo01 (uint32_t *out_req_id=NULL) {
+		int seq = static_cast<int>(seq::echo01);
+		return request_async (m_module_id, seq, out_req_id);
 	};
 
-	bool reqEcho01sync (void) {
-		return requestSync (EN_MODULE_B, EN_SEQ_ECHO01);
+	bool req_echo01_sync (void) {
+		int seq = static_cast<int>(seq::echo01);
+		return request_sync (m_module_id, seq);
 	};
 
-	bool reqEcho02 (uint32_t *pOutReqId=NULL) {
-		return requestAsync (EN_MODULE_B, EN_SEQ_ECHO02, pOutReqId);
+	bool req_echo02 (uint32_t *out_req_id=NULL) {
+		int seq = static_cast<int>(seq::echo02);
+		return request_async (m_module_id, seq, out_req_id);
 	};
 
-	bool reqEcho02sync (void) {
-		return requestSync (EN_MODULE_B, EN_SEQ_ECHO02);
+	bool req_echo02_sync (void) {
+		int seq = static_cast<int>(seq::echo02);
+		return request_sync (m_module_id, seq);
 	};
 
+private:
+	int m_module_id;
 };
 
 #endif

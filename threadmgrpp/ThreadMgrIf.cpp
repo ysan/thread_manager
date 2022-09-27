@@ -1,28 +1,22 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
-
 #include "ThreadMgrIf.h"
 
 
-namespace ThreadManager {
+namespace threadmgr {
 
-CThreadMgrIf::CThreadMgrIf (ST_THM_IF *pIf)
-	:mpIf (NULL)
+CThreadMgrIf::CThreadMgrIf (ST_THM_IF *p_if)
+	:mp_if (NULL)
 {
-	if (pIf) {
-		mpIf = pIf;
+	if (p_if) {
+		mp_if = p_if;
 	}
 }
 
-CThreadMgrIf::CThreadMgrIf (CThreadMgrIf *pIf)
-	:mpIf (NULL)
+CThreadMgrIf::CThreadMgrIf (CThreadMgrIf *p_if)
+	:mp_if (NULL)
 {
-	if (pIf) {
-		if (pIf->mpIf) {
-			mpIf = pIf->mpIf;
+	if (p_if) {
+		if (p_if->mp_if) {
+			mp_if = p_if->mp_if;
 		}
 	}
 }
@@ -32,46 +26,46 @@ CThreadMgrIf::~CThreadMgrIf (void)
 }
 
 
-ST_THM_SRC_INFO * CThreadMgrIf::getSrcInfo (void) const
+ST_THM_SRC_INFO * CThreadMgrIf::get_source (void) const
 {
-	if (mpIf) {
-		return mpIf->pstSrcInfo;
+	if (mp_if) {
+		return mp_if->pstSrcInfo;
 	} else {
 		return NULL;
 	}
 }
 
-bool CThreadMgrIf::reply (EN_THM_RSLT enRslt)
+bool CThreadMgrIf::reply (EN_THM_RSLT rslt)
 {
-	if (mpIf) {
-		return mpIf->pfnReply (enRslt, NULL, 0);
+	if (mp_if) {
+		return mp_if->pfnReply (rslt, NULL, 0);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrIf::reply (EN_THM_RSLT enRslt, uint8_t *pMsg, size_t msgSize)
+bool CThreadMgrIf::reply (EN_THM_RSLT rslt, uint8_t *msg, size_t msg_size)
 {
-	if (mpIf) {
-		return mpIf->pfnReply (enRslt, pMsg, msgSize);
+	if (mp_if) {
+		return mp_if->pfnReply (rslt, msg, msg_size);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrIf::regNotify (uint8_t nCategory, uint8_t *pnClientId)
+bool CThreadMgrIf::reg_notify (uint8_t nCategory, uint8_t *pnClientId)
 {
-	if (mpIf) {
-		return mpIf->pfnRegNotify (nCategory, pnClientId);
+	if (mp_if) {
+		return mp_if->pfnRegNotify (nCategory, pnClientId);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrIf::unregNotify (uint8_t nCategory, uint8_t nClientId)
+bool CThreadMgrIf::unreg_notify (uint8_t nCategory, uint8_t nClientId)
 {
-	if (mpIf) {
-		return mpIf->pfnUnRegNotify (nCategory, nClientId);
+	if (mp_if) {
+		return mp_if->pfnUnRegNotify (nCategory, nClientId);
 	} else {
 		return false;
 	}
@@ -79,97 +73,97 @@ bool CThreadMgrIf::unregNotify (uint8_t nCategory, uint8_t nClientId)
 
 bool CThreadMgrIf::notify (uint8_t nCategory)
 {
-	if (mpIf) {
-		return mpIf->pfnNotify (nCategory, NULL, 0);
+	if (mp_if) {
+		return mp_if->pfnNotify (nCategory, NULL, 0);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrIf::notify (uint8_t nCategory, uint8_t *pMsg, size_t msgSize)
+bool CThreadMgrIf::notify (uint8_t nCategory, uint8_t *msg, size_t msg_size)
 {
-	if (mpIf) {
-		return mpIf->pfnNotify (nCategory, pMsg, msgSize);
+	if (mp_if) {
+		return mp_if->pfnNotify (nCategory, msg, msg_size);
 	} else {
 		return false;
 	}
 }
 
-void CThreadMgrIf::setSectId (uint8_t nSectId, EN_THM_ACT enAct)
+void CThreadMgrIf::set_sect_id (uint8_t nSectId, EN_THM_ACT enAct)
 {
-	if (mpIf) {
-		mpIf->pfnSetSectId (nSectId, enAct);
+	if (mp_if) {
+		mp_if->pfnSetSectId (nSectId, enAct);
 	}
 }
 
-uint8_t CThreadMgrIf::getSectId (void) const
+uint8_t CThreadMgrIf::get_sect_id (void) const
 {
-	if (mpIf) {
-		return mpIf->pfnGetSectId ();
+	if (mp_if) {
+		return mp_if->pfnGetSectId ();
 	} else {
 		return THM_SECT_ID_INIT;
 	}
 }
 
-void CThreadMgrIf::setTimeout (uint32_t nTimeoutMsec)
+void CThreadMgrIf::set_timeout (uint32_t timeout_msec)
 {
-	if (mpIf) {
-		mpIf->pfnSetTimeout (nTimeoutMsec);
+	if (mp_if) {
+		mp_if->pfnSetTimeout (timeout_msec);
 	}
 }
 
-void CThreadMgrIf::clearTimeout (void)
+void CThreadMgrIf::clear_timeout (void)
 {
-	if (mpIf) {
-		mpIf->pfnClearTimeout ();
+	if (mp_if) {
+		mp_if->pfnClearTimeout ();
 	}
 }
 
-void CThreadMgrIf::enableOverwrite (void)
+void CThreadMgrIf::enable_overwrite (void)
 {
-	if (mpIf) {
-		mpIf->pfnEnableOverwrite ();
+	if (mp_if) {
+		mp_if->pfnEnableOverwrite ();
 	}
 }
 
-void CThreadMgrIf::disableOverwrite (void)
+void CThreadMgrIf::disable_overwrite (void)
 {
-	if (mpIf) {
-		mpIf->pfnDisableOverwrite ();
+	if (mp_if) {
+		mp_if->pfnDisableOverwrite ();
 	}
 }
 
 void CThreadMgrIf::lock (void)
 {
-	if (mpIf) {
-		mpIf->pfnLock ();
+	if (mp_if) {
+		mp_if->pfnLock ();
 	}
 }
 
 void CThreadMgrIf::unlock (void)
 {
-	if (mpIf) {
-		mpIf->pfnUnlock ();
+	if (mp_if) {
+		mp_if->pfnUnlock ();
 	}
 }
 
-uint8_t CThreadMgrIf::getSeqIdx (void) const
+uint8_t CThreadMgrIf::get_seq_idx (void) const
 {
-	if (mpIf) {
-		return mpIf->pfnGetSeqIdx ();
+	if (mp_if) {
+		return mp_if->pfnGetSeqIdx ();
 	} else {
 //TODO SEQ_IDX_BLANK
 		return 0x80;
 	}
 }
 
-const char* CThreadMgrIf::getSeqName (void) const
+const char* CThreadMgrIf::get_seq_name (void) const
 {
-	if (mpIf) {
-		return mpIf->pfnGetSeqName ();
+	if (mp_if) {
+		return mp_if->pfnGetSeqName ();
 	} else {
 		return NULL;
 	}
 }
 
-} // namespace ThreadManager
+} // namespace threadmgr

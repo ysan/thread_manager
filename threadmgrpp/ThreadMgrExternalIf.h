@@ -10,41 +10,38 @@
 
 #include "threadmgr_if.h"
 
-using namespace std;
+namespace threadmgr {
 
-
-namespace ThreadManager {
-
-class CThreadMgrExternalIf 
+class CThreadMgrExternalIf
 {
 public:
-	explicit CThreadMgrExternalIf (ST_THM_EXTERNAL_IF *pExtIf);
-	explicit CThreadMgrExternalIf (CThreadMgrExternalIf *pExtIf);
+	explicit CThreadMgrExternalIf (ST_THM_EXTERNAL_IF *p_ext_if);
+	explicit CThreadMgrExternalIf (CThreadMgrExternalIf *p_ext_if);
 	virtual ~CThreadMgrExternalIf (void);
 
 
-	bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx);
-	bool requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize);
+	bool request_sync (uint8_t thread_idx, uint8_t seq_idx);
+	bool request_sync (uint8_t thread_idx, uint8_t seq_idx, uint8_t *msg, size_t msg_size);
 
-	bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx);
-	bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint32_t *pOutReqId);
-	bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize);
-	bool requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize, uint32_t *pOutReqId);
+	bool request_async (uint8_t thread_idx, uint8_t seq_idx);
+	bool request_async (uint8_t thread_idx, uint8_t seq_idx, uint32_t *p_out_req_id);
+	bool request_async (uint8_t thread_idx, uint8_t seq_idx, uint8_t *pMsg, size_t msg_size);
+	bool request_async (uint8_t thread_idx, uint8_t seq_idx, uint8_t *pMsg, size_t msg_s, uint32_t *p_out_req_id);
 
-	void setRequestOption (uint32_t option);
-	uint32_t getRequestOption (void) const ;
+	void set_request_option (uint32_t option);
+	uint32_t get_request_option (void) const ;
 
-	bool createExternalCp (void);
-	void destroyExternalCp (void);
+	bool create_external_cp (void);
+	void destroy_external_cp (void);
 
-	ST_THM_SRC_INFO* receiveExternal (void);
+	ST_THM_SRC_INFO* receive_external (void);
 
 
 private:
-	ST_THM_EXTERNAL_IF *mpExtIf;
+	ST_THM_EXTERNAL_IF *mp_ext_if;
 
 };
 
-} // namespace ThreadManager
+} // namespace threadmgr
 
 #endif

@@ -11,68 +11,84 @@
 #include "modules.h"
 
 
-class CModuleC_extern : public ThreadManager::CThreadMgrExternalIf
+class CModuleC_extern : public threadmgr::CThreadMgrExternalIf
 {
 public:
-	enum {
-		EN_SEQ_STARTUP = 0,
-		EN_SEQ_TEST_REG_NOTIFY,
-		EN_SEQ_TEST_UNREG_NOTIFY,
-		EN_SEQ_TEST_NOTIFY,
-		EN_SEQ_ECHO00,
-		EN_SEQ_ECHO01,
-		EN_SEQ_ECHO02,
-		EN_SEQ_NUM,
+	enum class seq : int {
+		startup = 0,
+		test_reg_notify,
+		test_unreg_notify,
+		test_notify,
+		test_echo00,
+		test_echo01,
+		test_echo02,
+
+		max
 	};
 
-	enum {
-		EN_NOTIFY_CAT_1 = 0,
-		EN_NOTIFY_CAT_2,
-		EN_NOTIFY_CAT_3,
+	enum class notify_cat : int {
+		cat_1 = 0,
+		cat_2,
+		cat_3,
 	};
 
-	explicit CModuleC_extern (CThreadMgrExternalIf *pIf) : CThreadMgrExternalIf (pIf) {
-	};
+	explicit CModuleC_extern (CThreadMgrExternalIf *p_if)
+		: CThreadMgrExternalIf (p_if)
+		, m_module_id(static_cast<int>(module::module_c))
+	{
+	}
 
 	virtual ~CModuleC_extern (void) {
 	};
 
 
-	bool reqStartUp (void) {
-		return requestAsync (EN_MODULE_C, EN_SEQ_STARTUP);
+	bool req_startup (void) {
+		int seq = static_cast<int>(seq::startup);
+		return request_async (m_module_id, seq);
 	};
 
-	bool reqTestRegNotify (void) {
-		return requestAsync (EN_MODULE_C, EN_SEQ_TEST_REG_NOTIFY);
+	bool req_test_reg_notify (void) {
+		int seq = static_cast<int>(seq::test_reg_notify);
+		return request_async (m_module_id, seq);
 	};
 
-	bool reqTestUnregNotify (uint8_t client_id) {
-		return requestAsync (EN_MODULE_C, EN_SEQ_TEST_UNREG_NOTIFY, &client_id, sizeof(uint8_t));
+	bool req_test_unreg_notify (uint8_t client_id) {
+		int seq = static_cast<int>(seq::test_unreg_notify);
+		return request_async (m_module_id, seq, &client_id, sizeof(uint8_t));
 	};
 
-	bool reqEcho00 (uint32_t *pOutReqId=NULL) {
-		return requestAsync (EN_MODULE_B, EN_SEQ_ECHO00, pOutReqId);
+	bool req_echo00 (uint32_t *pOutReqId=NULL) {
+		int seq = static_cast<int>(seq::test_echo00);
+		return request_async (m_module_id, seq, pOutReqId);
 	};
 
-	bool reqEcho00sync (void) {
-		return requestSync (EN_MODULE_B, EN_SEQ_ECHO00);
+	bool req_echo00_sync (void) {
+		int seq = static_cast<int>(seq::test_echo00);
+		return request_sync (m_module_id, seq);
 	};
 
-	bool reqEcho01 (uint32_t *pOutReqId=NULL) {
-		return requestAsync (EN_MODULE_B, EN_SEQ_ECHO01, pOutReqId);
+	bool req_echo01 (uint32_t *pOutReqId=NULL) {
+		int seq = static_cast<int>(seq::test_echo01);
+		return request_async (m_module_id, seq, pOutReqId);
 	};
 
-	bool reqEcho01sync (void) {
-		return requestSync (EN_MODULE_B, EN_SEQ_ECHO01);
+	bool req_echo01_sync (void) {
+		int seq = static_cast<int>(seq::test_echo01);
+		return request_sync (m_module_id, seq);
 	};
 
-	bool reqEcho02 (uint32_t *pOutReqId=NULL) {
-		return requestAsync (EN_MODULE_B, EN_SEQ_ECHO02, pOutReqId);
+	bool req_echo02 (uint32_t *pOutReqId=NULL) {
+		int seq = static_cast<int>(seq::test_echo02);
+		return request_async (m_module_id, seq, pOutReqId);
 	};
 
-	bool reqEcho02sync (void) {
-		return requestSync (EN_MODULE_B, EN_SEQ_ECHO02);
+	bool req_echo02_sync (void) {
+		int seq = static_cast<int>(seq::test_echo02);
+		return request_sync (m_module_id, seq);
 	};
+
+private:
+	int m_module_id ;
 };
 
 #endif

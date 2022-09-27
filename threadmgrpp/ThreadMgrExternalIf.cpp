@@ -1,28 +1,21 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
-
 #include "ThreadMgrExternalIf.h"
 
+namespace threadmgr {
 
-namespace ThreadManager {
-
-CThreadMgrExternalIf::CThreadMgrExternalIf (ST_THM_EXTERNAL_IF *pExtIf)
-	:mpExtIf (NULL)
+CThreadMgrExternalIf::CThreadMgrExternalIf (ST_THM_EXTERNAL_IF *p_ext_if)
+	:mp_ext_if (NULL)
 {
-	if (pExtIf) {
-		mpExtIf = pExtIf;
+	if (p_ext_if) {
+		mp_ext_if = p_ext_if;
 	}
 }
 
-CThreadMgrExternalIf::CThreadMgrExternalIf (CThreadMgrExternalIf *pExtIf)
-	:mpExtIf (NULL)
+CThreadMgrExternalIf::CThreadMgrExternalIf (CThreadMgrExternalIf *p_ext_if)
+	:mp_ext_if (NULL)
 {
-	if (pExtIf) {
-		if (pExtIf->mpExtIf) {
-			mpExtIf = pExtIf->mpExtIf;
+	if (p_ext_if) {
+		if (p_ext_if->mp_ext_if) {
+			mp_ext_if = p_ext_if->mp_ext_if;
 		}
 	}
 }
@@ -32,99 +25,99 @@ CThreadMgrExternalIf::~CThreadMgrExternalIf (void)
 }
 
 
-bool CThreadMgrExternalIf::requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx)
+bool CThreadMgrExternalIf::request_sync (uint8_t thread_idx, uint8_t seq_idx)
 {
-	if (mpExtIf) {
-		return mpExtIf->pfnRequestSync (nThreadIdx, nSeqIdx, NULL, 0);
+	if (mp_ext_if) {
+		return mp_ext_if->pfnRequestSync (thread_idx, seq_idx, NULL, 0);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrExternalIf::requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, size_t msgSize)
+bool CThreadMgrExternalIf::request_sync (uint8_t thread_idx, uint8_t seq_idx, uint8_t *pszMsg, size_t msgSize)
 {
-	if (mpExtIf) {
-		return mpExtIf->pfnRequestSync (nThreadIdx, nSeqIdx, pszMsg, msgSize);
+	if (mp_ext_if) {
+		return mp_ext_if->pfnRequestSync (thread_idx, seq_idx, pszMsg, msgSize);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx)
+bool CThreadMgrExternalIf::request_async (uint8_t thread_idx, uint8_t seq_idx)
 {
-	if (mpExtIf) {
-		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, NULL, 0, NULL);
+	if (mp_ext_if) {
+		return mp_ext_if->pfnRequestAsync (thread_idx, seq_idx, NULL, 0, NULL);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint32_t *pOutReqId)
+bool CThreadMgrExternalIf::request_async (uint8_t thread_idx, uint8_t seq_idx, uint32_t *pOutReqId)
 {
-	if (mpExtIf) {
-		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, NULL, 0, pOutReqId);
+	if (mp_ext_if) {
+		return mp_ext_if->pfnRequestAsync (thread_idx, seq_idx, NULL, 0, pOutReqId);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, size_t msgSize)
+bool CThreadMgrExternalIf::request_async (uint8_t thread_idx, uint8_t seq_idx, uint8_t *pszMsg, size_t msgSize)
 {
-	if (mpExtIf) {
-		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, pszMsg, msgSize, NULL);
+	if (mp_ext_if) {
+		return mp_ext_if->pfnRequestAsync (thread_idx, seq_idx, pszMsg, msgSize, NULL);
 	} else {
 		return false;
 	}
 }
 
-bool CThreadMgrExternalIf::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pszMsg, size_t msgSize, uint32_t *pOutReqId)
+bool CThreadMgrExternalIf::request_async (uint8_t thread_idx, uint8_t seq_idx, uint8_t *pszMsg, size_t msgSize, uint32_t *pOutReqId)
 {
-	if (mpExtIf) {
-		return mpExtIf->pfnRequestAsync (nThreadIdx, nSeqIdx, pszMsg, msgSize, pOutReqId);
+	if (mp_ext_if) {
+		return mp_ext_if->pfnRequestAsync (thread_idx, seq_idx, pszMsg, msgSize, pOutReqId);
 	} else {
 		return false;
 	}
 }
 
-void CThreadMgrExternalIf::setRequestOption (uint32_t option)
+void CThreadMgrExternalIf::set_request_option (uint32_t option)
 {
-	if (mpExtIf) {
-		mpExtIf->pfnSetRequestOption (option);
+	if (mp_ext_if) {
+		mp_ext_if->pfnSetRequestOption (option);
 	}
 }
 
-uint32_t CThreadMgrExternalIf::getRequestOption (void) const
+uint32_t CThreadMgrExternalIf::get_request_option (void) const
 {
-	if (mpExtIf) {
-		return mpExtIf->pfnGetRequestOption ();
+	if (mp_ext_if) {
+		return mp_ext_if->pfnGetRequestOption ();
 	} else {
 		return 0;
 	}
 }
 
-bool CThreadMgrExternalIf::createExternalCp (void)
+bool CThreadMgrExternalIf::create_external_cp (void)
 {
-	if (mpExtIf) {
-		return mpExtIf->pfnCreateExternalCp ();
+	if (mp_ext_if) {
+		return mp_ext_if->pfnCreateExternalCp ();
 	} else {
 		return false;
 	}
 }
 
-void CThreadMgrExternalIf::destroyExternalCp (void)
+void CThreadMgrExternalIf::destroy_external_cp (void)
 {
-	if (mpExtIf) {
-		return mpExtIf->pfnDestroyExternalCp ();
+	if (mp_ext_if) {
+		return mp_ext_if->pfnDestroyExternalCp ();
 	}
 }
 
-ST_THM_SRC_INFO* CThreadMgrExternalIf::receiveExternal (void)
+ST_THM_SRC_INFO* CThreadMgrExternalIf::receive_external (void)
 {
-	if (mpExtIf) {
-		return mpExtIf->pfnReceiveExternal ();
+	if (mp_ext_if) {
+		return mp_ext_if->pfnReceiveExternal ();
 	} else {
 		return NULL;
 	}
 }
 
-} // namespace ThreadManager
+} // namespace threadmgr

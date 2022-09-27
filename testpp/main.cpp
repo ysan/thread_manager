@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +11,7 @@
 #include <string>
 #include <cassert>
 #include <iostream>
+#include <cstdlib>
 
 #include "ThreadMgrpp.h"
 
@@ -38,12 +38,12 @@ int main (void)
 	THM_PERROR ("test THM_PERROR");
 
 
-	ThreadManager::CThreadMgr *p_mgr = ThreadManager::CThreadMgr::getInstance();
+	threadmgr::CThreadMgr *p_mgr = threadmgr::CThreadMgr::get_instance();
 
 	CModuleA *p_moduleA = new CModuleA("ModuleA", 10);
 	CModuleB *p_moduleB = new CModuleB("ModuleB", 10);
 	CModuleC *p_moduleC = new CModuleC("ModuleC", 10);
-	std::vector<ThreadManager::CThreadMgrBase*> threads;
+	std::vector<threadmgr::CThreadMgrBase*> threads;
 	threads.push_back(p_moduleA);
 	threads.push_back(p_moduleB);
 	threads.push_back(p_moduleC);
@@ -54,32 +54,32 @@ int main (void)
 	}
 
 
-	CModuleA_extern *p_mod_a_extern = new CModuleA_extern (p_mgr->getExternalIf());
-	CModuleB_extern *p_mod_b_extern = new CModuleB_extern (p_mgr->getExternalIf());
-	CModuleC_extern *p_mod_c_extern = new CModuleC_extern (p_mgr->getExternalIf());
+	CModuleA_extern *p_mod_a_extern = new CModuleA_extern (p_mgr->get_external_if());
+	CModuleB_extern *p_mod_b_extern = new CModuleB_extern (p_mgr->get_external_if());
+	CModuleC_extern *p_mod_c_extern = new CModuleC_extern (p_mgr->get_external_if());
 
 
-	p_mgr->getExternalIf()->createExternalCp();
+	p_mgr->get_external_if()->create_external_cp();
 
 	{
-		p_mod_a_extern-> reqStartUp ();
-		ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
+		p_mod_a_extern-> req_startup ();
+		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
 		std::string s = (char*)r->msg.pMsg;
 		assert (s == std::string("ModuleA startup end."));
 	}
 	{
-		p_mod_b_extern-> reqStartUp ();
-		ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
+		p_mod_b_extern-> req_startup ();
+		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
 		std::string s = (char*)r->msg.pMsg;
 		assert (s == std::string("ModuleB startup end."));
 	}
 	{
-		p_mod_c_extern-> reqStartUp ();
-		ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
+		p_mod_c_extern-> req_startup ();
+		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
 		std::string s = (char*)r->msg.pMsg;
@@ -88,8 +88,8 @@ int main (void)
 
 	// test request-reply, req-timeout, seq-timeout, notify
 	{
-		p_mod_a_extern->reqTestReqRep ();
-		ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
+		p_mod_a_extern->req_test_reqrep ();
+		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
 	}
@@ -97,20 +97,20 @@ int main (void)
 	// test lock sequence
 	{
 		// set without-reply
-		uint32_t opt = p_mgr->getExternalIf()->getRequestOption ();
+		uint32_t opt = p_mgr->get_external_if()->get_request_option ();
 		opt |= REQUEST_OPTION__WITHOUT_REPLY;
-		p_mgr->getExternalIf()->setRequestOption (opt);
+		p_mgr->get_external_if()->set_request_option (opt);
 
-		p_mod_a_extern->reqTestLockIntr ();  // "intr."
-		p_mod_a_extern->reqTestLock (true);  // "checked."
-		p_mod_a_extern->reqTestLockIntr ();  // "intr."
+		p_mod_a_extern->req_test_lock_intr ();  // "intr."
+		p_mod_a_extern->req_test_lock (true);  // "checked."
+		p_mod_a_extern->req_test_lock_intr ();  // "intr."
 
 		// reset without-reply
 		opt &= ~REQUEST_OPTION__WITHOUT_REPLY;
-		p_mgr->getExternalIf()->setRequestOption (opt);
+		p_mgr->get_external_if()->set_request_option (opt);
 
-		p_mod_a_extern->reqTestLockIntr ();  // "intr."
-		ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
+		p_mod_a_extern->req_test_lock_intr ();  // "intr."
+		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
 		std::string s = (char*)r->msg.pMsg;
@@ -120,21 +120,21 @@ int main (void)
 	// test unlock sequence (normal)
 	{
 		// set without-reply
-		uint32_t opt = p_mgr->getExternalIf()->getRequestOption ();
+		uint32_t opt = p_mgr->get_external_if()->get_request_option ();
 		opt |= REQUEST_OPTION__WITHOUT_REPLY;
-		p_mgr->getExternalIf()->setRequestOption (opt);
+		p_mgr->get_external_if()->set_request_option (opt);
 
-		p_mod_a_extern->reqTestLock (false); // "checked."
-		p_mod_a_extern->reqTestLockIntr ();  // "intr."
-		p_mod_a_extern->reqTestLockIntr ();  // "intr."
+		p_mod_a_extern->req_test_lock (false); // "checked."
+		p_mod_a_extern->req_test_lock_intr ();  // "intr."
+		p_mod_a_extern->req_test_lock_intr ();  // "intr."
 
 		// reset without-reply
 		opt &= ~REQUEST_OPTION__WITHOUT_REPLY;
-		p_mgr->getExternalIf()->setRequestOption (opt);
+		p_mgr->get_external_if()->set_request_option (opt);
 
 		sleep(3);
-		p_mod_a_extern->reqTestLockIntr ();  // "intr."
-		ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
+		p_mod_a_extern->req_test_lock_intr ();  // "intr."
+		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
 		std::string s = (char*)r->msg.pMsg;
@@ -144,20 +144,20 @@ int main (void)
 	// test overwrite
 	{
 		// set without-reply
-		uint32_t opt = p_mgr->getExternalIf()->getRequestOption ();
+		uint32_t opt = p_mgr->get_external_if()->get_request_option ();
 		opt |= REQUEST_OPTION__WITHOUT_REPLY;
-		p_mgr->getExternalIf()->setRequestOption (opt);
+		p_mgr->get_external_if()->set_request_option (opt);
 
-		p_mod_a_extern->reqTestOverwrite (); // "ch"
-		p_mod_a_extern->reqTestOverwrite (); // "ch"
-		p_mod_a_extern->reqTestOverwrite (); // "ch"
+		p_mod_a_extern->req_test_overwrite (); // "ch"
+		p_mod_a_extern->req_test_overwrite (); // "ch"
+		p_mod_a_extern->req_test_overwrite (); // "ch"
 
 		// reset without-reply
 		opt &= ~REQUEST_OPTION__WITHOUT_REPLY;
-		p_mgr->getExternalIf()->setRequestOption (opt);
+		p_mgr->get_external_if()->set_request_option (opt);
 
-		p_mod_a_extern->reqTestOverwrite ();  // "ch"
-		ST_THM_SRC_INFO* r = p_mgr->getExternalIf()-> receiveExternal();
+		p_mod_a_extern->req_test_overwrite ();  // "ch"
+		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
 		std::string s = (char*)r->msg.pMsg;
@@ -171,22 +171,22 @@ int main (void)
 	// test destroy
 	{
 		// set without-reply
-		uint32_t opt = p_mgr->getExternalIf()->getRequestOption ();
+		uint32_t opt = p_mgr->get_external_if()->get_request_option ();
 		opt |= REQUEST_OPTION__WITHOUT_REPLY;
-		p_mgr->getExternalIf()->setRequestOption (opt);
+		p_mgr->get_external_if()->set_request_option (opt);
 
-		p_mod_a_extern->reqTestDestroy ();
+		p_mod_a_extern->req_test_destroy ();
 
 		// reset without-reply
 		opt &= ~REQUEST_OPTION__WITHOUT_REPLY;
-		p_mgr->getExternalIf()->setRequestOption (opt);
+		p_mgr->get_external_if()->set_request_option (opt);
 	}
 
 
 	p_mgr->wait ();
 
 
-	p_mgr->getExternalIf()->destroyExternalCp();
+	p_mgr->get_external_if()->destroy_external_cp();
 	p_mgr->teardown();
 
 	delete p_mod_a_extern;

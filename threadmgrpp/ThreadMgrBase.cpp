@@ -1,37 +1,31 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
-
 #include "ThreadMgrBase.h"
 
 
-namespace ThreadManager {
+namespace threadmgr {
 
-CThreadMgrBase::CThreadMgrBase (const char *pszName, uint8_t nQueNum)
-	:mpSeqsBase (NULL)
-	,mQueNum (0)
-	,mSeqNum (0)
-	,mpExtIf (NULL)
-	,mpThmIf (NULL)
-	,mIdx (-1)
+CThreadMgrBase::CThreadMgrBase (const char *name, uint8_t que_max)
+	:mp_seqs_base (NULL)
+	,m_que_max (0)
+	,m_seq_max (0)
+	,mp_ext_if (NULL)
+	,mp_thm_if (NULL)
+	,m_idx (-1)
 {
-	if (pszName && (strlen(pszName) > 0)) {
-		memset (mName, 0x00, sizeof(mName));
-		strncpy (mName, pszName, sizeof(mName) -1);
+	if (name && (strlen(name) > 0)) {
+		memset (m_name, 0x00, sizeof(m_name));
+		strncpy (m_name, name, sizeof(m_name) -1);
 	} else {
-		memset (mName, 0x00, sizeof(mName));
-		strncpy (mName, "-----", sizeof(mName) -1);
+		memset (m_name, 0x00, sizeof(m_name));
+		strncpy (m_name, "-----", sizeof(m_name) -1);
 	}
 
-	mQueNum = nQueNum;
+	m_que_max = que_max;
 
-	mSeqs.clear();
+	m_seqs.clear();
 }
 
-CThreadMgrBase::CThreadMgrBase (std::string name, uint8_t nQueNum)
-	: CThreadMgrBase (name.c_str(), nQueNum)
+CThreadMgrBase::CThreadMgrBase (std::string name, uint8_t que_max)
+	: CThreadMgrBase (name.c_str(), que_max)
 {
 }
 
@@ -40,40 +34,41 @@ CThreadMgrBase::~CThreadMgrBase (void)
 }
 
 
-void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE enType, uint8_t nSeqIdx, ST_THM_IF *pIf)
+void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE type, uint8_t seq_idx, ST_THM_IF *p_if)
 {
-	switch (enType) {
+	switch (type) {
 	case EN_THM_DISPATCH_TYPE_CREATE:
 
-		onCreate ();
+		on_create ();
 
 		break;
 
 	case EN_THM_DISPATCH_TYPE_DESTROY:
 
-		onDestroy ();
+		on_destroy ();
 
 		break;
 
 	case EN_THM_DISPATCH_TYPE_REQ_REPLY:
 		{
-		CThreadMgrIf thmIf (pIf);
-		setIf (&thmIf);
+		CThreadMgrIf thm_if (p_if);
+		set_if (&thm_if);
 
-		(void) (this->*((mpSeqsBase + nSeqIdx)->pfnSeqBase)) (&thmIf);
+//		(void) (this->*((mpSeqsBase + seq_idx)->pfnSeqBase)) (&thmIf);
+		(mp_seqs_base + seq_idx)->seq (&thm_if);
 
-		setIf (NULL);
+		set_if (NULL);
 		break;
 		}
 
 	case EN_THM_DISPATCH_TYPE_NOTIFY:
 		{
-		CThreadMgrIf thmIf (pIf);
-		setIf (&thmIf);
+		CThreadMgrIf thm_if (p_if);
+		set_if (&thm_if);
 
-		onReceiveNotify (&thmIf);
+		on_receive_notify (&thm_if);
 
-		setIf (NULL);
+		set_if (NULL);
 		break;
 		}
 
@@ -83,152 +78,152 @@ void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE enType, uint8_t nSeqIdx, ST_THM
 	}
 }
 
-void CThreadMgrBase::setIdx (uint8_t idx)
+void CThreadMgrBase::set_idx (uint8_t idx)
 {
-	mIdx = idx;
+	m_idx = idx;
 }
 
-uint8_t CThreadMgrBase::getIdx (void) const
+uint8_t CThreadMgrBase::get_idx (void) const
 {
-	return mIdx;
+	return m_idx;
 }
 
-const char* CThreadMgrBase::getName (void) const
+const char* CThreadMgrBase::get_name (void) const
 {
-	return mName;
+	return m_name;
 }
 
-void CThreadMgrBase::setSeqs (const SEQ_BASE_t pstSeqs [], uint8_t seqNum)
+void CThreadMgrBase::set_seqs (const SEQ_BASE_t seqs [], uint8_t seq_max)
 {
-	if (pstSeqs && seqNum > 0) {
-		for (int i = 0; i < seqNum; ++ i) {
-			mSeqs.push_back(pstSeqs[i]);
+	if (seqs && seq_max > 0) {
+		for (int i = 0; i < seq_max; ++ i) {
+			m_seqs.push_back(seqs[i]);
 		}
-		mpSeqsBase = &mSeqs[0];
-		mSeqNum = seqNum;
+		mp_seqs_base = &m_seqs[0];
+		m_seq_max = seq_max;
 	}
 }
 
-void CThreadMgrBase::setSeqs (const std::vector<SEQ_BASE_t> &seqs)
+void CThreadMgrBase::set_seqs (const std::vector<SEQ_BASE_t> &seqs)
 {
 	if (seqs.size() > 0) {
-		mSeqs = seqs;
-		mpSeqsBase = &mSeqs[0];
-		mSeqNum = seqs.size();
+		m_seqs = seqs;
+		mp_seqs_base = &m_seqs[0];
+		m_seq_max = seqs.size();
 	}
 }
 
-void CThreadMgrBase::onCreate (void)
+void CThreadMgrBase::on_create (void)
 {
 }
 
-void CThreadMgrBase::onDestroy (void)
+void CThreadMgrBase::on_destroy (void)
 {
 }
 
-void CThreadMgrBase::onReceiveNotify (CThreadMgrIf *pIf)
+void CThreadMgrBase::on_receive_notify (CThreadMgrIf *p_if)
 {
 }
 
 
-bool CThreadMgrBase::requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx)
+bool CThreadMgrBase::request_sync(uint8_t thread_idx, uint8_t seq_idx)
 {
-	if (!(*mpExtIf)) {
-		THM_LOG_E ("BUG: mpExtIf is null. (CThreadMgrBase)");
+	if (!(*mp_ext_if)) {
+		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return false;
 	}
 
-	return (*mpExtIf)->requestSync (nThreadIdx, nSeqIdx);
+	return (*mp_ext_if)->request_sync (thread_idx, seq_idx);
 }
 
-bool CThreadMgrBase::requestSync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize)
+bool CThreadMgrBase::request_sync (uint8_t thread_idx, uint8_t seq_idx, uint8_t *msg, size_t msg_size)
 {
-	if (!(*mpExtIf)) {
-		THM_LOG_E ("BUG: mpExtIf is null. (CThreadMgrBase)");
+	if (!(*mp_ext_if)) {
+		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return false;
 	}
 
-	return (*mpExtIf)->requestSync (nThreadIdx, nSeqIdx, pMsg, msgSize);
+	return (*mp_ext_if)->request_sync (thread_idx, seq_idx, msg, msg_size);
 }
 
-bool CThreadMgrBase::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx)
+bool CThreadMgrBase::request_async (uint8_t thread_idx, uint8_t seq_idx)
 {
-	if (!(*mpExtIf)) {
-		THM_LOG_E ("BUG: mpExtIf is null. (CThreadMgrBase)");
+	if (!(*mp_ext_if)) {
+		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return false;
 	}
 
-	return (*mpExtIf)->requestAsync (nThreadIdx, nSeqIdx);
+	return (*mp_ext_if)->request_async (thread_idx, seq_idx);
 }
 
-bool CThreadMgrBase::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint32_t *pOutReqId)
+bool CThreadMgrBase::request_async (uint8_t thread_idx, uint8_t seq_idx, uint32_t *pOutReqId)
 {
-	if (!(*mpExtIf)) {
-		THM_LOG_E ("BUG: mpExtIf is null. (CThreadMgrBase)");
+	if (!(*mp_ext_if)) {
+		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return false;
 	}
 
-	return (*mpExtIf)->requestAsync (nThreadIdx, nSeqIdx, pOutReqId);
+	return (*mp_ext_if)->request_async (thread_idx, seq_idx, pOutReqId);
 }
 
-bool CThreadMgrBase::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize)
+bool CThreadMgrBase::request_async (uint8_t thread_idx, uint8_t seq_idx, uint8_t *pMsg, size_t msgSize)
 {
-	if (!(*mpExtIf)) {
-		THM_LOG_E ("BUG: mpExtIf is null. (CThreadMgrBase)");
+	if (!(*mp_ext_if)) {
+		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return false;
 	}
 
-	return (*mpExtIf)->requestAsync (nThreadIdx, nSeqIdx, pMsg, msgSize);
+	return (*mp_ext_if)->request_async (thread_idx, seq_idx, pMsg, msgSize);
 }
 
-bool CThreadMgrBase::requestAsync (uint8_t nThreadIdx, uint8_t nSeqIdx, uint8_t *pMsg, size_t msgSize, uint32_t *pOutReqId)
+bool CThreadMgrBase::request_async (uint8_t thread_idx, uint8_t seq_idx, uint8_t *pMsg, size_t msgSize, uint32_t *pOutReqId)
 {
-	if (!(*mpExtIf)) {
-		THM_LOG_E ("BUG: mpExtIf is null. (CThreadMgrBase)");
+	if (!(*mp_ext_if)) {
+		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return false;
 	}
 
-	return (*mpExtIf)->requestAsync (nThreadIdx, nSeqIdx, pMsg, msgSize, pOutReqId);
+	return (*mp_ext_if)->request_async (thread_idx, seq_idx, pMsg, msgSize, pOutReqId);
 }
 
-void CThreadMgrBase::setRequestOption (uint32_t option)
+void CThreadMgrBase::set_request_option (uint32_t option)
 {
-	if (!(*mpExtIf)) {
-		THM_LOG_E ("BUG: mpExtIf is null. (CThreadMgrBase)");
+	if (!(*mp_ext_if)) {
+		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return ;
 	}
 
-	(*mpExtIf)->setRequestOption (option);
+	(*mp_ext_if)->set_request_option (option);
 }
 
-uint32_t CThreadMgrBase::getRequestOption (void) const
+uint32_t CThreadMgrBase::get_request_option (void) const
 {
-	if (!(*mpExtIf)) {
-		THM_LOG_E ("BUG: mpExtIf is null. (CThreadMgrBase)");
+	if (!(*mp_ext_if)) {
+		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return 0;
 	}
 
-	return (*mpExtIf)->getRequestOption ();
+	return (*mp_ext_if)->get_request_option ();
 }
 
-CThreadMgrExternalIf * CThreadMgrBase::getExternalIf (void) const
+CThreadMgrExternalIf * CThreadMgrBase::get_external_if (void) const
 {
-	return (*mpExtIf);
+	return (*mp_ext_if);
 }
 
-void CThreadMgrBase::setExternalIf (CThreadMgrExternalIf **pExtIf)
+void CThreadMgrBase::set_external_if (CThreadMgrExternalIf **p_ext_if)
 {
-	mpExtIf = pExtIf;
+	mp_ext_if = p_ext_if;
 }
 
-CThreadMgrIf * CThreadMgrBase::getIf (void) const
+CThreadMgrIf * CThreadMgrBase::get_if (void) const
 {
-	return mpThmIf;
+	return mp_thm_if;
 }
 
-void CThreadMgrBase::setIf (CThreadMgrIf *pIf)
+void CThreadMgrBase::set_if (CThreadMgrIf *p_if)
 {
-	mpThmIf = pIf;
+	mp_thm_if = p_if;
 }
 
-} // namespace ThreadManager
+} // namespace threadmgr

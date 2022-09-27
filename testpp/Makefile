@@ -17,19 +17,12 @@ LIBS		:= \
 	-lpthread \
 	-L$(BASEDIR)/threadmgr -lthreadmgr \
 	-L$(BASEDIR)/threadmgrpp -lthreadmgrpp \
-	-L./module_a -lmodule_a \
-	-L./module_b -lmodule_b \
-	-L./module_c -lmodule_c \
 
 
 USERDEFS	:= \
 	-D_LOG_SIMPLE \
 
 SUBDIRS		:= \
-	module_a \
-	module_b \
-	module_c \
-
 
 
 #

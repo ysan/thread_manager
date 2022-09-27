@@ -1,12 +1,12 @@
 #ifndef _MODULES_H_
 #define _MODULES_H_
 
-enum {
-	EN_MODULE_A = 0,
-	EN_MODULE_B,
-	EN_MODULE_C,
+enum class module : int {
+	module_a = 0,
+	module_b,
+	module_c,
 
-	EN_MODULE_NUM
+	module_max
 };
 
 #endif

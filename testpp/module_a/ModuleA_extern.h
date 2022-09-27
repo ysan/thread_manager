@@ -11,54 +11,66 @@
 #include "modules.h"
 
 
-class CModuleA_extern : public ThreadManager::CThreadMgrExternalIf
+class CModuleA_extern : public threadmgr::CThreadMgrExternalIf
 {
 public:
-	enum {
-		EN_SEQ_STARTUP = 0,
-		EN_SEQ_TEST_REQREP,
-		EN_SEQ_TEST_REQREPNOTIFY,
-		EN_SEQ_TEST_LOCK,
-		EN_SEQ_TEST_LOCK_INTR,
-		EN_SEQ_TEST_OVERWRITE,
-		EN_SEQ_TEST_DESTROY,
+	enum class seq : int {
+		startup = 0,
+		test_reqrep,
+		test_reqrep_notify,
+		test_lock,
+		test_lock_intr,
+		test_overwrite,
+		test_destroy,
 	};
 
-	explicit CModuleA_extern (CThreadMgrExternalIf *pIf) : CThreadMgrExternalIf (pIf) {
-	};
+	explicit CModuleA_extern (CThreadMgrExternalIf *p_if)
+		: CThreadMgrExternalIf (p_if)
+		, m_module_id(static_cast<int>(module::module_a))
+	{
+	}
 
 	virtual ~CModuleA_extern (void) {
 	};
 
 
-	bool reqStartUp (void) {
-		return requestAsync (EN_MODULE_A, EN_SEQ_STARTUP);
+	bool req_startup (void) {
+		int seq = static_cast<int>(seq::startup);
+		return request_async (m_module_id, seq);
 	};
 
-	bool reqTestReqRep (void) {
-		return requestAsync (EN_MODULE_A, EN_SEQ_TEST_REQREP);
+	bool req_test_reqrep (void) {
+		int seq = static_cast<int>(seq::test_reqrep);
+		return request_async (m_module_id, seq);
 	};
 
-	bool reqTestReqRepNotify (void) {
-		return requestAsync (EN_MODULE_A, EN_SEQ_TEST_REQREPNOTIFY);
+	bool req_test_reqrep_notify (void) {
+		int seq = static_cast<int>(seq::test_reqrep_notify);
+		return request_async (m_module_id, seq);
 	};
 
-	bool reqTestLock (bool is_enable_lock) {
-		return requestAsync (EN_MODULE_A, EN_SEQ_TEST_LOCK, (uint8_t*)&is_enable_lock, sizeof(is_enable_lock));
+	bool req_test_lock (bool is_enable_lock) {
+		int seq = static_cast<int>(seq::test_lock);
+		return request_async (m_module_id, seq, (uint8_t*)&is_enable_lock, sizeof(is_enable_lock));
 	};
 
-	bool reqTestLockIntr (void) {
-		return requestAsync (EN_MODULE_A, EN_SEQ_TEST_LOCK_INTR);
+	bool req_test_lock_intr (void) {
+		int seq = static_cast<int>(seq::test_lock_intr);
+		return request_async (m_module_id, seq);
 	};
 
-	bool reqTestOverwrite (void) {
-		return requestAsync (EN_MODULE_A, EN_SEQ_TEST_OVERWRITE);
+	bool req_test_overwrite (void) {
+		int seq = static_cast<int>(seq::test_overwrite);
+		return request_async (m_module_id, seq);
 	};
 
-	bool reqTestDestroy (void) {
-		return requestAsync (EN_MODULE_A, EN_SEQ_TEST_DESTROY);
+	bool req_test_destroy (void) {
+		int seq = static_cast<int>(seq::test_destroy);
+		return request_async (m_module_id, seq);
 	};
 
+private:
+	int m_module_id ;
 };
 
 #endif

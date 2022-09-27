@@ -10,50 +10,48 @@
 
 #include "threadmgr_if.h"
 
-using namespace std;
 
-
-namespace ThreadManager {
+namespace threadmgr {
 
 class CThreadMgrIf 
 {
 public:
-	explicit CThreadMgrIf (ST_THM_IF *pIf);
-	explicit CThreadMgrIf (CThreadMgrIf *pIf);
+	explicit CThreadMgrIf (ST_THM_IF *p_if);
+	explicit CThreadMgrIf (CThreadMgrIf *p_if);
 	virtual ~CThreadMgrIf (void);
 
 
-	ST_THM_SRC_INFO * getSrcInfo (void) const;
+	ST_THM_SRC_INFO * get_source (void) const;
 
-	bool reply (EN_THM_RSLT enRslt);
-	bool reply (EN_THM_RSLT enRslt, uint8_t *pMsg, size_t msgSize);
+	bool reply (EN_THM_RSLT rslt);
+	bool reply (EN_THM_RSLT rslt, uint8_t *msg, size_t msg_size);
 
-	bool regNotify (uint8_t nCateory, uint8_t *pnClientId);
-	bool unregNotify (uint8_t nCateory, uint8_t nClientId);
+	bool reg_notify (uint8_t category, uint8_t *p_client_id);
+	bool unreg_notify (uint8_t category, uint8_t client_id);
 
-	bool notify (uint8_t nCateory);
-	bool notify (uint8_t nCateory, uint8_t *pMsg, size_t msgSize);
+	bool notify (uint8_t category);
+	bool notify (uint8_t category, uint8_t *msg, size_t msg_size);
 
-	void setSectId (uint8_t nSectId, EN_THM_ACT enAct);
-	uint8_t getSectId (void) const;
+	void set_sect_id (uint8_t sect_id, EN_THM_ACT act);
+	uint8_t get_sect_id (void) const;
 
-	void setTimeout (uint32_t nTimeoutMsec);
-	void clearTimeout (void);
+	void set_timeout (uint32_t timeout_msec);
+	void clear_timeout (void);
 
-	void enableOverwrite (void);
-	void disableOverwrite (void);
+	void enable_overwrite (void);
+	void disable_overwrite (void);
 
 	void lock (void);
 	void unlock (void);
 
-	uint8_t getSeqIdx (void) const;
-	const char* getSeqName (void) const;
+	uint8_t get_seq_idx (void) const;
+	const char* get_seq_name (void) const;
 
 
 private:
-	ST_THM_IF *mpIf;
+	ST_THM_IF *mp_if;
 };
 
-} // namespace ThreadManager
+} // namespace threadmgr
 
 #endif
