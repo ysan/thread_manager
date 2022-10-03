@@ -40,13 +40,13 @@ int main (void)
 
 	threadmgr::CThreadMgr *p_mgr = threadmgr::CThreadMgr::get_instance();
 
-	CModuleA *p_moduleA = new CModuleA("ModuleA", 10);
-	CModuleB *p_moduleB = new CModuleB("ModuleB", 10);
-	CModuleC *p_moduleC = new CModuleC("ModuleC", 10);
-	std::vector<threadmgr::CThreadMgrBase*> threads;
-	threads.push_back(p_moduleA);
-	threads.push_back(p_moduleB);
-	threads.push_back(p_moduleC);
+	auto module_a = std::make_shared <CModuleA>("ModuleA", 10);
+	auto module_b = std::make_shared <CModuleB>("ModuleB", 10);
+	auto module_c = std::make_shared <CModuleC>("ModuleC", 10);
+	std::vector<std::shared_ptr<threadmgr::CThreadMgrBase>> threads;
+	threads.push_back(module_a);
+	threads.push_back(module_b);
+	threads.push_back(module_c);
 
 	if (!p_mgr->setup (threads)) {
 		THM_LOG_E ("setup failure.");
@@ -54,15 +54,15 @@ int main (void)
 	}
 
 
-	CModuleA_extern *p_mod_a_extern = new CModuleA_extern (p_mgr->get_external_if());
-	CModuleB_extern *p_mod_b_extern = new CModuleB_extern (p_mgr->get_external_if());
-	CModuleC_extern *p_mod_c_extern = new CModuleC_extern (p_mgr->get_external_if());
+	auto mod_a_extern = std::make_shared <CModuleA_extern> (p_mgr->get_external_if());
+	auto mod_b_extern = std::make_shared <CModuleB_extern> (p_mgr->get_external_if());
+	auto mod_c_extern = std::make_shared <CModuleC_extern> (p_mgr->get_external_if());
 
 
 	p_mgr->get_external_if()->create_external_cp();
 
 	{
-		p_mod_a_extern-> req_startup ();
+		mod_a_extern-> req_startup ();
 		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
@@ -70,7 +70,7 @@ int main (void)
 		assert (s == std::string("ModuleA startup end."));
 	}
 	{
-		p_mod_b_extern-> req_startup ();
+		mod_b_extern-> req_startup ();
 		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
@@ -78,7 +78,7 @@ int main (void)
 		assert (s == std::string("ModuleB startup end."));
 	}
 	{
-		p_mod_c_extern-> req_startup ();
+		mod_c_extern-> req_startup ();
 		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
@@ -88,7 +88,7 @@ int main (void)
 
 	// test request-reply, req-timeout, seq-timeout, notify
 	{
-		p_mod_a_extern->req_test_reqrep ();
+		mod_a_extern->req_test_reqrep ();
 		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
@@ -101,15 +101,15 @@ int main (void)
 		opt |= REQUEST_OPTION__WITHOUT_REPLY;
 		p_mgr->get_external_if()->set_request_option (opt);
 
-		p_mod_a_extern->req_test_lock_intr ();  // "intr."
-		p_mod_a_extern->req_test_lock (true);  // "checked."
-		p_mod_a_extern->req_test_lock_intr ();  // "intr."
+		mod_a_extern->req_test_lock_intr ();  // "intr."
+		mod_a_extern->req_test_lock (true);  // "checked."
+		mod_a_extern->req_test_lock_intr ();  // "intr."
 
 		// reset without-reply
 		opt &= ~REQUEST_OPTION__WITHOUT_REPLY;
 		p_mgr->get_external_if()->set_request_option (opt);
 
-		p_mod_a_extern->req_test_lock_intr ();  // "intr."
+		mod_a_extern->req_test_lock_intr ();  // "intr."
 		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
@@ -124,16 +124,16 @@ int main (void)
 		opt |= REQUEST_OPTION__WITHOUT_REPLY;
 		p_mgr->get_external_if()->set_request_option (opt);
 
-		p_mod_a_extern->req_test_lock (false); // "checked."
-		p_mod_a_extern->req_test_lock_intr ();  // "intr."
-		p_mod_a_extern->req_test_lock_intr ();  // "intr."
+		mod_a_extern->req_test_lock (false); // "checked."
+		mod_a_extern->req_test_lock_intr ();  // "intr."
+		mod_a_extern->req_test_lock_intr ();  // "intr."
 
 		// reset without-reply
 		opt &= ~REQUEST_OPTION__WITHOUT_REPLY;
 		p_mgr->get_external_if()->set_request_option (opt);
 
 		sleep(3);
-		p_mod_a_extern->req_test_lock_intr ();  // "intr."
+		mod_a_extern->req_test_lock_intr ();  // "intr."
 		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
@@ -148,15 +148,15 @@ int main (void)
 		opt |= REQUEST_OPTION__WITHOUT_REPLY;
 		p_mgr->get_external_if()->set_request_option (opt);
 
-		p_mod_a_extern->req_test_overwrite (); // "ch"
-		p_mod_a_extern->req_test_overwrite (); // "ch"
-		p_mod_a_extern->req_test_overwrite (); // "ch"
+		mod_a_extern->req_test_overwrite (); // "ch"
+		mod_a_extern->req_test_overwrite (); // "ch"
+		mod_a_extern->req_test_overwrite (); // "ch"
 
 		// reset without-reply
 		opt &= ~REQUEST_OPTION__WITHOUT_REPLY;
 		p_mgr->get_external_if()->set_request_option (opt);
 
-		p_mod_a_extern->req_test_overwrite ();  // "ch"
+		mod_a_extern->req_test_overwrite ();  // "ch"
 		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
 		assert(r != NULL);
 		assert (r->enRslt == EN_THM_RSLT_SUCCESS);
@@ -175,7 +175,7 @@ int main (void)
 		opt |= REQUEST_OPTION__WITHOUT_REPLY;
 		p_mgr->get_external_if()->set_request_option (opt);
 
-		p_mod_a_extern->req_test_destroy ();
+		mod_a_extern->req_test_destroy ();
 
 		// reset without-reply
 		opt &= ~REQUEST_OPTION__WITHOUT_REPLY;
@@ -189,12 +189,6 @@ int main (void)
 	p_mgr->get_external_if()->destroy_external_cp();
 	p_mgr->teardown();
 
-	delete p_mod_a_extern;
-	delete p_mod_b_extern;
-	delete p_mod_c_extern;
-
-	for (const auto &th : threads)
-		delete th;
 
 	exit (EXIT_SUCCESS);
 }

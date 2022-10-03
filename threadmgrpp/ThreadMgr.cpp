@@ -139,7 +139,7 @@ bool CThreadMgr::setup (void)
 	return true;
 }
 
-bool CThreadMgr::setup (CThreadMgrBase *p_threads[], int thread_max)
+bool CThreadMgr::setup (CThreadMgrBase* p_threads[], int thread_max)
 {
 	if (!register_threads (p_threads, thread_max)) {
 		THM_LOG_E ("register_threads() is failure.\n");
@@ -153,13 +153,32 @@ bool CThreadMgr::setup (CThreadMgrBase *p_threads[], int thread_max)
 	return setup();
 }
 
-bool CThreadMgr::setup (std::vector<CThreadMgrBase*> &threads)
+bool CThreadMgr::setup (std::shared_ptr<CThreadMgrBase> threads[], int thread_max)
+{
+	CThreadMgrBase *p_bases [thread_max];
+	for (int i = 0; i < thread_max; ++ i) {
+		p_bases[i] = threads[i].get();
+	}
+
+	if (!register_threads (p_bases, thread_max)) {
+		THM_LOG_E ("register_threads() is failure.\n");
+		return false;
+	}
+
+	m_thread_max = thread_max;
+
+	setupDispatcher (dispatcher);
+
+	return setup();
+}
+
+bool CThreadMgr::setup (std::vector<std::shared_ptr<CThreadMgrBase>> &threads)
 {
 	int _size = threads.size();
 	CThreadMgrBase *p_bases [_size];
 	int idx = 0;
 	for (const auto &th : threads) {
-		p_bases[idx] = th;
+		p_bases[idx] = th.get();
 		++ idx ;
 	}
 

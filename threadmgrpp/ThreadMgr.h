@@ -8,6 +8,7 @@
 #include <errno.h>
 
 #include <vector>
+#include <memory>
 
 #include "threadmgr_if.h"
 #include "threadmgr_util.h"
@@ -24,8 +25,8 @@ class CThreadMgr
 public:
 	static CThreadMgr *get_instance (void);
 
-	bool setup (CThreadMgrBase *threads[], int thread_max);
-	bool setup (std::vector<CThreadMgrBase*> &threads);
+	bool setup (std::shared_ptr<CThreadMgrBase> threads[], int thread_max);
+	bool setup (std::vector<std::shared_ptr<CThreadMgrBase>> &threads);
 	void wait (void);
 	void teardown (void);
 
@@ -40,6 +41,7 @@ private:
 	bool register_threads (CThreadMgrBase *threads[], int thread_max);
 	void unregister_threads (void);
 
+	bool setup (CThreadMgrBase* p_threads[], int thread_max);
 	bool setup (void);
 
 
