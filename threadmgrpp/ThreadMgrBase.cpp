@@ -1,12 +1,13 @@
 #include "ThreadMgrBase.h"
+#include "ThreadMgrIf.h"
 
 
 namespace threadmgr {
 
 CThreadMgrBase::CThreadMgrBase (const char *name, uint8_t que_max)
-	:mp_seqs_base (NULL)
+	:mp_sequences (NULL)
 	,m_que_max (0)
-	,m_seq_max (0)
+	,m_sequence_max (0)
 	,mp_ext_if (NULL)
 	,mp_thm_if (NULL)
 	,m_idx (-1)
@@ -21,7 +22,7 @@ CThreadMgrBase::CThreadMgrBase (const char *name, uint8_t que_max)
 
 	m_que_max = que_max;
 
-	m_seqs.clear();
+	m_sequences.clear();
 }
 
 CThreadMgrBase::CThreadMgrBase (std::string name, uint8_t que_max)
@@ -34,7 +35,7 @@ CThreadMgrBase::~CThreadMgrBase (void)
 }
 
 
-void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE type, uint8_t seq_idx, ST_THM_IF *p_if)
+void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE type, uint8_t sequence_idx, ST_THM_IF *p_if)
 {
 	switch (type) {
 	case EN_THM_DISPATCH_TYPE_CREATE:
@@ -54,8 +55,8 @@ void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE type, uint8_t seq_idx, ST_THM_I
 		CThreadMgrIf thm_if (p_if);
 		set_if (&thm_if);
 
-//		(void) (this->*((mpSeqsBase + seq_idx)->pfnSeqBase)) (&thmIf);
-		(mp_seqs_base + seq_idx)->seq (&thm_if);
+//		(void) (this->*((mpSeqsBase + sequence_idx)->pfnSeqBase)) (&thmIf);
+		(mp_sequences + sequence_idx)->seq (&thm_if);
 
 		set_if (NULL);
 		break;
@@ -93,23 +94,23 @@ const char* CThreadMgrBase::get_name (void) const
 	return m_name;
 }
 
-void CThreadMgrBase::set_seqs (const SEQ_BASE_t seqs [], uint8_t seq_max)
+void CThreadMgrBase::set_sequences (const sequence_t sequences [], uint8_t sequences_max)
 {
-	if (seqs && seq_max > 0) {
-		for (int i = 0; i < seq_max; ++ i) {
-			m_seqs.push_back(seqs[i]);
+	if (sequences && sequences_max > 0) {
+		for (int i = 0; i < sequences_max; ++ i) {
+			m_sequences.push_back(sequences[i]);
 		}
-		mp_seqs_base = &m_seqs[0];
-		m_seq_max = seq_max;
+		mp_sequences = &m_sequences[0];
+		m_sequence_max = sequences_max;
 	}
 }
 
-void CThreadMgrBase::set_seqs (const std::vector<SEQ_BASE_t> &seqs)
+void CThreadMgrBase::set_sequences (const std::vector<sequence_t> &sequences)
 {
-	if (seqs.size() > 0) {
-		m_seqs = seqs;
-		mp_seqs_base = &m_seqs[0];
-		m_seq_max = seqs.size();
+	if (sequences.size() > 0) {
+		m_sequences = sequences;
+		mp_sequences = &m_sequences[0];
+		m_sequence_max = sequences.size();
 	}
 }
 
@@ -126,92 +127,92 @@ void CThreadMgrBase::on_receive_notify (CThreadMgrIf *p_if)
 }
 
 
-bool CThreadMgrBase::request_sync(uint8_t thread_idx, uint8_t seq_idx)
+bool CThreadMgrBase::request_sync(uint8_t thread_idx, uint8_t sequence_idx)
 {
-	if (!(*mp_ext_if)) {
+	if (!mp_ext_if) {
 		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return false;
 	}
 
-	return (*mp_ext_if)->request_sync (thread_idx, seq_idx);
+	return mp_ext_if->request_sync (thread_idx, sequence_idx);
 }
 
-bool CThreadMgrBase::request_sync (uint8_t thread_idx, uint8_t seq_idx, uint8_t *msg, size_t msg_size)
+bool CThreadMgrBase::request_sync (uint8_t thread_idx, uint8_t sequence_idx, uint8_t *msg, size_t msglen)
 {
-	if (!(*mp_ext_if)) {
+	if (!mp_ext_if) {
 		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return false;
 	}
 
-	return (*mp_ext_if)->request_sync (thread_idx, seq_idx, msg, msg_size);
+	return mp_ext_if->request_sync (thread_idx, sequence_idx, msg, msglen);
 }
 
-bool CThreadMgrBase::request_async (uint8_t thread_idx, uint8_t seq_idx)
+bool CThreadMgrBase::request_async (uint8_t thread_idx, uint8_t sequence_idx)
 {
-	if (!(*mp_ext_if)) {
+	if (!mp_ext_if) {
 		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return false;
 	}
 
-	return (*mp_ext_if)->request_async (thread_idx, seq_idx);
+	return mp_ext_if->request_async (thread_idx, sequence_idx);
 }
 
-bool CThreadMgrBase::request_async (uint8_t thread_idx, uint8_t seq_idx, uint32_t *pOutReqId)
+bool CThreadMgrBase::request_async (uint8_t thread_idx, uint8_t sequence_idx, uint32_t *p_out_req_id)
 {
-	if (!(*mp_ext_if)) {
+	if (!mp_ext_if) {
 		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return false;
 	}
 
-	return (*mp_ext_if)->request_async (thread_idx, seq_idx, pOutReqId);
+	return mp_ext_if->request_async (thread_idx, sequence_idx, p_out_req_id);
 }
 
-bool CThreadMgrBase::request_async (uint8_t thread_idx, uint8_t seq_idx, uint8_t *pMsg, size_t msgSize)
+bool CThreadMgrBase::request_async (uint8_t thread_idx, uint8_t sequence_idx, uint8_t *msg, size_t msglen)
 {
-	if (!(*mp_ext_if)) {
+	if (!mp_ext_if) {
 		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return false;
 	}
 
-	return (*mp_ext_if)->request_async (thread_idx, seq_idx, pMsg, msgSize);
+	return mp_ext_if->request_async (thread_idx, sequence_idx, msg, msglen);
 }
 
-bool CThreadMgrBase::request_async (uint8_t thread_idx, uint8_t seq_idx, uint8_t *pMsg, size_t msgSize, uint32_t *pOutReqId)
+bool CThreadMgrBase::request_async (uint8_t thread_idx, uint8_t sequence_idx, uint8_t *msg, size_t msglen, uint32_t *p_out_req_id)
 {
-	if (!(*mp_ext_if)) {
+	if (!mp_ext_if) {
 		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return false;
 	}
 
-	return (*mp_ext_if)->request_async (thread_idx, seq_idx, pMsg, msgSize, pOutReqId);
+	return mp_ext_if->request_async (thread_idx, sequence_idx, msg, msglen, p_out_req_id);
 }
 
-void CThreadMgrBase::set_request_option (uint32_t option)
+void CThreadMgrBase::set_request_option (request_option::type option)
 {
-	if (!(*mp_ext_if)) {
+	if (!mp_ext_if) {
 		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return ;
 	}
 
-	(*mp_ext_if)->set_request_option (option);
+	mp_ext_if->set_request_option (option);
 }
 
-uint32_t CThreadMgrBase::get_request_option (void) const
+request_option::type CThreadMgrBase::get_request_option (void) const
 {
-	if (!(*mp_ext_if)) {
+	if (!mp_ext_if) {
 		THM_LOG_E ("BUG: mp_ext_if is null. (CThreadMgrBase)");
 		return 0;
 	}
 
-	return (*mp_ext_if)->get_request_option ();
+	return mp_ext_if->get_request_option ();
 }
 
 CThreadMgrExternalIf * CThreadMgrBase::get_external_if (void) const
 {
-	return (*mp_ext_if);
+	return mp_ext_if;
 }
 
-void CThreadMgrBase::set_external_if (CThreadMgrExternalIf **p_ext_if)
+void CThreadMgrBase::set_external_if (CThreadMgrExternalIf *p_ext_if)
 {
 	mp_ext_if = p_ext_if;
 }

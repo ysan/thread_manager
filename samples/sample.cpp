@@ -1,5 +1,7 @@
 #include <iostream>
 #include <ostream>
+#include <threadmgr/ThreadMgrBase.h>
+#include <threadmgr/ThreadMgrIf.h>
 #include <vector>
 #include <string>
 
@@ -23,11 +25,11 @@ class CModuleA : public threadmgr::CThreadMgrBase
 {
 public:
 	CModuleA (std::string name, uint8_t que_max) : CThreadMgrBase (name.c_str(), que_max) {
-		std::vector<threadmgr::SEQ_BASE_t> seqs;
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence1(p_if);}, "sequence1"});
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence2"});
+		std::vector<threadmgr::sequence_t> sequences;
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence1(p_if);}, "sequence1"});
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence2"});
 		// register your sequences (maximum of registration: 64)
-		set_seqs (seqs);
+		set_sequences (sequences);
 	}
 	virtual ~CModuleA (void) {}
 
@@ -37,27 +39,27 @@ private:
 	// 1-shot sequence (simple-echo)
 	void sequence1 (threadmgr::CThreadMgrIf *p_if) {
 		// get request message.
-		char *msg = (char*)(p_if->get_source()->msg.pMsg);
-		size_t msglen = p_if->get_source()->msg.size;
+		char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data);
+		size_t msglen = p_if->get_source().get_message().size;
 		
 		// send reply (maximum of message size: 256bytes)
-		p_if->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, msglen);
+		p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(msg), msglen);
 		
-	 	// at the end of sequence, 
-		// set THM_SECT_ID_INIT, EN_THM_ACT_DONE with set_sect_id().
-	 	p_if->set_sect_id (THM_SECT_ID_INIT, EN_THM_ACT_DONE);
+	 	// at the end of sequence,
+		// set threadmgr::section_id::init, threadmgr::action::done with set_section_id().
+	 	p_if->set_section_id (threadmgr::section_id::init, threadmgr::action::done);
 	}
 
 	// separated section sequence
 	void sequence2 (threadmgr::CThreadMgrIf *p_if) {
 		enum {
-			SECTID_REQ_MODB_SEQ2 = THM_SECT_ID_INIT,
+			SECTID_REQ_MODB_SEQ2 = threadmgr::section_id::init,
 			SECTID_WAIT_MODB_SEQ2,
 			SECTID_END,
 		};
 
-		EN_THM_ACT action;
-		uint8_t section_id = p_if->get_sect_id();
+		threadmgr::action action;
+		threadmgr::section_id::type section_id = p_if->get_section_id();
 		switch (section_id) {
 		case SECTID_REQ_MODB_SEQ2: {
 
@@ -70,7 +72,7 @@ private:
 			section_id = SECTID_WAIT_MODB_SEQ2;
 			// wait for reply
 			// while waiting this module can execute other sequences.
-			action = EN_THM_ACT_WAIT;
+			action = threadmgr::action::wait;
 
 			// If you don't want to execute other sequences, call lock() in advance.
 			//p_if->lock();
@@ -78,13 +80,13 @@ private:
 			break;
 
 		case SECTID_WAIT_MODB_SEQ2: {
-			EN_THM_RSLT rslt = p_if->get_source()->enRslt;
+			threadmgr::result rslt = p_if->get_source().get_result();
 
-			std::cout << __PRETTY_FUNCTION__ << " reply CModuleB::sequence1 [" << rslt << "]" << std::endl; // "[1]" --> EN_THM_RSLT_SUCCESS
+			std::cout << __PRETTY_FUNCTION__ << " reply CModuleB::sequence1 [" << static_cast<int>(rslt) << "]" << std::endl; // "[1]" --> success
 
 			// set next section_id and action
 			section_id = SECTID_END;
-			action = EN_THM_ACT_CONTINUE;
+			action = threadmgr::action::continue_;
 
 			// don't forget to unlock() when you call lock()
 			//p_if->unlock();
@@ -93,19 +95,19 @@ private:
 
 		case SECTID_END:
 			// send reply
-			p_if->reply (EN_THM_RSLT_SUCCESS);
+			p_if->reply (threadmgr::result::success);
 
 			// at the end of sequence, 
-			// set THM_SECT_ID_INIT, EN_THM_ACT_DONE with set_sect_id().
-			section_id = THM_SECT_ID_INIT;
-			action = EN_THM_ACT_DONE;
+			// set threadmgr::section_id::init, threadmgr::action::done with set_section_id().
+			section_id = threadmgr::section_id::init;
+			action = threadmgr::action::done;
 			break;
 
 		default:
 			break;
 		}
 
-		p_if->set_sect_id (section_id, action);
+		p_if->set_section_id (section_id, action);
 	}
 
 };
@@ -114,11 +116,11 @@ class CModuleB : public threadmgr::CThreadMgrBase
 {
 public:
 	CModuleB (std::string name, uint8_t que_max) : CThreadMgrBase (name.c_str(), que_max) {
-		std::vector<threadmgr::SEQ_BASE_t> seqs;
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence1(p_if);}, "sequence1"});
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence2"});
+		std::vector<threadmgr::sequence_t> sequences;
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence1(p_if);}, "sequence1"});
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence2"});
 		// register your sequences (maximum of registration: 64)
-		set_seqs (seqs);
+		set_sequences (sequences);
 	}
 	virtual ~CModuleB (void) {}
 
@@ -133,23 +135,23 @@ private:
 		std::cout << __PRETTY_FUNCTION__ << " done." << std::endl;
 
 		// send reply
-		p_if->reply (EN_THM_RSLT_SUCCESS);
-		//p_if->reply (EN_THM_RSLT_ERROR);
+		p_if->reply (threadmgr::result::success);
+		//p_if->reply (threadmgr::result::error);
 		
-	 	// at the end of sequence, set THM_SECT_ID_INIT, EN_THM_ACT_DONE with set_sect_id().
-	 	p_if->set_sect_id (THM_SECT_ID_INIT, EN_THM_ACT_DONE);
+	 	// at the end of sequence, set threadmgr::section_id::init, threadmgr::action::done with set_section_id().
+	 	p_if->set_section_id (threadmgr::section_id::init, threadmgr::action::done);
 	}
 
 	// separated section sequence
 	void sequence2 (threadmgr::CThreadMgrIf *p_if) {
 		enum {
-			SECTID_REQ_MODC_SEQ4 = THM_SECT_ID_INIT,
+			SECTID_REQ_MODC_SEQ4 = threadmgr::section_id::init,
 			SECTID_WAIT_MODC_SEQ4,
 			SECTID_END,
 		};
 
-		EN_THM_ACT action;
-		uint8_t section_id = p_if->get_sect_id();
+		threadmgr::action action;
+		threadmgr::section_id::type section_id = p_if->get_section_id();
 		switch (section_id) {
 		case SECTID_REQ_MODC_SEQ4: {
 
@@ -162,7 +164,7 @@ private:
 			section_id = SECTID_WAIT_MODC_SEQ4;
 			// wait for reply
 			// while waiting this module can execute other sequences.
-			action = EN_THM_ACT_WAIT;
+			action = threadmgr::action::wait;
 
 			// If you don't want to execute other sequences, call lock() in advance.
 			//p_if->lock();
@@ -170,34 +172,34 @@ private:
 			break;
 
 		case SECTID_WAIT_MODC_SEQ4: {
-			EN_THM_RSLT rslt = p_if->get_source()->enRslt;
+			threadmgr::result rslt = p_if->get_source().get_result();
 
-			std::cout << __PRETTY_FUNCTION__ << " reply CModuleC::sequence4 [" << rslt << "]" << std::endl; // "[1]" --> EN_THM_RSLT_SUCCESS
+			std::cout << __PRETTY_FUNCTION__ << " reply CModuleC::sequence4 [" << static_cast<int>(rslt) << "]" << std::endl; // "[1]" --> success
 
 			// set next section_id and action
 			section_id = SECTID_END;
-			action = EN_THM_ACT_CONTINUE;
+			action = threadmgr::action::continue_;
 
-			// don't forget to unlock() when you call lock()
+			// don'nt forget to unlock() when you call lock()
 			//p_if->unlock();
 			}
 			break;
 
 		case SECTID_END:
 			// send reply
-			p_if->reply (EN_THM_RSLT_SUCCESS);
+			p_if->reply (threadmgr::result::success);
 
 			// at the end of sequence, 
-			// set THM_SECT_ID_INIT, EN_THM_ACT_DONE with set_sect_id().
-			section_id = THM_SECT_ID_INIT;
-			action = EN_THM_ACT_DONE;
+			// set threadmgr::section_id::init, threadmgr::action::done with set_section_id().
+			section_id = threadmgr::section_id::init;
+			action = threadmgr::action::done;
 			break;
 
 		default:
 			break;
 		}
 
-		p_if->set_sect_id (section_id, action);
+		p_if->set_section_id (section_id, action);
 	}
 };
 
@@ -205,13 +207,13 @@ class CModuleC : public threadmgr::CThreadMgrBase
 {
 public:
 	CModuleC (std::string name, uint8_t que_max) : CThreadMgrBase (name.c_str(), que_max) {
-		std::vector<threadmgr::SEQ_BASE_t> seqs;
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence1(p_if);}, "sequence1"});
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence2"});
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence3"});
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence4"});
+		std::vector<threadmgr::sequence_t> sequences;
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence1(p_if);}, "sequence1"});
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence2"});
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence3"});
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence4"});
 		// register your sequences (maximum of registration: 64)
-		set_seqs (seqs);
+		set_sequences (sequences);
 	}
 	virtual ~CModuleC (void) {}
 
@@ -224,30 +226,30 @@ private:
 	
 	// loop sequence
 	void sequence1 (threadmgr::CThreadMgrIf *p_if) {
-		uint8_t nSectId;
-		EN_THM_ACT enAct;
+		threadmgr::action action;
+		threadmgr::section_id::type section_id;
 		enum {
-			SECTID_ENTRY = THM_SECT_ID_INIT,
+			SECTID_ENTRY = threadmgr::section_id::init,
 			SECTID_LOOP,
 			SECTID_SEND_NOTIFY,
 		};
 
-		nSectId = p_if->get_sect_id();
-		switch (nSectId) {
+		section_id = p_if->get_section_id();
+		switch (section_id) {
 		case SECTID_ENTRY:
 			// since SECTID_LOOP loops infinitely, it is one way to reply first.
-			p_if->reply (EN_THM_RSLT_SUCCESS);
+			p_if->reply (threadmgr::result::success);
 
-			nSectId = SECTID_LOOP;
-			enAct = EN_THM_ACT_CONTINUE;
+			section_id = SECTID_LOOP;
+			action = threadmgr::action::continue_;
 			break;
 
 		case SECTID_LOOP:
 			// wait for a second
 			// while waiting this module can execute other sequences.
 			p_if->set_timeout (1000);
-			nSectId = SECTID_SEND_NOTIFY;
-			enAct = EN_THM_ACT_WAIT;
+			section_id = SECTID_SEND_NOTIFY;
+			action = threadmgr::action::wait;
 			break;
 
 		case SECTID_SEND_NOTIFY: {
@@ -256,15 +258,15 @@ private:
 			std::string msg = "this is notify message...";
 			// send notify
 			// distribute to all registered clients by regNotify()
-			p_if->notify (_NOTIFY_CATEGORY_1, (uint8_t*)msg.c_str(), msg.length());
+			p_if->notify (_NOTIFY_CATEGORY_1, reinterpret_cast<uint8_t*>(const_cast<char*>(msg.c_str())), msg.length());
 
-			nSectId = SECTID_LOOP;
-			enAct = EN_THM_ACT_CONTINUE;
+			section_id = SECTID_LOOP;
+			action = threadmgr::action::continue_;
 			}
 			break;
 		}
 
-		p_if->set_sect_id (nSectId, enAct);
+		p_if->set_section_id (section_id, action);
 	}
 
 	// register notify
@@ -274,27 +276,27 @@ private:
 		bool rslt = p_if->reg_notify (_NOTIFY_CATEGORY_1, &client_id);
 		if (rslt) {
 			// client_id in reply-message
-			p_if->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)&client_id, sizeof(client_id));
+			p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(&client_id), sizeof(client_id));
 		} else {
-			p_if->reply (EN_THM_RSLT_ERROR);
+			p_if->reply (threadmgr::result::error);
 		}
 
-		p_if->set_sect_id (THM_SECT_ID_INIT, EN_THM_ACT_DONE);
+		p_if->set_section_id (threadmgr::section_id::init, threadmgr::action::done);
 	}
 
 	// unregister notify
 	void sequence3 (threadmgr::CThreadMgrIf *p_if) {
 		// client_id in request-message
-		uint8_t client_id = *(p_if->get_source()->msg.pMsg);
+		uint8_t client_id = *(p_if->get_source().get_message().data);
 		// call unregNotify() to unregister requester
 		bool rslt = p_if->unreg_notify (_NOTIFY_CATEGORY_1, client_id);
 		if (rslt) {
-			p_if->reply (EN_THM_RSLT_SUCCESS);
+			p_if->reply (threadmgr::result::success);
 		} else {
-			p_if->reply (EN_THM_RSLT_ERROR);
+			p_if->reply (threadmgr::result::error);
 		}
 
-		p_if->set_sect_id (THM_SECT_ID_INIT, EN_THM_ACT_DONE);
+		p_if->set_section_id (threadmgr::section_id::init, threadmgr::action::done);
 
 	}
 
@@ -306,11 +308,11 @@ private:
 		std::cout << __PRETTY_FUNCTION__ << " done." << std::endl;
 
 		// send reply
-		p_if->reply (EN_THM_RSLT_SUCCESS);
-		//p_if->reply (EN_THM_RSLT_ERROR);
+		p_if->reply (threadmgr::result::success);
+		//p_if->reply (threadmgr::result::error);
 		
-	 	// at the end of sequence, set THM_SECT_ID_INIT, EN_THM_ACT_DONE with set_sect_id().
-	 	p_if->set_sect_id (THM_SECT_ID_INIT, EN_THM_ACT_DONE);
+	 	// at the end of sequence, set threadmgr::section_id::init, threadmgr::action::done with set_section_id().
+	 	p_if->set_section_id (threadmgr::section_id::init, threadmgr::action::done);
 	}
 
 };
@@ -345,11 +347,11 @@ int main (void)
 		std::cout << "request CModuleA::sequence1" << std::endl;
 		std::string msg = "test-message";
 		// syncronized request to simple-echo of CModuleA.
-		p_mgr->get_external_if()->request_sync(_MODULE_A, _SEQ_1, (uint8_t*)msg.c_str(), msg.length());
+		p_mgr->get_external_if()->request_sync(_MODULE_A, _SEQ_1, reinterpret_cast<uint8_t*>(const_cast<char*>(msg.c_str())), msg.length());
 		// main-thread wait for reply.
-		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
-		std::cout << "reply CModuleA::sequence1 [" << r->enRslt << "]" << std::endl;          // "[1]" --> EN_THM_RSLT_SUCCESS
-		std::cout << "reply CModuleA::sequence1 [" << (char*)r->msg.pMsg << "]" << std::endl; // "[test-message]"
+		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
+		std::cout << "reply CModuleA::sequence1 [" << static_cast<int>(r.get_result()) << "]" << std::endl; // "[1]" --> success
+		std::cout << "reply CModuleA::sequence1 [" << reinterpret_cast<char*>(r.get_message().data) << "]" << std::endl; // "[test-message]"
 	}
 
 
@@ -359,8 +361,8 @@ int main (void)
 		// syncronized request to CModuleA::sequence2.
 		p_mgr->get_external_if()->request_sync(_MODULE_A, _SEQ_2);
 		// main-thread wait for reply.
-		ST_THM_SRC_INFO* r = p_mgr->get_external_if()-> receive_external();
-		std::cout << "reply CModuleA::sequence2 [" << r->enRslt << "]" << std::endl;          // "[1]" --> EN_THM_RSLT_SUCCESS
+		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
+		std::cout << "reply CModuleA::sequence2 [" << static_cast<int>(r.get_result()) << "]" << std::endl; // "[1]" --> success
 	}
 
 

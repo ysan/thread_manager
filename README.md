@@ -121,7 +121,7 @@ int main (void) {
 ##### Implements your class and register sequences
 
 Your class should extend `CThreadMgrBase`. It has one posix thread context.  
-Then register your sequences with `CThreadMgrBase::setSeqs` in the constructor.
+Then register your sequences with `CThreadMgrBase::set_sequences` in the constructor.
 
 ```C++
 enum {
@@ -136,32 +136,32 @@ class CModuleA : public threadmgr::CThreadMgrBase
 {
 public:
 	CModuleA (std::string name, uint8_t que_max) : CThreadMgrBase (name.c_str(), que_max) {
-		std::vector<threadmgr::SEQ_BASE_t> seqs;
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence1(p_if);}, "sequence1"}); // enum _SEQ_1
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence2"}); // enum _SEQ_2
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence3"}); // enum _SEQ_3
+		std::vector<threadmgr::seq_base_t> sequences;
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence1(p_if);}, "sequence1"}); // enum _SEQ_1
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence2"}); // enum _SEQ_2
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence3"}); // enum _SEQ_3
 		.
 		.
 
 		// register your sequences (maximum of registration: 64)
-		set_seqs (seqs);
+		set_sequences (sequences);
 	}
 
 	virtual ~CModuleA (void) {}
 
 private:
 	// implements your sequences (member functions)
-	void sequence1 (threadmgr::CThreadMgrIf *pIf) {
+	void sequence1 (threadmgr::CThreadMgrIf *p_if) {
 		.
 		.
 	}
 
-	void sequence2 (threadmgr::CThreadMgrIf *pIf) {
+	void sequence2 (threadmgr::CThreadMgrIf *p_if) {
 		.
 		.
 	}
 
-	void sequence3 (threadmgr::CThreadMgrIf *pIf) {
+	void sequence3 (threadmgr::CThreadMgrIf *p_if) {
 		.
 		.
 	}
@@ -188,27 +188,27 @@ class CModuleC : public threadmgr::CThreadMgrBase
 //  1-shot sequence (simple-echo)
 void CModuleA::sequence1 (threadmgr::CThreadMgrIf *p_if) {
 	// get request message.
-	char *msg = (char*)(p_if->get_source()->msg.pMsg);
-	size_t msglen = p_if->get_source()->msg.size;
+	char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data);
+	size_t msglen = p_if->get_source().get_message().size;
 
 	// send reply (maximum of message size: 256bytes)
-	p_if->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, msglen);
+	p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(msg), msglen);
 
  	// at the end of sequence,
-	// set THM_SECT_ID_INIT, EN_THM_ACT_DONE with set_sect_id().
- 	p_if->set_sect_id (THM_SECT_ID_INIT, EN_THM_ACT_DONE);
+	// set threadmgr::section_id::init, threadmgr::action::done with set_sect_id().
+ 	p_if->set_sect_id (threadmgr::section_id::init, threadmgr::action::done);
 }
 
 // separated section sequence
 void sequence2 (threadmgr::CThreadMgrIf *p_if) {
 	enum {
-		SECTID_REQ_MODB_SEQ2 = THM_SECT_ID_INIT,
+		SECTID_REQ_MODB_SEQ2 = threadmgr::section_id::init,
 		SECTID_WAIT_MODB_SEQ2,
 		SECTID_END,
 	};
 
-	EN_THM_ACT action;
-	uint8_t section_id = p_if->get_sect_id();
+	threadmgr::action action;
+	threadmgr::section_id::type section_id = p_if->get_sect_id();
 	switch (section_id) {
 	case SECTID_REQ_MODB_SEQ2: {
 
@@ -221,7 +221,7 @@ void sequence2 (threadmgr::CThreadMgrIf *p_if) {
 		section_id = SECTID_WAIT_MODB_SEQ2;
 		// wait for reply
 		// while waiting this module can execute other sequences.
-		action = EN_THM_ACT_WAIT;
+		action = threadmgr::action::wait;
 
 		// If you don't want to execute other sequences, call lock() in advance.
 		//p_if->lock();
@@ -229,13 +229,13 @@ void sequence2 (threadmgr::CThreadMgrIf *p_if) {
 		break;
 
 	case SECTID_WAIT_MODB_SEQ2: {
-		EN_THM_RSLT rslt = p_if->get_source()->enRslt;
+		threadmgr::result rslt = p_if->get_source().get_result();
 
-		std::cout << __PRETTY_FUNCTION__ << " reply CModuleB::sequence1 [" << rslt << "]" << std::endl; // "[1]" --> EN_THM_RSLT_SUCCESS
+		std::cout << __PRETTY_FUNCTION__ << " reply CModuleB::sequence1 [" << static_cast<int>(rslt) << "]" << std::endl; // "[1]" --> success
 
 		// set next section_id and action
 		section_id = SECTID_END;
-		action = EN_THM_ACT_CONTINUE;
+		action = threadmgr::action::continue_;
 
 		// don't forget to unlock() when you call lock()
 		//p_if->unlock();
@@ -244,12 +244,12 @@ void sequence2 (threadmgr::CThreadMgrIf *p_if) {
 
 	case SECTID_END:
 		// send reply
-		p_if->reply (EN_THM_RSLT_SUCCESS);
+		p_if->reply (threadmgr::result::success);
 
 		// at the end of sequence,
-		// set THM_SECT_ID_INIT, EN_THM_ACT_DONE with set_sect_id().
-		section_id = THM_SECT_ID_INIT;
-		action = EN_THM_ACT_DONE;
+		// set threadmgr::section_id::init, threadmgr::action::done with set_sect_id().
+		section_id = threadmgr::section_id::init;
+		action = threadmgr::action::done;
 		break;
 
 	default:

@@ -24,11 +24,11 @@ class CThreadMgr;
 class CThreadMgrBase;
 //typedef void (CThreadMgrBase:: *PFN_SEQ_BASE) (CThreadMgrIf *pIf);
 
-typedef struct _seq_base {
+struct sequence_t {
 //	PFN_SEQ_BASE pfnSeqBase;
 	std::function<void (CThreadMgrIf *p_if)> seq;
 	std::string name;
-} SEQ_BASE_t;
+};
 
 
 class CThreadMgrBase
@@ -42,7 +42,7 @@ public:
 	virtual ~CThreadMgrBase (void);
 
 
-	void exec (EN_THM_DISPATCH_TYPE type, uint8_t seq_idx, ST_THM_IF *p_if);
+	void exec (EN_THM_DISPATCH_TYPE type, uint8_t sequence_idx, ST_THM_IF *p_if);
 
 	CThreadMgrExternalIf *get_external_if (void) const;
 	CThreadMgrIf *get_if (void) const;
@@ -53,40 +53,40 @@ public:
 
 
 protected:
-	void set_seqs (const SEQ_BASE_t seqs [], uint8_t num);
-	void set_seqs (const std::vector<SEQ_BASE_t> &seqs);
+	void set_sequences (const sequence_t sequences [], uint8_t num);
+	void set_sequences (const std::vector<sequence_t> &sequences);
 
 	virtual void on_create (void);
 	virtual void on_destroy (void);
 	virtual void on_receive_notify (CThreadMgrIf *p_if);
 
 
-	bool request_sync (uint8_t thread_idx, uint8_t seq_idx);
-	bool request_sync (uint8_t thread_idx, uint8_t seq_idx, uint8_t *msg, size_t msg_size);
+	bool request_sync (uint8_t thread_idx, uint8_t sequence_idx);
+	bool request_sync (uint8_t thread_idx, uint8_t sequence_idx, uint8_t *msg, size_t msglen);
 
-	bool request_async (uint8_t thread_idx, uint8_t seq_idx);
-	bool request_async (uint8_t thread_idx, uint8_t seq_idx, uint32_t *out_req_id);
-	bool request_async (uint8_t thread_idx, uint8_t seq_idx, uint8_t *msg, size_t msg_size);
-	bool request_async (uint8_t thread_idx, uint8_t seq_idx, uint8_t *msg, size_t msg_size, uint32_t *out_req_id);
+	bool request_async (uint8_t thread_idx, uint8_t sequence_idx);
+	bool request_async (uint8_t thread_idx, uint8_t sequence_idx, uint32_t *out_req_id);
+	bool request_async (uint8_t thread_idx, uint8_t sequence_idx, uint8_t *msg, size_t msglen);
+	bool request_async (uint8_t thread_idx, uint8_t sequence_idx, uint8_t *msg, size_t msglen, uint32_t *out_req_id);
 
-	void set_request_option (uint32_t option);
-	uint32_t get_request_option (void) const;
+	void set_request_option (request_option::type option);
+	request_option::type get_request_option (void) const;
 
 
 private:
-	void set_external_if (CThreadMgrExternalIf **p_ext_if);
+	void set_external_if (CThreadMgrExternalIf *p_ext_if);
 	void set_if (CThreadMgrIf *p_if);
 
 
-	const SEQ_BASE_t *mp_seqs_base ;
+	const sequence_t *mp_sequences ;
 
 	char m_name [16];
 	uint8_t m_que_max;
 
-	std::vector<SEQ_BASE_t> m_seqs;
-	uint8_t m_seq_max;
+	std::vector<sequence_t> m_sequences;
+	uint8_t m_sequence_max;
 	
-	CThreadMgrExternalIf **mp_ext_if;
+	CThreadMgrExternalIf *mp_ext_if;
 	CThreadMgrIf *mp_thm_if;
 
 	uint8_t m_idx;

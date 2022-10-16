@@ -46,7 +46,7 @@ CThreadMgr* CThreadMgr::get_instance (void)
 
 bool CThreadMgr::register_threads (CThreadMgrBase *p_threads[], int thread_max)
 {
-	if ((!p_threads) || (thread_max <= 0)) {
+	if ((!p_threads) || (thread_max == 0)) {
 		THM_LOG_E ("invalid argument.\n");
 		return false;
 	}
@@ -64,8 +64,8 @@ bool CThreadMgr::register_threads (CThreadMgrBase *p_threads[], int thread_max)
 			return false;
 		}
 
-		if ((p_threads [idx]->m_seq_max <= 0) && (p_threads [idx]->m_seq_max > SEQ_IDX_MAX)) {
-			THM_LOG_E ("func idx is invalid. (inner thread table)\n");
+		if ((p_threads [idx]->m_sequence_max <= 0) && (p_threads [idx]->m_sequence_max > SEQ_IDX_MAX)) {
+			THM_LOG_E ("seq idx is invalid. (inner thread table)\n");
 			return false;
 		}
 
@@ -88,11 +88,12 @@ void CThreadMgr::unregister_threads (void)
 
 bool CThreadMgr::setup (void)
 {
-	mp_reg_table = (ST_THM_REG_TBL*) malloc (sizeof(ST_THM_REG_TBL) * m_thread_max);
+	mp_reg_table = reinterpret_cast<ST_THM_REG_TBL*>(malloc (sizeof(ST_THM_REG_TBL) * m_thread_max));
 	if (!mp_reg_table) {
 		THM_PERROR ("malloc");
 		return false;
 	}
+
 	for (int i = 0; i < m_thread_max; ++ i) {
 		ST_THM_REG_TBL *p = mp_reg_table + i;
 
@@ -101,26 +102,22 @@ bool CThreadMgr::setup (void)
 		const_cast <PCB_DESTROY&> (p->pcbDestroy) = NULL;			// not use
 		p->nQueNum = gp_threads[i]->m_que_max;
 		p->pstSeqArray = NULL;										// set after
-		p->nSeqNum = gp_threads[i]->m_seq_max;
+		p->nSeqNum = gp_threads[i]->m_sequence_max;
 		const_cast <PCB_RECV_NOTIFY&> (p->pcbRecvNotify) = NULL;	// not use
 
 
 		// set seq name
-		ST_THM_SEQ *p_thm_seq = (ST_THM_SEQ*) malloc (sizeof(ST_THM_SEQ) * gp_threads[i]->m_seq_max);
+		ST_THM_SEQ *p_thm_seq = reinterpret_cast<ST_THM_SEQ*>(malloc (sizeof(ST_THM_SEQ) * gp_threads[i]->m_sequence_max));
 		if (!p_thm_seq) {
 			THM_PERROR ("malloc");
 			return false;
 		}
-		for (int j = 0; j < gp_threads[i]->m_seq_max; ++ j) {
+		for (int j = 0; j < gp_threads[i]->m_sequence_max; ++ j) {
 			ST_THM_SEQ *p = p_thm_seq + j;
 			const_cast <PCB_THM_SEQ&> (p->pcbSeq) = NULL;
-			p->pszName = ((gp_threads[i]->mp_seqs_base) + j)->name.c_str();
+			p->pszName = ((gp_threads[i]->mp_sequences) + j)->name.c_str();
 		}
 		p->pstSeqArray = p_thm_seq;
-
-
-		// threadMgr_external_if
-		gp_threads[i]->set_external_if (&mp_ext_if);
 	}
 
 
@@ -134,6 +131,11 @@ bool CThreadMgr::setup (void)
 	if (!mp_ext_if) {
 		THM_LOG_E ("mp_ext_if is null.\n");
 		return false;
+	}
+
+	// threadMgr_external_if
+	for (int i = 0; i < m_thread_max; ++ i) {
+		gp_threads[i]->set_external_if (mp_ext_if);
 	}
 
 	return true;
@@ -229,7 +231,7 @@ static void dispatcher (
 	EN_THM_DISPATCH_TYPE type,
 	uint8_t thread_idx,
 	uint8_t seq_idx,
-	ST_THM_IF *pIf
+	ST_THM_IF *p_if
 ) {
 	CThreadMgrBase *base = gp_threads [thread_idx];
 	if (!base) {
@@ -239,7 +241,7 @@ static void dispatcher (
 
 	///////////////////////////////
 
-	base->exec (type, seq_idx, pIf);
+	base->exec (type, seq_idx, p_if);
 
 	///////////////////////////////
 }

@@ -14,7 +14,7 @@
 class CModuleB_extern : public threadmgr::CThreadMgrExternalIf
 {
 public:
-	enum class seq : int {
+	enum class sequence : int {
 		startup = 0,
 		echo00,
 		echo01,
@@ -32,38 +32,38 @@ public:
 
 
 	bool req_startup (void) {
-		int seq = static_cast<int>(seq::startup);
-		return request_async (m_module_id, seq);
+		int sequence = static_cast<int>(sequence::startup);
+		return request_async (m_module_id, sequence);
 	};
 
 	bool req_echo00 (uint32_t *out_req_id=NULL) {
-		int seq = static_cast<int>(seq::echo00);
-		return request_async (m_module_id, seq, out_req_id);
+		int sequence = static_cast<int>(sequence::echo00);
+		return request_async (m_module_id, sequence, out_req_id);
 	};
 
 	bool req_echo00_sync (void) {
-		int seq = static_cast<int>(seq::echo00);
-		return request_sync (m_module_id, seq);
+		int sequence = static_cast<int>(sequence::echo00);
+		return request_sync (m_module_id, sequence);
 	};
 
 	bool req_echo01 (uint32_t *out_req_id=NULL) {
-		int seq = static_cast<int>(seq::echo01);
-		return request_async (m_module_id, seq, out_req_id);
+		int sequence = static_cast<int>(sequence::echo01);
+		return request_async (m_module_id, sequence, out_req_id);
 	};
 
 	bool req_echo01_sync (void) {
-		int seq = static_cast<int>(seq::echo01);
-		return request_sync (m_module_id, seq);
+		int sequence = static_cast<int>(sequence::echo01);
+		return request_sync (m_module_id, sequence);
 	};
 
 	bool req_echo02 (uint32_t *out_req_id=NULL) {
-		int seq = static_cast<int>(seq::echo02);
-		return request_async (m_module_id, seq, out_req_id);
+		int sequence = static_cast<int>(sequence::echo02);
+		return request_async (m_module_id, sequence, out_req_id);
 	};
 
 	bool req_echo02_sync (void) {
-		int seq = static_cast<int>(seq::echo02);
-		return request_sync (m_module_id, seq);
+		int sequence = static_cast<int>(sequence::echo02);
+		return request_sync (m_module_id, sequence);
 	};
 
 private:

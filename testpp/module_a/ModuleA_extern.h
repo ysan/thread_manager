@@ -14,7 +14,7 @@
 class CModuleA_extern : public threadmgr::CThreadMgrExternalIf
 {
 public:
-	enum class seq : int {
+	enum class sequence : int {
 		startup = 0,
 		test_reqrep,
 		test_reqrep_notify,
@@ -35,38 +35,38 @@ public:
 
 
 	bool req_startup (void) {
-		int seq = static_cast<int>(seq::startup);
-		return request_async (m_module_id, seq);
+		int sequence = static_cast<int>(sequence::startup);
+		return request_async (m_module_id, sequence);
 	};
 
 	bool req_test_reqrep (void) {
-		int seq = static_cast<int>(seq::test_reqrep);
-		return request_async (m_module_id, seq);
+		int sequence = static_cast<int>(sequence::test_reqrep);
+		return request_async (m_module_id, sequence);
 	};
 
 	bool req_test_reqrep_notify (void) {
-		int seq = static_cast<int>(seq::test_reqrep_notify);
-		return request_async (m_module_id, seq);
+		int sequence = static_cast<int>(sequence::test_reqrep_notify);
+		return request_async (m_module_id, sequence);
 	};
 
 	bool req_test_lock (bool is_enable_lock) {
-		int seq = static_cast<int>(seq::test_lock);
-		return request_async (m_module_id, seq, (uint8_t*)&is_enable_lock, sizeof(is_enable_lock));
+		int sequence = static_cast<int>(sequence::test_lock);
+		return request_async (m_module_id, sequence, reinterpret_cast<uint8_t*>(&is_enable_lock), sizeof(is_enable_lock));
 	};
 
 	bool req_test_lock_intr (void) {
-		int seq = static_cast<int>(seq::test_lock_intr);
-		return request_async (m_module_id, seq);
+		int sequence = static_cast<int>(sequence::test_lock_intr);
+		return request_async (m_module_id, sequence);
 	};
 
 	bool req_test_overwrite (void) {
-		int seq = static_cast<int>(seq::test_overwrite);
-		return request_async (m_module_id, seq);
+		int sequence = static_cast<int>(sequence::test_overwrite);
+		return request_async (m_module_id, sequence);
 	};
 
 	bool req_test_destroy (void) {
-		int seq = static_cast<int>(seq::test_destroy);
-		return request_async (m_module_id, seq);
+		int sequence = static_cast<int>(sequence::test_destroy);
+		return request_async (m_module_id, sequence);
 	};
 
 private:

@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "ThreadMgrBase.h"
 #include "ThreadMgrpp.h"
 
 #include "ModuleB_extern.h"
@@ -18,112 +19,112 @@ public:
 	CModuleB (std::string name, uint8_t que_max)
 		: CThreadMgrBase (name, que_max)
 	{
-		std::vector<threadmgr::SEQ_BASE_t> seqs;
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){startUp(p_if);}, "startUp"});
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){echo00(p_if);}, "echo00"});
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){echo01(p_if);}, "echo01"});
-		seqs.push_back ({[&](threadmgr::CThreadMgrIf *p_if){echo02(p_if);}, "echo02"});
-		set_seqs (seqs);
+		std::vector<threadmgr::sequence_t> sequences;
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){startUp(p_if);}, "startUp"});
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){echo00(p_if);}, "echo00"});
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){echo01(p_if);}, "echo01"});
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){echo02(p_if);}, "echo02"});
+		set_sequences (sequences);
 	}
 
 	virtual ~CModuleB (void) {}
 
 private:
 	void startUp (threadmgr::CThreadMgrIf *p_if) {
-		uint8_t sect_id;
-		EN_THM_ACT act;
+		threadmgr::section_id::type section_id;
+		threadmgr::action act;
 		enum {
-			SECTID_ENTRY = THM_SECT_ID_INIT,
+			SECTID_ENTRY = threadmgr::section_id::init,
 			SECTID_END,
 		};
 
-		sect_id = p_if->get_sect_id();
-		THM_LOG_I ("%s sect_id %d\n", __PRETTY_FUNCTION__, sect_id);
+		section_id = p_if->get_section_id();
+		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
 
 		const char *msg = "ModuleB startup end.";
-		p_if->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg)+1);
+		p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(const_cast<char*>(msg)), strlen(msg)+1);
 
-		sect_id = THM_SECT_ID_INIT;
-		act = EN_THM_ACT_DONE;
-		p_if->set_sect_id (sect_id, act);
+		section_id = threadmgr::section_id::init;
+		act = threadmgr::action::done;
+		p_if->set_section_id (section_id, act);
 	}
 
 	void echo00 (threadmgr::CThreadMgrIf *p_if) {
-		uint8_t sect_id;
-		EN_THM_ACT act;
+		threadmgr::section_id::type section_id;
+		threadmgr::action act;
 		enum {
 			SECTID_ENTRY = 0,
 			SECTID_END,
 		};
 
-		sect_id = p_if->get_sect_id();
-		THM_LOG_I ("%s sect_id %d\n", __PRETTY_FUNCTION__, sect_id);
+		section_id = p_if->get_section_id();
+		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
 
-		size_t msglen = p_if->get_source()->msg.size;
+		size_t msglen = p_if->get_source().get_message().size;
 		if (msglen == 0) {
-			p_if->reply (EN_THM_RSLT_SUCCESS);
+			p_if->reply (threadmgr::result::success);
 		} else {
-			char *msg = (char*)p_if->get_source()->msg.pMsg;
-			p_if->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, msglen);
+			char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data);
+			p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(const_cast<char*>(msg)), msglen);
 		}
 
-		sect_id = 0;
-		act = EN_THM_ACT_DONE;
-		p_if->set_sect_id (sect_id, act);
+		section_id = 0;
+		act = threadmgr::action::done;
+		p_if->set_section_id (section_id, act);
 	}
 
 	void echo01 (threadmgr::CThreadMgrIf *p_if) {
-		uint8_t sect_id;
-		EN_THM_ACT act;
+		threadmgr::section_id::type section_id;
+		threadmgr::action act;
 		enum {
 			SECTID_ENTRY = 0,
 			SECTID_END,
 		};
 
-		sect_id = p_if->get_sect_id();
-		THM_LOG_I ("%s sect_id %d\n", __PRETTY_FUNCTION__, sect_id);
+		section_id = p_if->get_section_id();
+		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
 
 		THM_LOG_I ("execute. sleep 1sec.\n");
 		sleep (1);
 
-		size_t msglen = p_if->get_source()->msg.size;
+		size_t msglen = p_if->get_source().get_message().size;
 		if (msglen == 0) {
-			p_if->reply (EN_THM_RSLT_SUCCESS);
+			p_if->reply (threadmgr::result::success);
 		} else {
-			char *msg = (char*)p_if->get_source()->msg.pMsg;
-			p_if->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, msglen);
+			char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data);
+			p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(msg), msglen);
 		}
 
-		sect_id = 0;
-		act = EN_THM_ACT_DONE;
-		p_if->set_sect_id (sect_id, act);
+		section_id = 0;
+		act = threadmgr::action::done;
+		p_if->set_section_id (section_id, act);
 	}
 
 	void echo02 (threadmgr::CThreadMgrIf *p_if) {
-		uint8_t sect_id;
-		EN_THM_ACT act;
+		threadmgr::section_id::type section_id;
+		threadmgr::action act;
 		enum {
 			SECTID_ENTRY = 0,
 			SECTID_END,
 		};
 
-		sect_id = p_if->get_sect_id();
-		THM_LOG_I ("%s sect_id %d\n", __PRETTY_FUNCTION__, sect_id);
+		section_id = p_if->get_section_id();
+		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
 
 		THM_LOG_I ("execute. sleep 2sec.\n");
 		sleep (2);
 
-		size_t msglen = p_if->get_source()->msg.size;
+		size_t msglen = p_if->get_source().get_message().size;
 		if (msglen == 0) {
-			p_if->reply (EN_THM_RSLT_SUCCESS);
+			p_if->reply (threadmgr::result::success);
 		} else {
-			char *msg = (char*)p_if->get_source()->msg.pMsg;
-			p_if->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, msglen);
+			char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data);
+			p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(msg), msglen);
 		}
 
-		sect_id = 0;
-		act = EN_THM_ACT_DONE;
-		p_if->set_sect_id (sect_id, act);
+		section_id = 0;
+		act = threadmgr::action::done;
+		p_if->set_section_id (section_id, act);
 	}
 
 };
