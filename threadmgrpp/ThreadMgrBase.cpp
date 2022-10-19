@@ -74,7 +74,7 @@ void CThreadMgrBase:: exec (EN_THM_DISPATCH_TYPE type, uint8_t sequence_idx, ST_
 		}
 
 	default:
-		THM_LOG_E ("BUG: enType is unknown. (CThreadMgrBase::exec)");
+		THM_LOG_E ("BUG: type is unknown. (CThreadMgrBase::exec)");
 		break;
 	}
 }
@@ -112,6 +112,13 @@ void CThreadMgrBase::set_sequences (const std::vector<sequence_t> &sequences)
 		mp_sequences = &m_sequences[0];
 		m_sequence_max = sequences.size();
 	}
+}
+
+void CThreadMgrBase::reset_sequences (void)
+{
+	m_sequences.clear();
+	mp_sequences = NULL;
+	m_sequence_max = 0;
 }
 
 void CThreadMgrBase::on_create (void)

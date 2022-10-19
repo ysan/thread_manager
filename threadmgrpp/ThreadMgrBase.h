@@ -55,6 +55,7 @@ public:
 protected:
 	void set_sequences (const sequence_t sequences [], uint8_t num);
 	void set_sequences (const std::vector<sequence_t> &sequences);
+	void reset_sequences (void);
 
 	virtual void on_create (void);
 	virtual void on_destroy (void);

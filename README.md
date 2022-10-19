@@ -136,7 +136,7 @@ class CModuleA : public threadmgr::CThreadMgrBase
 {
 public:
 	CModuleA (std::string name, uint8_t que_max) : CThreadMgrBase (name.c_str(), que_max) {
-		std::vector<threadmgr::seq_base_t> sequences;
+		std::vector<threadmgr::sequence_t> sequences;
 		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence1(p_if);}, "sequence1"}); // enum _SEQ_1
 		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence2"}); // enum _SEQ_2
 		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence3"}); // enum _SEQ_3
@@ -147,7 +147,9 @@ public:
 		set_sequences (sequences);
 	}
 
-	virtual ~CModuleA (void) {}
+	virtual ~CModuleA (void) {
+		reset_sequences ();
+	}
 
 private:
 	// implements your sequences (member functions)
@@ -195,8 +197,8 @@ void CModuleA::sequence1 (threadmgr::CThreadMgrIf *p_if) {
 	p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(msg), msglen);
 
  	// at the end of sequence,
-	// set threadmgr::section_id::init, threadmgr::action::done with set_sect_id().
- 	p_if->set_sect_id (threadmgr::section_id::init, threadmgr::action::done);
+	// set threadmgr::section_id::init, threadmgr::action::done with set_section_id().
+ 	p_if->set_section_id (threadmgr::section_id::init, threadmgr::action::done);
 }
 
 // separated section sequence
@@ -247,7 +249,7 @@ void sequence2 (threadmgr::CThreadMgrIf *p_if) {
 		p_if->reply (threadmgr::result::success);
 
 		// at the end of sequence,
-		// set threadmgr::section_id::init, threadmgr::action::done with set_sect_id().
+		// set threadmgr::section_id::init, threadmgr::action::done with set_section_id().
 		section_id = threadmgr::section_id::init;
 		action = threadmgr::action::done;
 		break;
@@ -256,7 +258,7 @@ void sequence2 (threadmgr::CThreadMgrIf *p_if) {
 		break;
 	}
 
-	p_if->set_sect_id (section_id, action);
+	p_if->set_section_id (section_id, action);
 }
 ```
 

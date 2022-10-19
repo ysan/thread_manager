@@ -48,6 +48,7 @@ public:
 	}
 
 	virtual ~CModuleA (void) {
+		reset_sequences();
 	}
 
 

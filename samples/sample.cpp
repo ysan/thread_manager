@@ -31,7 +31,9 @@ public:
 		// register your sequences (maximum of registration: 64)
 		set_sequences (sequences);
 	}
-	virtual ~CModuleA (void) {}
+	virtual ~CModuleA (void) {
+		reset_sequences();
+	}
 
 private:
 	// implements your sequences (member functions)
@@ -122,7 +124,9 @@ public:
 		// register your sequences (maximum of registration: 64)
 		set_sequences (sequences);
 	}
-	virtual ~CModuleB (void) {}
+	virtual ~CModuleB (void) {
+		reset_sequences();
+	}
 
 private:
 	// implements your sequences (member functions)
@@ -215,7 +219,9 @@ public:
 		// register your sequences (maximum of registration: 64)
 		set_sequences (sequences);
 	}
-	virtual ~CModuleC (void) {}
+	virtual ~CModuleC (void) {
+		reset_sequences();
+	}
 
 private:
 	enum {

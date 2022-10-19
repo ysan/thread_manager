@@ -33,6 +33,7 @@ public:
 	}
 
 	virtual ~CModuleC (void) {
+		reset_sequences();
 	}
 
 private:

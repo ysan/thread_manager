@@ -22,24 +22,24 @@ end note
 
 main -> main: CThreadMgr::setup()
 activate main
-main->>ModuleA: onCreate
+main->>ModuleA: on_create
 'activate ModuleA
 'deactivate ModuleA
-main->>ModuleB: onCreate
+main->>ModuleB: on_create
 'activate ModuleB
 'deactivate ModuleB
-main->>ModuleC: onCreate
+main->>ModuleC: on_create
 'activate ModuleC
 'deactivate ModuleC
 deactivate main
 
 == ThreadManager-framework was ready. ==
 
-main -> main: CThreadMgrExternalIf::\ncreateExternalCp()
+main -> main: CThreadMgrExternalIf::\ncreate_external_cp()
 activate main
 deactivate main
 
-main->main: requestSync\nmsg:"test-message"
+main->main: request_sync\nmsg:"test-message"
 activate main
 main->>ModuleA: sequence1
 
@@ -53,7 +53,7 @@ deactivate ModuleA
 
 deactivate main
 
-main->main: receiveExternal
+main->main: receive_external
 activate main
 note over of main 
 getting result -> success
@@ -62,12 +62,12 @@ end note
 'deactivate main
 return
 
-main->main: requestSync
+main->main: request_sync
 activate main
 main->>ModuleA: sequence2
 
 activate ModuleA
-ModuleA->>ModuleB: requestAsync\nsequence2
+ModuleA->>ModuleB: request_async\nsequence2
 deactivate ModuleA
 
 note over of ModuleA 
@@ -77,7 +77,7 @@ can execute other sequences.
 end note
 
 activate ModuleB
-ModuleB->>ModuleC: requestAsync\nsequence4
+ModuleB->>ModuleC: request_async\nsequence4
 deactivate ModuleB
 
 note over of ModuleB
@@ -101,7 +101,7 @@ deactivate ModuleA
 
 deactivate main
 
-main->main: receiveExternal
+main->main: receive_external
 activate main
 note over of main 
 getting result -> success

@@ -27,7 +27,9 @@ public:
 		set_sequences (sequences);
 	}
 
-	virtual ~CModuleB (void) {}
+	virtual ~CModuleB (void) {
+		reset_sequences();
+	}
 
 private:
 	void startUp (threadmgr::CThreadMgrIf *p_if) {
