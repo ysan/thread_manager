@@ -41,8 +41,8 @@ private:
 	// 1-shot sequence (simple-echo)
 	void sequence1 (threadmgr::CThreadMgrIf *p_if) {
 		// get request message.
-		char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data);
-		size_t msglen = p_if->get_source().get_message().size;
+		char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data());
+		size_t msglen = p_if->get_source().get_message().length();
 		
 		// send reply (maximum of message size: 256bytes)
 		p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(msg), msglen);
@@ -293,7 +293,7 @@ private:
 	// unregister notify
 	void sequence3 (threadmgr::CThreadMgrIf *p_if) {
 		// client_id in request-message
-		uint8_t client_id = *(p_if->get_source().get_message().data);
+		uint8_t client_id = *(p_if->get_source().get_message().data());
 		// call unregNotify() to unregister requester
 		bool rslt = p_if->unreg_notify (_NOTIFY_CATEGORY_1, client_id);
 		if (rslt) {
@@ -357,7 +357,7 @@ int main (void)
 		// main-thread wait for reply.
 		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
 		std::cout << "reply CModuleA::sequence1 [" << static_cast<int>(r.get_result()) << "]" << std::endl; // "[1]" --> success
-		std::cout << "reply CModuleA::sequence1 [" << reinterpret_cast<char*>(r.get_message().data) << "]" << std::endl; // "[test-message]"
+		std::cout << "reply CModuleA::sequence1 [" << reinterpret_cast<char*>(r.get_message().data()) << "]" << std::endl; // "[test-message]"
 	}
 
 

@@ -190,8 +190,8 @@ class CModuleC : public threadmgr::CThreadMgrBase
 //  1-shot sequence (simple-echo)
 void CModuleA::sequence1 (threadmgr::CThreadMgrIf *p_if) {
 	// get request message.
-	char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data);
-	size_t msglen = p_if->get_source().get_message().size;
+	char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data());
+	size_t msglen = p_if->get_source().get_message().length();
 
 	// send reply (maximum of message size: 256bytes)
 	p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(msg), msglen);

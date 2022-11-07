@@ -66,21 +66,21 @@ int main (void)
 		mod_a_extern-> req_startup ();
 		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
 		assert (r.get_result() == threadmgr::result::success);
-		std::string s = reinterpret_cast<char*>(r.get_message().data);
+		std::string s = reinterpret_cast<char*>(r.get_message().data());
 		assert (s == std::string("ModuleA startup end."));
 	}
 	{
 		mod_b_extern-> req_startup ();
 		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
 		assert (r.get_result() == threadmgr::result::success);
-		std::string s = reinterpret_cast<char*>(r.get_message().data);
+		std::string s = reinterpret_cast<char*>(r.get_message().data());
 		assert (s == std::string("ModuleB startup end."));
 	}
 	{
 		mod_c_extern-> req_startup ();
 		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
 		assert (r.get_result() == threadmgr::result::success);
-		std::string s = reinterpret_cast<char*>(r.get_message().data);
+		std::string s = reinterpret_cast<char*>(r.get_message().data());
 		assert (s == std::string("ModuleC startup end."));
 	}
 
@@ -109,7 +109,7 @@ int main (void)
 		mod_a_extern->req_test_lock_intr ();  // "intr."
 		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
 		assert (r.get_result() == threadmgr::result::success);
-		std::string s = reinterpret_cast<char*>(r.get_message().data);
+		std::string s = reinterpret_cast<char*>(r.get_message().data());
 		assert (s == std::string("intr.checked.intr.intr."));
 	}
 
@@ -132,7 +132,7 @@ int main (void)
 		mod_a_extern->req_test_lock_intr ();  // "intr."
 		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
 		assert (r.get_result() == threadmgr::result::success);
-		std::string s = reinterpret_cast<char*>(r.get_message().data);
+		std::string s = reinterpret_cast<char*>(r.get_message().data());
 		assert (s == std::string("intr.checked.intr.intr.intr.intr.checked.intr."));
 	}
 
@@ -154,7 +154,7 @@ int main (void)
 		mod_a_extern->req_test_overwrite ();  // "ch"
 		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
 		assert (r.get_result() == threadmgr::result::success);
-		std::string s = reinterpret_cast<char*>(r.get_message().data);
+		std::string s = reinterpret_cast<char*>(r.get_message().data());
 		assert (s == std::string("chchchchecked."));
 	}
 

@@ -102,11 +102,11 @@ private:
 
 		case SECTID_WAIT_TEST_REQREPNOTIFY: {
 			threadmgr::result rslt = p_if->get_source().get_result();
-			THM_LOG_I ("reqFunc01ThreadA return [%d] msg:[%s]\n", rslt, reinterpret_cast<char*>(p_if->get_source().get_message().data));
+			THM_LOG_I ("reqFunc01ThreadA return [%d] msg:[%s]\n", rslt, reinterpret_cast<char*>(p_if->get_source().get_message().data()));
 
 			assert (rslt == threadmgr::result::success);
 
-			std::string s = reinterpret_cast<char*>(p_if->get_source().get_message().data);
+			std::string s = reinterpret_cast<char*>(p_if->get_source().get_message().data());
 			assert (s == std::string("success"));
 
 			section_id = SECTID_END;
@@ -325,7 +325,7 @@ private:
 
 		case SECTID_WAIT_TEST_REG_NOTIFY_THC: {
 			threadmgr::result rslt = p_if->get_source().get_result();
-			m_client_id = *(p_if->get_source().get_message().data);
+			m_client_id = *(p_if->get_source().get_message().data());
 			THM_LOG_I ("return reqRegNotify ThreadC [%d] m_client_id:[%d]\n", rslt, m_client_id);
 
 			assert (rslt == threadmgr::result::success);
@@ -402,7 +402,7 @@ private:
 		switch (section_id) {
 		case SECTID_ENTRY: {
 
-			bool is_enable_lock = *(reinterpret_cast<bool*>(p_if->get_source().get_message().data));
+			bool is_enable_lock = *(reinterpret_cast<bool*>(p_if->get_source().get_message().data()));
 			if (is_enable_lock) {
 				p_if->lock();
 			}
@@ -580,7 +580,7 @@ private:
 
 		if (p_if->get_source().get_client_id() == m_client_id) {
 			THM_LOG_I ("recv notify  id:[%d] msg:[%s]\n",
-						p_if->get_source().get_client_id(), reinterpret_cast<char*>(p_if->get_source().get_message().data));
+						p_if->get_source().get_client_id(), reinterpret_cast<char*>(p_if->get_source().get_message().data()));
 
 //			// set without-reply
 //			uint32_t opt = get_request_option ();

@@ -139,7 +139,7 @@ private:
 		threadmgr::result enRslt;
 
 		// msgからidを取得
-		uint8_t id = *(p_if->get_source().get_message().data);
+		uint8_t id = *(p_if->get_source().get_message().data());
 		bool rslt = p_if->unreg_notify (static_cast<int>(CModuleC_extern::notify_cat::cat_1), id);
 		if (rslt) {
 			enRslt = threadmgr::result::success;
@@ -208,11 +208,11 @@ private:
 		section_id = p_if->get_section_id();
 		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
 
-		size_t msglen = p_if->get_source().get_message().size;
+		size_t msglen = p_if->get_source().get_message().length();
 		if (msglen == 0) {
 			p_if->reply (threadmgr::result::success);
 		} else {
-			char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data);
+			char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data());
 			p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(msg), msglen);
 		}
 
@@ -235,11 +235,11 @@ private:
 		THM_LOG_I ("execute. sleep 1sec.\n");
 		sleep (1);
 
-		size_t msglen = p_if->get_source().get_message().size;
+		size_t msglen = p_if->get_source().get_message().length();
 		if (msglen == 0) {
 			p_if->reply (threadmgr::result::success);
 		} else {
-			char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data);
+			char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data());
 			p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(msg), msglen);
 		}
 
@@ -262,11 +262,11 @@ private:
 		THM_LOG_I ("execute. sleep 2sec.\n");
 		sleep (2);
 
-		size_t msglen = p_if->get_source().get_message().size;
+		size_t msglen = p_if->get_source().get_message().length();
 		if (msglen == 0) {
 			p_if->reply (threadmgr::result::success);
 		} else {
-			char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data);
+			char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data());
 			p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(msg), msglen);
 		}
 

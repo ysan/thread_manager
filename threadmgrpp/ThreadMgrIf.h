@@ -50,23 +50,35 @@ enum class action : int {
 class CSource {
 public:
 	struct message {
-		uint8_t *data;
-		size_t size;
+	friend class CSource;
+	message(void) = default;
+	virtual ~message(void) = default;
+	public:
+		uint8_t *data (void) {
+			return m_data;
+		}
+
+		size_t length (void) {
+			return m_length;
+		}
+	private:
+		uint8_t *m_data;
+		size_t m_length;
 	};
 
 	explicit CSource (void) {}
 	explicit CSource (ST_THM_SRC_INFO *p_info)
 		: mp_info(p_info)
 	{
-		m_message.data = p_info->msg.pMsg;
-		m_message.size = p_info->msg.size;
+		m_message.m_data = p_info->msg.pMsg;
+		m_message.m_length = p_info->msg.size;
 	}
 	virtual ~CSource (void) {}
 
 	void set (ST_THM_SRC_INFO *p_info) {
 		mp_info = p_info;
-		m_message.data = p_info->msg.pMsg;
-		m_message.size = p_info->msg.size;
+		m_message.m_data = p_info->msg.pMsg;
+		m_message.m_length = p_info->msg.size;
 	}
 	uint8_t get_thread_idx (void)   {return mp_info->nThreadIdx;}
 	uint8_t get_sequence_idx (void) {return mp_info->nSeqIdx;}
