@@ -54,11 +54,11 @@ public:
 	message(void) = default;
 	virtual ~message(void) = default;
 	public:
-		uint8_t *data (void) {
+		uint8_t *data (void) const {
 			return m_data;
 		}
 
-		size_t length (void) {
+		size_t length (void) const {
 			return m_length;
 		}
 	private:
@@ -66,7 +66,7 @@ public:
 		size_t m_length;
 	};
 
-	explicit CSource (void) {}
+	CSource (void) {}
 	explicit CSource (ST_THM_SRC_INFO *p_info)
 		: mp_info(p_info)
 	{
@@ -80,12 +80,30 @@ public:
 		m_message.m_data = p_info->msg.pMsg;
 		m_message.m_length = p_info->msg.size;
 	}
-	uint8_t get_thread_idx (void)   {return mp_info->nThreadIdx;}
-	uint8_t get_sequence_idx (void) {return mp_info->nSeqIdx;}
-	uint32_t get_request_id (void)  {return mp_info->nReqId;}
-	result get_result (void)        {return static_cast<result>(mp_info->enRslt);}
-	uint8_t get_client_id (void)    {return mp_info->nClientId;}
-	message& get_message (void)     {return m_message;}
+
+	uint8_t get_thread_idx (void) const {
+		return mp_info->nThreadIdx;
+	}
+
+	uint8_t get_sequence_idx (void) const {
+		return mp_info->nSeqIdx;
+	}
+
+	uint32_t get_request_id (void) const {
+		return mp_info->nReqId;
+	}
+
+	result get_result (void) const {
+		return static_cast<result>(mp_info->enRslt);
+	}
+
+	uint8_t get_client_id (void) const {
+		return mp_info->nClientId;
+	}
+
+	message& get_message (void) {
+		return m_message;
+	}
 
 private:
 	ST_THM_SRC_INFO *mp_info;
