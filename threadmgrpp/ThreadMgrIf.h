@@ -124,6 +124,7 @@ public:
 
 
 	CSource &get_source (void) {
+		m_source.set(m_if.pstSrcInfo); // for sync reply
 		return m_source;
 	}
 
