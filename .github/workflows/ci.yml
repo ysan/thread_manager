@@ -1,0 +1,49 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - master
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v3
+      with:
+        path: main
+        submodules: true
+    - name: install deps
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt update
+        sudo apt install -y cmake g++
+    - name: install cpp-coveralls
+      run: |
+        pip install --user cpp-coveralls
+    - name: build
+      working-directory: ./main
+      run: |
+        make WITH_COVERAGE=1
+    - name: test
+      working-directory: ./main
+      run: |
+        cd testpp && ./run.sh
+    - name: generate gcov results
+      working-directory: ./main
+      run: |
+        make gcov
+    - name: upload to coveralls
+      working-directory: ./main
+      run: |
+        coveralls -n --include threadmgr --include threadmgrpp
