@@ -16,12 +16,12 @@
 #include "ThreadMgrIf.h"
 #include "ThreadMgrpp.h"
 
-#include "ModuleA.h"
-#include "ModuleA_extern.h"
-#include "ModuleB.h"
-#include "ModuleB_extern.h"
-#include "ModuleC.h"
-#include "ModuleC_extern.h"
+#include "module_a.h"
+#include "module_a_extern.h"
+#include "module_b.h"
+#include "module_b_extern.h"
+#include "module_c.h"
+#include "module_c_extern.h"
 
 #include "modules.h"
 #include "threadmgr_if.h"
@@ -41,13 +41,13 @@ int main (void)
 
 	threadmgr::CThreadMgr *p_mgr = threadmgr::CThreadMgr::get_instance();
 
-	auto module_a = std::make_shared <CModuleA>("ModuleA", 10);
-	auto module_b = std::make_shared <CModuleB>("ModuleB", 10);
-	auto module_c = std::make_shared <CModuleC>("ModuleC", 10);
+	auto mod_a = std::make_shared <module_a>(std::move("module_a"), 10);
+	auto mod_b = std::make_shared <module_b>(std::move("module_b"), 10);
+	auto mod_c = std::make_shared <module_c>(std::move("module_c"), 10);
 	std::vector<std::shared_ptr<threadmgr::CThreadMgrBase>> threads;
-	threads.push_back(module_a);
-	threads.push_back(module_b);
-	threads.push_back(module_c);
+	threads.push_back(mod_a);
+	threads.push_back(mod_b);
+	threads.push_back(mod_c);
 
 	if (!p_mgr->setup (threads)) {
 		THM_LOG_E ("setup failure.");
@@ -55,9 +55,9 @@ int main (void)
 	}
 
 
-	auto mod_a_extern = std::make_shared <CModuleA_extern> (p_mgr->get_external_if());
-	auto mod_b_extern = std::make_shared <CModuleB_extern> (p_mgr->get_external_if());
-	auto mod_c_extern = std::make_shared <CModuleC_extern> (p_mgr->get_external_if());
+	auto mod_a_extern = std::make_shared <module_a_extern> (p_mgr->get_external_if());
+	auto mod_b_extern = std::make_shared <module_b_extern> (p_mgr->get_external_if());
+	auto mod_c_extern = std::make_shared <module_c_extern> (p_mgr->get_external_if());
 
 
 	p_mgr->get_external_if()->create_external_cp();
@@ -67,21 +67,21 @@ int main (void)
 		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
 		assert (r.get_result() == threadmgr::result::success);
 		std::string s = reinterpret_cast<char*>(r.get_message().data());
-		assert (s == std::string("ModuleA startup end."));
+		assert (s == std::string("module_a startup end."));
 	}
 	{
 		mod_b_extern-> req_startup ();
 		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
 		assert (r.get_result() == threadmgr::result::success);
 		std::string s = reinterpret_cast<char*>(r.get_message().data());
-		assert (s == std::string("ModuleB startup end."));
+		assert (s == std::string("module_b startup end."));
 	}
 	{
 		mod_c_extern-> req_startup ();
 		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
 		assert (r.get_result() == threadmgr::result::success);
 		std::string s = reinterpret_cast<char*>(r.get_message().data());
-		assert (s == std::string("ModuleC startup end."));
+		assert (s == std::string("module_c startup end."));
 	}
 
 	// test request-reply, req-timeout, seq-timeout, notify
@@ -183,6 +183,9 @@ int main (void)
 	p_mgr->get_external_if()->destroy_external_cp();
 	p_mgr->teardown();
 
+	mod_a = nullptr;
+	mod_b = nullptr;
+	mod_c = nullptr;
 
 	exit (EXIT_SUCCESS);
 }

@@ -42,7 +42,7 @@ Uninstall:
 
     $ sudo make clean INSTALLDIR=/usr/local/
 
-## Components
+## Components overview
 
 <!--
 ![big picture](https://github.com/ysan/thread_manager/blob/master/etc/big_picture.png)
@@ -92,9 +92,9 @@ int main (void) {
 	threadmgr::CThreadMgr *p_mgr = threadmgr::CThreadMgr::get_instance();
 
 	// create your class instances (maximum of queue buffer size: 100)
-	auto module_a = std::make_shared <CModuleA>("ModuleA", 10); // (name, queue buffer size)
-	auto module_b = std::make_shared <CModuleB>("ModuleB", 10);
-	auto module_c = std::make_shared <CModuleC>("ModuleC", 10);
+	auto module_a = std::make_shared <module_a>(std::move("module_a"), 10); // (name, queue buffer size)
+	auto module_b = std::make_shared <module_b>(std::move("module_b"), 10);
+	auto module_c = std::make_shared <module_c>(std::move("module_c"), 10);
 	.
 	.
 
@@ -132,14 +132,14 @@ enum {
 	.
 };
 
-class CModuleA : public threadmgr::CThreadMgrBase
+class module_a : public threadmgr::CThreadMgrBase
 {
 public:
-	CModuleA (std::string name, uint8_t que_max) : CThreadMgrBase (name.c_str(), que_max) {
+	module_a (std::string name, uint8_t que_max) : CThreadMgrBase (name.c_str(), que_max) {
 		std::vector<threadmgr::sequence_t> sequences;
-		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence1(p_if);}, "sequence1"}); // enum _SEQ_1
-		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence2"}); // enum _SEQ_2
-		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, "sequence3"}); // enum _SEQ_3
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence1(p_if);}, std::move("sequence1")}); // enum _SEQ_1
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, std::move("sequence2")}); // enum _SEQ_2
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){sequence2(p_if);}, std::move("sequence3")}); // enum _SEQ_3
 		.
 		.
 
@@ -147,7 +147,7 @@ public:
 		set_sequences (sequences);
 	}
 
-	virtual ~CModuleA (void) {
+	virtual ~module_a (void) {
 		reset_sequences ();
 	}
 
@@ -172,12 +172,12 @@ private:
 
 };
 
-class CModuleB : public threadmgr::CThreadMgrBase
+class module_b : public threadmgr::CThreadMgrBase
 {
 	.
 	.
 
-class CModuleC : public threadmgr::CThreadMgrBase
+class module_c : public threadmgr::CThreadMgrBase
 {
 	.
 	.
@@ -188,7 +188,7 @@ class CModuleC : public threadmgr::CThreadMgrBase
 
 ```C++
 //  1-shot sequence (simple-echo)
-void CModuleA::sequence1 (threadmgr::CThreadMgrIf *p_if) {
+void module_a::sequence1 (threadmgr::CThreadMgrIf *p_if) {
 	// get request message.
 	char *msg = reinterpret_cast<char*>(p_if->get_source().get_message().data());
 	size_t msglen = p_if->get_source().get_message().length();
@@ -202,7 +202,7 @@ void CModuleA::sequence1 (threadmgr::CThreadMgrIf *p_if) {
 }
 
 // separated section sequence
-void sequence2 (threadmgr::CThreadMgrIf *p_if) {
+void module_b::sequence2 (threadmgr::CThreadMgrIf *p_if) {
 	enum {
 		SECTID_REQ_MODB_SEQ2 = threadmgr::section_id::init,
 		SECTID_WAIT_MODB_SEQ2,
@@ -214,10 +214,10 @@ void sequence2 (threadmgr::CThreadMgrIf *p_if) {
 	switch (section_id) {
 	case SECTID_REQ_MODB_SEQ2: {
 
-		// request to CModuleB::sequence2
+		// request to module_b::sequence2
 		request_async(_MODULE_B, _SEQ_2);
 
-		std::cout << __PRETTY_FUNCTION__ << " request CModuleB::sequence1" << std::endl;
+		std::cout << __PRETTY_FUNCTION__ << " request module_b::sequence1" << std::endl;
 
 		// set next section_id and action
 		section_id = SECTID_WAIT_MODB_SEQ2;
@@ -233,7 +233,7 @@ void sequence2 (threadmgr::CThreadMgrIf *p_if) {
 	case SECTID_WAIT_MODB_SEQ2: {
 		threadmgr::result rslt = p_if->get_source().get_result();
 
-		std::cout << __PRETTY_FUNCTION__ << " reply CModuleB::sequence1 [" << static_cast<int>(rslt) << "]" << std::endl; // "[1]" --> success
+		std::cout << __PRETTY_FUNCTION__ << " reply module_b::sequence1 [" << static_cast<int>(rslt) << "]" << std::endl; // "[1]" --> success
 
 		// set next section_id and action
 		section_id = SECTID_END;
@@ -264,7 +264,7 @@ void sequence2 (threadmgr::CThreadMgrIf *p_if) {
 
 #### Reference
 
-middleware daemon using thread manager.  
+Experimental implementation using thread manager.  
 [`auto_rec_mini`](https://github.com/ysan/auto_rec_mini)
 
 ## Linking with an Application
@@ -285,7 +285,7 @@ Include `<threadmgr/ThreadMgrpp.h>` in your application and link with `libthread
 
 ## Platforms
 
-Generic Linux will be ok. (confirmed worked on Ubuntu, Fedora, Raspbian)
+Will work on generic linux destributions. (confirmed worked on Ubuntu, Fedora, Raspberry Pi OS)
 
 ## License
 

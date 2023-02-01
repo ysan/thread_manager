@@ -1,5 +1,5 @@
-#ifndef _MODULEC_H_
-#define _MODULEC_H_
+#ifndef _MODULE_C_H_
+#define _MODULE_C_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,29 +10,29 @@
 #include "ThreadMgrBase.h"
 #include "ThreadMgrpp.h"
 
-#include "ModuleC_extern.h"
+#include "module_c_extern.h"
 #include "modules.h"
 
 
-class CModuleC : public threadmgr::CThreadMgrBase
+class module_c : public threadmgr::CThreadMgrBase
 {
 public:
-	CModuleC (std::string name, uint8_t que_max)
+	module_c (std::string name, uint8_t que_max)
 		: CThreadMgrBase (name, que_max)
 	{
-		threadmgr::sequence_t sequences[static_cast<int>(CModuleC_extern::sequence::max)] = {
-			{[&](threadmgr::CThreadMgrIf *p_if){startup(p_if);}, "startup"},
-			{[&](threadmgr::CThreadMgrIf *p_if){test_reg_notify(p_if);}, "test_reg_notify"},
-			{[&](threadmgr::CThreadMgrIf *p_if){test_unreg_noitfy(p_if);}, "test_unreg_notify"},
-			{[&](threadmgr::CThreadMgrIf *p_if){test_notify(p_if);}, "test_notify"},
-			{[&](threadmgr::CThreadMgrIf *p_if){echo00(p_if);}, "echo00"},
-			{[&](threadmgr::CThreadMgrIf *p_if){echo01(p_if);}, "echo01"},
-			{[&](threadmgr::CThreadMgrIf *p_if){echo02(p_if);}, "echo02"},
+		threadmgr::sequence_t sequences[static_cast<int>(module_c_extern::sequence::max)] = {
+			{[&](threadmgr::CThreadMgrIf *p_if){startup(p_if);}, std::move("startup")},
+			{[&](threadmgr::CThreadMgrIf *p_if){test_reg_notify(p_if);}, std::move("test_reg_notify")},
+			{[&](threadmgr::CThreadMgrIf *p_if){test_unreg_noitfy(p_if);}, std::move("test_unreg_notify")},
+			{[&](threadmgr::CThreadMgrIf *p_if){test_notify(p_if);}, std::move("test_notify")},
+			{[&](threadmgr::CThreadMgrIf *p_if){echo00(p_if);}, std::move("echo00")},
+			{[&](threadmgr::CThreadMgrIf *p_if){echo01(p_if);}, std::move("echo01")},
+			{[&](threadmgr::CThreadMgrIf *p_if){echo02(p_if);}, std::move("echo02")},
 		};
-		set_sequences (sequences, static_cast<int>(CModuleC_extern::sequence::max));
+		set_sequences (sequences, static_cast<int>(module_c_extern::sequence::max));
 	}
 
-	virtual ~CModuleC (void) {
+	virtual ~module_c (void) {
 		reset_sequences();
 	}
 
@@ -58,7 +58,7 @@ private:
 			break;
 
 		case SECTID_REQ_TEST_NOTIFY:
-			request_async (static_cast<int>(module::module_c), static_cast<int>(CModuleC_extern::sequence::test_notify));
+			request_async (static_cast<int>(module::module_c), static_cast<int>(module_c_extern::sequence::test_notify));
 			section_id = SECTID_WAIT_TEST_NOTIFY;
 			act = threadmgr::action::wait;
 			break;
@@ -77,7 +77,7 @@ private:
 			break;
 
 		case SECTID_END: {
-			const char *msg = "ModuleC startup end.";
+			const char *msg = "module_c startup end.";
 			p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(const_cast<char*>(msg)), strlen(msg)+1);
 			section_id = threadmgr::section_id::init;
 			act = threadmgr::action::done;
@@ -108,7 +108,7 @@ private:
 		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
 
 		uint8_t client_id;
-		bool rslt = p_if->reg_notify (static_cast<int>(CModuleC_extern::notify_cat::cat_1), &client_id);
+		bool rslt = p_if->reg_notify (static_cast<int>(module_c_extern::notify_cat::cat_1), &client_id);
 
 		threadmgr::result enRslt;
 		if (rslt) {
@@ -140,7 +140,7 @@ private:
 
 		// msgからidを取得
 		uint8_t id = *(p_if->get_source().get_message().data());
-		bool rslt = p_if->unreg_notify (static_cast<int>(CModuleC_extern::notify_cat::cat_1), id);
+		bool rslt = p_if->unreg_notify (static_cast<int>(module_c_extern::notify_cat::cat_1), id);
 		if (rslt) {
 			enRslt = threadmgr::result::success;
 		} else {
@@ -183,7 +183,7 @@ private:
 			break;
 		case SECTID_SEND_NOTIFY: {
 			const char *msg = "this is notify message...";
-			p_if->notify (static_cast<int>(CModuleC_extern::notify_cat::cat_1), reinterpret_cast<uint8_t*>(const_cast<char*>(msg)), strlen(msg)+1);
+			p_if->notify (static_cast<int>(module_c_extern::notify_cat::cat_1), reinterpret_cast<uint8_t*>(const_cast<char*>(msg)), strlen(msg)+1);
 	
 			section_id = SECTID_CYCLE;
 			act = threadmgr::action::continue_;

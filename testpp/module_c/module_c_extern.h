@@ -1,5 +1,5 @@
-#ifndef _MODULEC_EXTERN_H_
-#define _MODULEC_EXTERN_H_
+#ifndef _MODULE_C_EXTERN_H_
+#define _MODULE_C_EXTERN_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +11,7 @@
 #include "modules.h"
 
 
-class CModuleC_extern : public threadmgr::CThreadMgrExternalIf
+class module_c_extern : public threadmgr::CThreadMgrExternalIf
 {
 public:
 	enum class sequence : int {
@@ -32,13 +32,13 @@ public:
 		cat_3,
 	};
 
-	explicit CModuleC_extern (CThreadMgrExternalIf *p_if)
+	explicit module_c_extern (CThreadMgrExternalIf *p_if)
 		: CThreadMgrExternalIf (p_if)
 		, m_module_id(static_cast<int>(module::module_c))
 	{
 	}
 
-	virtual ~CModuleC_extern (void) {
+	virtual ~module_c_extern (void) {
 	};
 
 
