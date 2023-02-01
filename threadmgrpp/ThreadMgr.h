@@ -25,6 +25,7 @@ class CThreadMgr
 public:
 	static CThreadMgr *get_instance (void);
 
+	bool setup (CThreadMgrBase* p_threads[], int thread_max);
 	bool setup (std::shared_ptr<CThreadMgrBase> threads[], int thread_max);
 	bool setup (std::vector<std::shared_ptr<CThreadMgrBase>> &threads);
 	void wait (void);
@@ -41,7 +42,6 @@ private:
 	bool register_threads (CThreadMgrBase *threads[], int thread_max);
 	void unregister_threads (void);
 
-	bool setup (CThreadMgrBase* p_threads[], int thread_max);
 	bool setup (void);
 
 
