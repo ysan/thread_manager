@@ -1,6 +1,6 @@
 # thread manager
 
-[![Build Status](https://www.travis-ci.com/ysan/thread_manager.svg?branch=master)](https://www.travis-ci.com/ysan/thread_manager) [![Coverage Status](https://coveralls.io/repos/github/ysan/thread_manager/badge.svg?branch=master)](https://coveralls.io/github/ysan/thread_manager?branch=master)
+[![Build Status](https://github.com/ysan/thread_manager/actions/workflows/ci.yml/badge.svg)](https://github.com/ysan/thread_manager/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/ysan/thread_manager/badge.svg?branch=master)](https://coveralls.io/github/ysan/thread_manager?branch=master)
 <a href="https://scan.coverity.com/projects/thread_manager">
 <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/22807/badge.svg"/>
