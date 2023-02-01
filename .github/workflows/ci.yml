@@ -46,6 +46,6 @@ jobs:
     - name: upload to coveralls
       working-directory: ./main
       env:
-        COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       run: |
         coveralls -n --include threadmgr --include threadmgrpp
