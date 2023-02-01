@@ -1,10 +1,10 @@
-*so
-*o
-*a
-*d
-*gcda
-*gcno
-*gcov
+*.so
+*.o
+*.a
+*.d
+*.gcda
+*.gcno
+*.gcov
 test/test
 testpp/testpp
 samples/sample
