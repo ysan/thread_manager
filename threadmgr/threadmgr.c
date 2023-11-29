@@ -5413,7 +5413,7 @@ static void clear_external_control_info (external_control_info_t *p)
 	p->pthread_id = pthread_self();
 	p->req_id = REQUEST_ID_BLANK;
 
-	memset (p->msg_entity.msg, 0x00, sizeof(MSG_SIZE));
+	memset (p->msg_entity.msg, 0x00, MSG_SIZE);
 	p->msg_entity.size = 0;
 	clear_thm_src_info (&(p->thm_src_info));
 
