@@ -325,7 +325,7 @@ private:
 
 int main (void)
 {
-	setLogFileptr(stdout);
+	set_log_fileptr(stdout);
 
 	threadmgr::CThreadMgr *p_mgr = threadmgr::CThreadMgr::get_instance();
 
