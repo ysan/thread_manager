@@ -19,128 +19,128 @@
 /*
  * Prototypes
  */
-void recvNotifyThreadC (ST_THM_IF *pIf); // extern
-static void startup (ST_THM_IF *pIf);
-static void regNotify (ST_THM_IF *pIf);
-static void unregNotify (ST_THM_IF *pIf);
-static void cycleFunc (ST_THM_IF *pIf);
-static void func00 (ST_THM_IF *pIf);
-void reqStartupThreadC (uint32_t *pnReqId); // extern
-void reqRegNotifyThreadC (uint32_t *pnReqId); // extern
-void reqUnRegNotifyThreadC (uint8_t nClientId, uint32_t *pnReqId); // extern
-void reqFunc00ThreadC (uint32_t *pnReqId); // extern
+void recv_notify_thread_c (threadmgr_if_t *p_if); // extern
+static void startup (threadmgr_if_t *p_if);
+static void reg_notify (threadmgr_if_t *p_if);
+static void unreg_notify (threadmgr_if_t *p_if);
+static void cycle_func (threadmgr_if_t *p_if);
+static void func00 (threadmgr_if_t *p_if);
+void req_startup_thread_c (uint32_t *pn_req_id); // extern
+void req_reg_notify_thread_c (uint32_t *pn_req_id); // extern
+void req_un_reg_notify_thread_c (uint8_t n_client_id, uint32_t *pn_req_id); // extern
+void req_func00Thread_c (uint32_t *pn_req_id); // extern
 
 /*
  * Variables
  */
-const ST_THM_SEQ gstSeqsThreadC[ EN_C_SEQ_NUM ] = {
+const threadmgr_seq_t gst_seqs_thread_c[ EN_C_SEQ_NUM ] = {
 	{startup, "startup"},
-	{regNotify, "regNotify"},
-	{unregNotify, "unregNotify"},
-	{cycleFunc, "cycleFunc"},
+	{reg_notify, "reg_notify"},
+	{unreg_notify, "unreg_notify"},
+	{cycle_func, "cycle_func"},
 	{func00, "func00"},
 };
-static uint8_t gnClientId;
+static uint8_t gn_client_id;
 
 
 
-void recvNotifyThreadC (ST_THM_IF *pIf)
+void recv_notify_thread_c (threadmgr_if_t *p_if)
 {
 }
 
-static void startup (ST_THM_IF *pIf)
+static void startup (threadmgr_if_t *p_if)
 {
-	uint8_t nSectId;
-	EN_THM_ACT enAct;
+	uint8_t sectid;
+	EN_THM_ACT en_act;
 	enum {
 		SECTID_ENTRY = 0,
 		SECTID_END,
 	};
 
-	nSectId = pIf->pfnGetSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	sectid = p_if->pfn_get_sectid();
+	THM_LOG_I ("sectid %d\n", sectid);
 
-	gpIf->pfnRequestAsync (EN_THREAD_C, EN_C_CYCLE_FUNC, NULL, 0, NULL);
+	gp_if->pfn_request_async (EN_THREAD_C, EN_C_CYCLE_FUNC, NULL, 0, NULL);
 	// このrequestはWAITしてないのでreply queはdropする
 
-	char *msg = "threadC startup end.";
-	pIf->pfnReply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
+	char *msg = "thread_c startup end.";
+	p_if->pfn_reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
 
-	nSectId = 0;
-	enAct = EN_THM_ACT_DONE;
-	pIf->pfnSetSectId (nSectId, enAct);
+	sectid = 0;
+	en_act = EN_THM_ACT_DONE;
+	p_if->pfn_set_sectid (sectid, en_act);
 }
 
-static void regNotify (ST_THM_IF *pIf)
+static void reg_notify (threadmgr_if_t *p_if)
 {
-	uint8_t nSectId;
-	EN_THM_ACT enAct;
+	uint8_t sectid;
+	EN_THM_ACT en_act;
 	enum {
 		SECTID_ENTRY = 0,
 		SECTID_END,
 	};
 
-	nSectId = pIf->pfnGetSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	sectid = p_if->pfn_get_sectid();
+	THM_LOG_I ("sectid %d\n", sectid);
 
 	// 複数クライアントがいるときはちゃんとid管理すること
-	bool rslt = pIf->pfnRegNotify (NOTIFY_CATEGORY, &gnClientId);
+	bool rslt = p_if->pfn_reg_notify (NOTIFY_CATEGORY, &gn_client_id);
 
-	EN_THM_RSLT enRslt;
+	EN_THM_RSLT en_rslt;
 	if (rslt) {
-		enRslt = EN_THM_RSLT_SUCCESS;
+		en_rslt = EN_THM_RSLT_SUCCESS;
 	} else {
-		enRslt = EN_THM_RSLT_ERROR;
+		en_rslt = EN_THM_RSLT_ERROR;
 	}
 
-	// clientIdをmsgで返す
-	pIf->pfnReply (enRslt, (uint8_t*)&gnClientId, sizeof(gnClientId));
+	// client_idをmsgで返す
+	p_if->pfn_reply (en_rslt, (uint8_t*)&gn_client_id, sizeof(gn_client_id));
 
-	nSectId = 0;
-	enAct = EN_THM_ACT_DONE;
-	pIf->pfnSetSectId (nSectId, enAct);
+	sectid = 0;
+	en_act = EN_THM_ACT_DONE;
+	p_if->pfn_set_sectid (sectid, en_act);
 }
 
-static void unregNotify (ST_THM_IF *pIf)
+static void unreg_notify (threadmgr_if_t *p_if)
 {
-	uint8_t nSectId;
-	EN_THM_ACT enAct;
+	uint8_t sectid;
+	EN_THM_ACT en_act;
 	enum {
 		SECTID_ENTRY = 0,
 		SECTID_END,
 	};
 
-	nSectId = pIf->pfnGetSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	sectid = p_if->pfn_get_sectid();
+	THM_LOG_I ("sectid %d\n", sectid);
 
-	EN_THM_RSLT enRslt;
+	EN_THM_RSLT en_rslt;
 	// msgからidを取得
-	uint8_t id = *(pIf->pstSrcInfo->msg.pMsg);
-	if (id != gnClientId) {
+	uint8_t id = *(p_if->src_info->msg.msg);
+	if (id != gn_client_id) {
 		// ここではidの一致だけ確認 本来はちゃんと管理すべき
-		THM_LOG_E ("clientId is not match.");
-		pIf->pfnReply (EN_THM_RSLT_ERROR, NULL, 0);
-		enRslt = EN_THM_RSLT_ERROR;
+		THM_LOG_E ("client_id is not match.");
+		p_if->pfn_reply (EN_THM_RSLT_ERROR, NULL, 0);
+		en_rslt = EN_THM_RSLT_ERROR;
 	} else {
-		bool rslt = pIf->pfnUnRegNotify (NOTIFY_CATEGORY, id);
+		bool rslt = p_if->pfn_unreg_notify (NOTIFY_CATEGORY, id);
 		if (rslt) {
-			enRslt = EN_THM_RSLT_SUCCESS;
+			en_rslt = EN_THM_RSLT_SUCCESS;
 		} else {
-			enRslt = EN_THM_RSLT_ERROR;
+			en_rslt = EN_THM_RSLT_ERROR;
 		}
 	}
 
-	pIf->pfnReply (enRslt, NULL, 0);
+	p_if->pfn_reply (en_rslt, NULL, 0);
 
-	nSectId = 0;
-	enAct = EN_THM_ACT_DONE;
-	pIf->pfnSetSectId (nSectId, enAct);
+	sectid = 0;
+	en_act = EN_THM_ACT_DONE;
+	p_if->pfn_set_sectid (sectid, en_act);
 }
 
-static void cycleFunc (ST_THM_IF *pIf)
+static void cycle_func (threadmgr_if_t *p_if)
 {
-	uint8_t nSectId;
-	EN_THM_ACT enAct = EN_THM_ACT_INIT;
+	uint8_t sectid;
+	EN_THM_ACT en_act = EN_THM_ACT_INIT;
 	enum {
 		SECTID_ENTRY = 0,
 		SECTID_CYCLE,
@@ -148,29 +148,29 @@ static void cycleFunc (ST_THM_IF *pIf)
 		SECTID_END,
 	};
 
-	nSectId = pIf->pfnGetSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	sectid = p_if->pfn_get_sectid();
+	THM_LOG_I ("sectid %d\n", sectid);
 
-	switch (nSectId) {
+	switch (sectid) {
 	case SECTID_ENTRY:
 		// 先にreplyしておく
-		pIf->pfnReply (EN_THM_RSLT_SUCCESS, NULL, 0);
+		p_if->pfn_reply (EN_THM_RSLT_SUCCESS, NULL, 0);
 
-		nSectId = SECTID_CYCLE;
-		enAct = EN_THM_ACT_CONTINUE;
+		sectid = SECTID_CYCLE;
+		en_act = EN_THM_ACT_CONTINUE;
 		break;
 	case SECTID_CYCLE:
-		pIf->pfnSetTimeout (15000);
-		nSectId = SECTID_SEND_NOTIFY;
-//		enAct = EN_THM_ACT_TIMEOUT;
-		enAct = EN_THM_ACT_WAIT;
+		p_if->pfn_set_timeout (15000);
+		sectid = SECTID_SEND_NOTIFY;
+//		en_act = EN_THM_ACT_TIMEOUT;
+		en_act = EN_THM_ACT_WAIT;
 		break;
 	case SECTID_SEND_NOTIFY: {
 		char *msg = "this is notify message...";
-		pIf->pfnNotify (NOTIFY_CATEGORY, (uint8_t*)msg, strlen(msg));
+		p_if->pfn_notify (NOTIFY_CATEGORY, (uint8_t*)msg, strlen(msg));
 
-		nSectId = SECTID_CYCLE;
-		enAct = EN_THM_ACT_CONTINUE;
+		sectid = SECTID_CYCLE;
+		en_act = EN_THM_ACT_CONTINUE;
 		} break;
 	case SECTID_END:
 		break;
@@ -178,49 +178,49 @@ static void cycleFunc (ST_THM_IF *pIf)
 		break;
 	}
 
-	pIf->pfnSetSectId (nSectId, enAct);
+	p_if->pfn_set_sectid (sectid, en_act);
 }
 
-static void func00 (ST_THM_IF *pIf)
+static void func00 (threadmgr_if_t *p_if)
 {
-	uint8_t nSectId;
-	EN_THM_ACT enAct;
+	uint8_t sectid;
+	EN_THM_ACT en_act;
 	enum {
 		SECTID_ENTRY = 0,
 		SECTID_END,
 	};
 
-	nSectId = pIf->pfnGetSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	sectid = p_if->pfn_get_sectid();
+	THM_LOG_I ("sectid %d\n", sectid);
 
 	sleep (60);
 	THM_LOG_I ("reply");
-	pIf->pfnReply (EN_THM_RSLT_SUCCESS, NULL, 0);
+	p_if->pfn_reply (EN_THM_RSLT_SUCCESS, NULL, 0);
 
-	nSectId = 0;
-	enAct = EN_THM_ACT_DONE;
-	pIf->pfnSetSectId (nSectId, enAct);
+	sectid = 0;
+	en_act = EN_THM_ACT_DONE;
+	p_if->pfn_set_sectid (sectid, en_act);
 }
 
 
 // 以下公開用
 
-void reqStartupThreadC (uint32_t *pOutReqId)
+void req_startup_thread_c (uint32_t *p_out_req_id)
 {
-	gpIf->pfnRequestAsync (EN_THREAD_C, EN_C_STARTUP, NULL, 0, pOutReqId);
+	gp_if->pfn_request_async (EN_THREAD_C, EN_C_STARTUP, NULL, 0, p_out_req_id);
 }
 
-void reqRegNotifyThreadC (uint32_t *pOutReqId)
+void req_reg_notify_thread_c (uint32_t *p_out_req_id)
 {
-	gpIf->pfnRequestAsync (EN_THREAD_C, EN_C_REG_NOTIFY, NULL, 0, pOutReqId);
+	gp_if->pfn_request_async (EN_THREAD_C, EN_C_REG_NOTIFY, NULL, 0, p_out_req_id);
 }
 
-void reqUnRegNotifyThreadC (uint8_t nClientId, uint32_t *pOutReqId)
+void req_un_reg_notify_thread_c (uint8_t n_client_id, uint32_t *p_out_req_id)
 {
-	gpIf->pfnRequestAsync (EN_THREAD_C, EN_C_UNREG_NOTIFY, (uint8_t*)&nClientId, sizeof(uint8_t), pOutReqId);
+	gp_if->pfn_request_async (EN_THREAD_C, EN_C_UNREG_NOTIFY, (uint8_t*)&n_client_id, sizeof(uint8_t), p_out_req_id);
 }
 
-void reqFunc00ThreadC (uint32_t *pOutReqId)
+void req_func00_thread_c (uint32_t *p_out_req_id)
 {
-	gpIf->pfnRequestAsync (EN_THREAD_C, EN_C_FUNC_00, NULL, 0, pOutReqId);
+	gp_if->pfn_request_async (EN_THREAD_C, EN_C_FUNC_00, NULL, 0, p_out_req_id);
 }

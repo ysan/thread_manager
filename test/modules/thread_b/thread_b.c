@@ -19,39 +19,39 @@
 /*
  * Prototypes
  */
-void recvNotifyThreadB (ST_THM_IF *pIf); // extern
-static void startup (ST_THM_IF *pIf);
-static void func00 (ST_THM_IF *pIf);
-static void func01 (ST_THM_IF *pIf);
-static void func02 (ST_THM_IF *pIf);
-void reqStartupThreadB (uint32_t *pnReqId); // extern
-void reqFunc00ThreadB (uint32_t *pnReqId); // extern
-void func01ThreadB (void); // extern
-void reqFunc02ThreadB (uint32_t *pnReqId); // extern
+void recv_notify_thread_b (threadmgr_if_t *p_if); // extern
+static void startup (threadmgr_if_t *p_if);
+static void func00 (threadmgr_if_t *p_if);
+static void func01 (threadmgr_if_t *p_if);
+static void func02 (threadmgr_if_t *p_if);
+void req_startup_thread_b (uint32_t *p_req_id); // extern
+void req_func00_thread_b (uint32_t *p_req_id); // extern
+void func01_thread_b (void); // extern
+void req_func02_thread_b (uint32_t *p_req_id); // extern
 
 /*
  * Variables
  */
-const ST_THM_SEQ gstSeqsThreadB[ EN_B_SEQ_NUM ] = {
+const threadmgr_seq_t gst_seqs_thread_b[ EN_B_SEQ_NUM ] = {
 	{startup, "startup"},
 	{func00, "func00"},
 	{func01, "func01"},
 	{func02, "func02"},
 };
-static uint8_t gnClientId;
+static uint8_t gn_client_id;
 
 
-void recvNotifyThreadB (ST_THM_IF *pIf)
+void recv_notify_thread_b (threadmgr_if_t *p_if)
 {
-	if (pIf->pstSrcInfo->nClientId == gnClientId) {
-		THM_LOG_I ("recv notify  id:[%d] msg:[%s]\n", pIf->pstSrcInfo->nClientId, (char*)pIf->pstSrcInfo->msg.pMsg);
+	if (p_if->src_info->client_id == gn_client_id) {
+		THM_LOG_I ("recv notify  id:[%d] msg:[%s]\n", p_if->src_info->client_id, (char*)p_if->src_info->msg.msg);
 	}
 }
 
-static void startup (ST_THM_IF *pIf)
+static void startup (threadmgr_if_t *p_if)
 {
-	uint8_t nSectId;
-	EN_THM_ACT enAct = EN_THM_ACT_INIT;
+	uint8_t sectid;
+	EN_THM_ACT en_act = EN_THM_ACT_INIT;
 	enum {
 		SECTID_ENTRY = 0,
 		SECTID_REQ_REG_NOTIFY_THC,
@@ -60,103 +60,103 @@ static void startup (ST_THM_IF *pIf)
 		SECTID_ERR_END,
 	};
 
-	nSectId = pIf->pfnGetSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	sectid = p_if->pfn_get_sectid();
+	THM_LOG_I ("sectid %d\n", sectid);
 
-	switch (nSectId) {
+	switch (sectid) {
 	case SECTID_ENTRY:
-		nSectId = SECTID_REQ_REG_NOTIFY_THC;
-		enAct = EN_THM_ACT_CONTINUE;
+		sectid = SECTID_REQ_REG_NOTIFY_THC;
+		en_act = EN_THM_ACT_CONTINUE;
 		break;
 
 	case SECTID_REQ_REG_NOTIFY_THC:
-		reqRegNotifyThreadC (NULL);
-		nSectId = SECTID_WAIT_REG_NOTIFY_THC;
-		enAct = EN_THM_ACT_WAIT;
+		req_reg_notify_thread_c (NULL);
+		sectid = SECTID_WAIT_REG_NOTIFY_THC;
+		en_act = EN_THM_ACT_WAIT;
 		break;
 
 	case SECTID_WAIT_REG_NOTIFY_THC: {
-		EN_THM_RSLT enRslt = pIf->pstSrcInfo->enRslt;
-		gnClientId = *(pIf->pstSrcInfo->msg.pMsg);
-		THM_LOG_I ("return reqRegNotifyThreadC [%d] gnClientId:[%d]\n", enRslt, gnClientId);
+		EN_THM_RSLT en_rslt = p_if->src_info->en_rslt;
+		gn_client_id = *(p_if->src_info->msg.msg);
+		THM_LOG_I ("return req_reg_notify_thread_c [%d] gn_client_id:[%d]\n", en_rslt, gn_client_id);
 
-		if (enRslt == EN_THM_RSLT_SUCCESS) {
-			nSectId = SECTID_END;
-			enAct = EN_THM_ACT_CONTINUE;
+		if (en_rslt == EN_THM_RSLT_SUCCESS) {
+			sectid = SECTID_END;
+			en_act = EN_THM_ACT_CONTINUE;
 		} else {
-			nSectId = SECTID_ERR_END;
-			enAct = EN_THM_ACT_CONTINUE;
+			sectid = SECTID_ERR_END;
+			en_act = EN_THM_ACT_CONTINUE;
 		}
 
 		} break;
 
 	case SECTID_END:
-		pIf->pfnReply (EN_THM_RSLT_SUCCESS, NULL, 0);
-		nSectId = 0;
-		enAct = EN_THM_ACT_DONE;
+		p_if->pfn_reply (EN_THM_RSLT_SUCCESS, NULL, 0);
+		sectid = 0;
+		en_act = EN_THM_ACT_DONE;
 		break;
 
 	case SECTID_ERR_END:
-		pIf->pfnReply (EN_THM_RSLT_ERROR, NULL, 0);
-		nSectId = 0;
-		enAct = EN_THM_ACT_DONE;
+		p_if->pfn_reply (EN_THM_RSLT_ERROR, NULL, 0);
+		sectid = 0;
+		en_act = EN_THM_ACT_DONE;
 		break;
 
 	default:
 		break;
 	}
 
-	pIf->pfnSetSectId (nSectId, enAct);
+	p_if->pfn_set_sectid (sectid, en_act);
 }
 
-static void func00 (ST_THM_IF *pIf)
+static void func00 (threadmgr_if_t *p_if)
 {
-	uint8_t nSectId;
-	EN_THM_ACT enAct;
+	uint8_t sectid;
+	EN_THM_ACT en_act;
 	enum {
 		SECTID_ENTRY = 0,
 		SECTID_END,
 	};
 
-	nSectId = pIf->pfnGetSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	sectid = p_if->pfn_get_sectid();
+	THM_LOG_I ("sectid %d\n", sectid);
 
 	THM_LOG_I ("execute. sleep 2sec.\n");
 	sleep (2);
 
 	char *msg = "thread_b func00 end.";
-	pIf->pfnReply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
+	p_if->pfn_reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
 
-	nSectId = 0;
-	enAct = EN_THM_ACT_DONE;
-	pIf->pfnSetSectId (nSectId, enAct);
+	sectid = 0;
+	en_act = EN_THM_ACT_DONE;
+	p_if->pfn_set_sectid (sectid, en_act);
 }
 
-static void func01 (ST_THM_IF *pIf)
+static void func01 (threadmgr_if_t *p_if)
 {
-	uint8_t nSectId;
-	EN_THM_ACT enAct;
+	uint8_t sectid;
+	EN_THM_ACT en_act;
 	enum {
 		SECTID_ENTRY = 0,
 		SECTID_END,
 		SECTID_ERR_END,
 	};
 
-	nSectId = pIf->pfnGetSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	sectid = p_if->pfn_get_sectid();
+	THM_LOG_I ("sectid %d\n", sectid);
 
 	char *msg = "thread_b func01 end. -- sync --";
-	pIf->pfnReply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
+	p_if->pfn_reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
 
-	nSectId = 0;
-	enAct = EN_THM_ACT_DONE;
-	pIf->pfnSetSectId (nSectId, enAct);
+	sectid = 0;
+	en_act = EN_THM_ACT_DONE;
+	p_if->pfn_set_sectid (sectid, en_act);
 }
 
-static void func02 (ST_THM_IF *pIf)
+static void func02 (threadmgr_if_t *p_if)
 {
-	uint8_t nSectId;
-	EN_THM_ACT enAct = EN_THM_ACT_INIT;
+	uint8_t sectid;
+	EN_THM_ACT en_act = EN_THM_ACT_INIT;
 	enum {
 		SECTID_ENTRY = 0,
 		SECTID_REQ_FUNC00_THREAD_C,
@@ -165,82 +165,82 @@ static void func02 (ST_THM_IF *pIf)
 		SECTID_ERR_END,
 	};
 
-	nSectId = pIf->pfnGetSectId();
-	THM_LOG_I ("nSectId %d\n", nSectId);
+	sectid = p_if->pfn_get_sectid();
+	THM_LOG_I ("sectid %d\n", sectid);
 
-	switch (nSectId) {
+	switch (sectid) {
 	case SECTID_ENTRY:
-		nSectId = SECTID_REQ_FUNC00_THREAD_C;
-		enAct = EN_THM_ACT_CONTINUE;
+		sectid = SECTID_REQ_FUNC00_THREAD_C;
+		en_act = EN_THM_ACT_CONTINUE;
 		break;
 
 	case SECTID_REQ_FUNC00_THREAD_C:
-		reqFunc00ThreadC (NULL);
-		nSectId = SECTID_WAIT_FUNC00_THREAD_C;
-		enAct = EN_THM_ACT_WAIT;
+		req_func00_thread_c (NULL);
+		sectid = SECTID_WAIT_FUNC00_THREAD_C;
+		en_act = EN_THM_ACT_WAIT;
 		break;
 
 	case SECTID_WAIT_FUNC00_THREAD_C: {
-		EN_THM_RSLT enRslt = pIf->pstSrcInfo->enRslt;
-		switch ((int)enRslt) {
+		EN_THM_RSLT en_rslt = p_if->src_info->en_rslt;
+		switch ((int)en_rslt) {
 		case EN_THM_RSLT_SUCCESS:
-			THM_LOG_I ("return success reqFunc00ThreadC [%d] msg:[%s]\n", enRslt, (char*)pIf->pstSrcInfo->msg.pMsg);
-			nSectId = SECTID_END;
-			enAct = EN_THM_ACT_CONTINUE;
+			THM_LOG_I ("return success req_func00_thread_c [%d] msg:[%s]\n", en_rslt, (char*)p_if->src_info->msg.msg);
+			sectid = SECTID_END;
+			en_act = EN_THM_ACT_CONTINUE;
 			break;
 		case EN_THM_RSLT_ERROR:
-			THM_LOG_E ("return error reqFunc00ThreadC [%d] msg:[%s]\n", enRslt, (char*)pIf->pstSrcInfo->msg.pMsg);
-			nSectId = SECTID_ERR_END;
-			enAct = EN_THM_ACT_CONTINUE;
+			THM_LOG_E ("return error req_func00_thread_c [%d] msg:[%s]\n", en_rslt, (char*)p_if->src_info->msg.msg);
+			sectid = SECTID_ERR_END;
+			en_act = EN_THM_ACT_CONTINUE;
 			break;
 		case EN_THM_RSLT_REQ_TIMEOUT:
-			THM_LOG_E ("timeout reqFunc00ThreadC");
-			nSectId = SECTID_ERR_END;
-			enAct = EN_THM_ACT_CONTINUE;
+			THM_LOG_E ("timeout req_func00_thread_c");
+			sectid = SECTID_ERR_END;
+			en_act = EN_THM_ACT_CONTINUE;
 			break;
 		}
 
 		} break;
 
 	case SECTID_END:
-		pIf->pfnReply (EN_THM_RSLT_SUCCESS, NULL, 0);
-		nSectId = 0;
-		enAct = EN_THM_ACT_DONE;
+		p_if->pfn_reply (EN_THM_RSLT_SUCCESS, NULL, 0);
+		sectid = 0;
+		en_act = EN_THM_ACT_DONE;
 		break;
 
 	case SECTID_ERR_END:
-		pIf->pfnReply (EN_THM_RSLT_ERROR, NULL, 0);
-		nSectId = 0;
-		enAct = EN_THM_ACT_DONE;
+		p_if->pfn_reply (EN_THM_RSLT_ERROR, NULL, 0);
+		sectid = 0;
+		en_act = EN_THM_ACT_DONE;
 		break;
 
 	default:
 		break;
 	}
 
-	pIf->pfnSetSectId (nSectId, enAct);
+	p_if->pfn_set_sectid (sectid, en_act);
 }
 
 
 
 // 以下公開用
 
-void reqStartupThreadB (uint32_t *pOutReqId)
+void req_startup_thread_b (uint32_t *p_out_req_id)
 {
-	gpIf->pfnRequestAsync (EN_THREAD_B, EN_B_STARTUP, NULL, 0, pOutReqId);
+	gp_if->pfn_request_async (EN_THREAD_B, EN_B_STARTUP, NULL, 0, p_out_req_id);
 }
 
-void reqFunc00ThreadB (uint32_t *pOutReqId)
+void req_func00_thread_b (uint32_t *p_out_req_id)
 {
-	gpIf->pfnRequestAsync (EN_THREAD_B, EN_B_FUNC_00, NULL, 0, pOutReqId);
+	gp_if->pfn_request_async (EN_THREAD_B, EN_B_FUNC_00, NULL, 0, p_out_req_id);
 }
 
-void func01ThreadB (void)
+void func01_thread_b (void)
 {
-	gpIf->pfnRequestSync (EN_THREAD_B, EN_B_FUNC_01, NULL, 0);
+	gp_if->pfn_request_sync (EN_THREAD_B, EN_B_FUNC_01, NULL, 0);
 }
 
-void reqFunc02ThreadB (uint32_t *pOutReqId)
+void req_func02_thread_b (uint32_t *p_out_req_id)
 {
-	gpIf->pfnRequestAsync (EN_THREAD_B, EN_B_FUNC_02, NULL, 0, pOutReqId);
+	gp_if->pfn_request_async (EN_THREAD_B, EN_B_FUNC_02, NULL, 0, p_out_req_id);
 }

@@ -14,97 +14,102 @@
 #include "thread_c.h"
 
 
-ST_THM_EXTERNAL_IF *gpIf;
+threadmgr_external_if_t *gp_if;
 
 
 int main( void )
 {
-	setLogFileptr(stdout);
+	set_log_fileptr(stdout);
 
 	THM_LOG_E ("start");
 
-	ST_THM_SRC_INFO *res = NULL;
+	threadmgr_src_info_t *res = NULL;
 
-	if (!(gpIf = setupThreadMgr(gstRegThreadMgrTbl, (uint32_t)EN_THREAD_MAX))) {
-		THM_LOG_E ("setupThreadMgr() is failure.");
+	if (!(gp_if = setup_threadmgr(gst_reg_threadmgr_tbl, (uint32_t)EN_THREAD_MAX))) {
+		THM_LOG_E ("setup_thread_mgr() is failure.");
 		exit (EXIT_FAILURE);
 	}
 
-	gpIf->pfnCreateExternalCp();
+	gp_if->pfn_create_external_cp();
 
 
-	reqStartupThreadA(NULL);
-	res = gpIf-> pfnReceiveExternal();
+	req_startup_thread_a(NULL);
+	res = gp_if-> pfn_receive_external();
 	if (res) {
-		THM_LOG_I ("dddddddddddddddddd res [%d][%s]", res->enRslt, res->msg.pMsg);
+		THM_LOG_I ("dddddddddddddddddd res [%d][%s]", res->en_rslt, res->msg.msg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd res null");
 	}
 
-	reqStartupThreadB(NULL);
-	res = gpIf-> pfnReceiveExternal();
+	req_startup_thread_b(NULL);
+	res = gp_if-> pfn_receive_external();
 	if (res) {
-		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->enRslt, res->msg.pMsg);
+		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->en_rslt, res->msg.msg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd res null");
 	}
 
-	reqStartupThreadC(NULL);
-	res = gpIf-> pfnReceiveExternal();
+	req_startup_thread_c(NULL);
+	res = gp_if-> pfn_receive_external();
 	if (res) {
-		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->enRslt, res->msg.pMsg);
+		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->en_rslt, res->msg.msg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd res null");
 	}
 
 
-	char szIn[1024];
-	memset (szIn, 0x00, sizeof(szIn));
+	char sz_in[1024];
+	memset (sz_in, 0x00, sizeof(sz_in));
 
 	while (1) {
 		THM_LOG_I ("wait stdin...");
 
-		if (read (STDIN_FILENO, (uint8_t*)szIn, sizeof(szIn) -1) < 0) {
+		if (read (STDIN_FILENO, (uint8_t*)sz_in, sizeof(sz_in) -1) < 0) {
 			THM_PERROR ("read()");
 			continue;
 		}
 
-		deleteLF (szIn);
+		delete_LF (sz_in);
 
 		if (
-			(strlen(szIn) == strlen("a0")) &&
-			(!strncmp(szIn, "a0", strlen("a0")))
+			(strlen(sz_in) == strlen("a0")) &&
+			(!strncmp(sz_in, "a0", strlen("a0")))
 		) {
-			reqFunc00ThreadA (szIn, NULL);
+			req_func00_thread_a (sz_in, NULL);
 
 		} else if (
-			(strlen(szIn) == strlen("a2")) &&
-			(!strncmp(szIn, "a2", strlen("a2")))
+			(strlen(sz_in) == strlen("a2")) &&
+			(!strncmp(sz_in, "a2", strlen("a2")))
 		) {
-			reqFunc02ThreadA (szIn, NULL);
+			req_func02_thread_a (sz_in, NULL);
 
 		} else if (
-			(strlen(szIn) == strlen("a3")) &&
-			(!strncmp(szIn, "a3", strlen("a3")))
+			(strlen(sz_in) == strlen("a3")) &&
+			(!strncmp(sz_in, "a3", strlen("a3")))
 		) {
-			reqFunc03ThreadA (NULL);
+			req_func03_thread_a (NULL);
 
 		} else if (
-			(strlen(szIn) == strlen("b2")) &&
-			(!strncmp(szIn, "b2", strlen("b2")))
+			(strlen(sz_in) == strlen("b2")) &&
+			(!strncmp(sz_in, "b2", strlen("b2")))
 		) {
-			reqFunc02ThreadB (NULL);
+			req_func02_thread_b (NULL);
+
+		} else if (
+			(strlen(sz_in) == strlen("quit")) &&
+			(!strncmp(sz_in, "quit", strlen("quit")))
+		) {
+			break;
 		}
 
-		memset (szIn, 0x00, sizeof(szIn));
+		memset (sz_in, 0x00, sizeof(sz_in));
 
 	}
 
 
-	gpIf->pfnDestroyExternalCp();
+	gp_if->pfn_destroy_external_cp();
 
-	waitThreadMgr();
-	teardownThreadMgr();
+	teardown_threadmgr();
 
 	exit (EXIT_SUCCESS);
 }

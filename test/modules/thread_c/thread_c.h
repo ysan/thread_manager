@@ -1,6 +1,7 @@
 #ifndef _THREAD_C_H_
 #define _THREAD_C_H_
 
+#include "threadmgr_if.h"
 
 /*
  * Constant define
@@ -22,11 +23,11 @@ enum {
 /*
  * External
  */
-extern const ST_THM_SEQ gstSeqsThreadC [];
-extern void recvNotifyThreadC(ST_THM_IF *pIf);
-extern void reqStartupThreadC (uint32_t *pOutReqId);
-extern void reqRegNotifyThreadC(uint32_t *pOutReqId);
-extern void reqUnRegNotifyThreadC (uint8_t nClientId, uint32_t *pOutReqId);
-extern void reqFunc00ThreadC (uint32_t *pOutReqId);
+extern const threadmgr_seq_t gst_seqs_thread_c [];
+extern void recv_notify_thread_c(threadmgr_if_t *p_if);
+extern void req_startup_thread_c (uint32_t *p_out_req_id);
+extern void req_reg_notify_thread_c(uint32_t *p_out_req_id);
+extern void req_un_reg_notify_thread_c (uint8_t n_client_id, uint32_t *p_out_req_id);
+extern void req_func00_thread_c (uint32_t *p_out_req_id);
 
 #endif

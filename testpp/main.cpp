@@ -30,7 +30,7 @@
 
 int main (void)
 {
-	setLogFileptr(stdout);
+	set_log_fileptr(stdout);
 
 	THM_LOG_D ("test THM_LOG_D");
 	THM_LOG_I ("test THM_LOG_I");

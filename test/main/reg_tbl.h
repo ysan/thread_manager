@@ -1,6 +1,7 @@
 #ifndef _REG_THREADMGR_TBL_H_
 #define _REG_THREADMGR_TBL_H_
 
+#include "threadmgr_if.h"
 
 /*
  * Constant define
@@ -15,7 +16,7 @@ enum {
 /*
  * External
  */
-extern const ST_THM_REG_TBL gstRegThreadMgrTbl [EN_THREAD_MAX];
+extern const threadmgr_reg_tbl_t gst_reg_threadmgr_tbl [EN_THREAD_MAX];
 
 
 #endif
