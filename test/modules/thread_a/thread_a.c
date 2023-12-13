@@ -57,15 +57,15 @@ static void startup (threadmgr_if_t *p_if)
 		SECTID_END,
 	};
 
-	n_sectid = p_if->pfn_get_sectid();
+	n_sectid = p_if->get_sectid();
 	THM_LOG_I ("n_sectid %d\n", n_sectid);
 
 	char *msg = "thread_a startup end.";
-	p_if->pfn_reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
+	p_if->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
 
 	n_sectid = THM_SECT_ID_INIT;
 	en_act = EN_THM_ACT_DONE;
-	p_if->pfn_set_sectid (n_sectid, en_act);
+	p_if->set_sectid (n_sectid, en_act);
 }
 
 static void func00 (threadmgr_if_t *p_if)
@@ -80,7 +80,7 @@ static void func00 (threadmgr_if_t *p_if)
 		SECTID_ERR_END,
 	};
 
-	n_sectid = p_if->pfn_get_sectid();
+	n_sectid = p_if->get_sectid();
 	THM_LOG_I ("n_sectid %d\n", n_sectid);
 
 	switch (n_sectid) {
@@ -101,10 +101,10 @@ static void func00 (threadmgr_if_t *p_if)
 		break;
 
 	case SECTID_WAIT_THREAD_A_FUNC01: {
-		EN_THM_RSLT en_rslt = p_if->src_info->en_rslt;
-		THM_LOG_I ("req_func01_thread_a return [%d] msg:[%s]\n", en_rslt, (char*)p_if->src_info->msg.msg);
+		EN_THM_RSLT result = p_if->src_info->result;
+		THM_LOG_I ("req_func01_thread_a return [%d] msg:[%s]\n", result, (char*)p_if->src_info->msg.msg);
 
-		if (en_rslt == EN_THM_RSLT_SUCCESS) {
+		if (result == EN_THM_RSLT_SUCCESS) {
 			n_sectid = SECTID_END;
 			en_act = EN_THM_ACT_CONTINUE;
 		} else {
@@ -115,13 +115,13 @@ static void func00 (threadmgr_if_t *p_if)
 		} break;
 
 	case SECTID_END:
-		p_if->pfn_reply (EN_THM_RSLT_SUCCESS, NULL, 0);
+		p_if->reply (EN_THM_RSLT_SUCCESS, NULL, 0);
 		n_sectid = THM_SECT_ID_INIT;
 		en_act = EN_THM_ACT_DONE;
 		break;
 
 	case SECTID_ERR_END:
-		p_if->pfn_reply (EN_THM_RSLT_ERROR, NULL, 0);
+		p_if->reply (EN_THM_RSLT_ERROR, NULL, 0);
 		n_sectid = THM_SECT_ID_INIT;
 		en_act = EN_THM_ACT_DONE;
 		break;
@@ -130,7 +130,7 @@ static void func00 (threadmgr_if_t *p_if)
 		break;
 	}
 
-	p_if->pfn_set_sectid (n_sectid, en_act);
+	p_if->set_sectid (n_sectid, en_act);
 }
 
 static uint32_t gn_tmp_req_id;
@@ -146,7 +146,7 @@ static void func01 (threadmgr_if_t *p_if)
 		SECTID_ERR_END,
 	};
 
-	n_sectid = p_if->pfn_get_sectid();
+	n_sectid = p_if->get_sectid();
 	THM_LOG_I ("n_sectid %d\n", n_sectid);
 
 	switch (n_sectid) {
@@ -178,10 +178,10 @@ static void func01 (threadmgr_if_t *p_if)
 			en_act = EN_THM_ACT_WAIT;
 
 		} else {
-			EN_THM_RSLT en_rslt = p_if->src_info->en_rslt;
-			THM_LOG_I ("req_func00_thread_b return [%d] msg:[%s]\n", en_rslt, (char*)p_if->src_info->msg.msg);
+			EN_THM_RSLT result = p_if->src_info->result;
+			THM_LOG_I ("req_func00_thread_b return [%d] msg:[%s]\n", result, (char*)p_if->src_info->msg.msg);
 
-			if (en_rslt == EN_THM_RSLT_SUCCESS) {
+			if (result == EN_THM_RSLT_SUCCESS) {
 				n_sectid = SECTID_END;
 				en_act = EN_THM_ACT_CONTINUE;
 			} else {
@@ -194,13 +194,13 @@ static void func01 (threadmgr_if_t *p_if)
 
 	case SECTID_END: {
 		char *msg = "aaaaaaaaaaaaaaaaa";
-		p_if->pfn_reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
+		p_if->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
 		n_sectid = THM_SECT_ID_INIT;
 		en_act = EN_THM_ACT_DONE;
 		} break;
 
 	case SECTID_ERR_END:
-		p_if->pfn_reply (EN_THM_RSLT_ERROR, NULL, 0);
+		p_if->reply (EN_THM_RSLT_ERROR, NULL, 0);
 		n_sectid = THM_SECT_ID_INIT;
 		en_act = EN_THM_ACT_DONE;
 		break;
@@ -209,7 +209,7 @@ static void func01 (threadmgr_if_t *p_if)
 		break;
 	}
 
-	p_if->pfn_set_sectid (n_sectid, en_act);
+	p_if->set_sectid (n_sectid, en_act);
 }
 
 static void func02 (threadmgr_if_t *p_if)
@@ -226,7 +226,7 @@ static void func02 (threadmgr_if_t *p_if)
 		SECTID_END,
 	};
 
-	n_sectid = p_if->pfn_get_sectid();
+	n_sectid = p_if->get_sectid();
 	THM_LOG_I ("n_sectid %d\n", n_sectid);
 
 	switch (n_sectid) {
@@ -242,7 +242,7 @@ static void func02 (threadmgr_if_t *p_if)
 	case SECTID_REQ_THREAD_B_FUNC00:
 
 		THM_LOG_I ("timeout 7sec\n");
-		p_if->pfn_set_timeout (7000);
+		p_if->set_timeout (7000);
 
 		// スレッドBのfunc00にリクエスト
 		req_func00_thread_b(NULL);
@@ -252,22 +252,22 @@ static void func02 (threadmgr_if_t *p_if)
 		break;
 
 	case SECTID_WAIT_THREAD_B_FUNC00: {
-		EN_THM_RSLT en_rslt = p_if->src_info->en_rslt;
-		switch ((int)en_rslt) {
+		EN_THM_RSLT result = p_if->src_info->result;
+		switch ((int)result) {
 		case EN_THM_RSLT_SUCCESS:
-			THM_LOG_I ("return success req_func00_thread_b [%d] msg:[%s]\n", en_rslt, (char*)p_if->src_info->msg.msg);
+			THM_LOG_I ("return success req_func00_thread_b [%d]; msg:[%s]\n", result, (char*)p_if->src_info->msg.msg);
 			THM_LOG_I ("clear_timeout\n");
-			p_if->pfn_clear_timeout();
+			p_if->clear_timeout();
 			break;
 		case EN_THM_RSLT_ERROR:
-			THM_LOG_E ("return error req_func00_thread_b [%d] msg:[%s]\n", en_rslt, (char*)p_if->src_info->msg.msg);
+			THM_LOG_E ("return error req_func00_thread_b [%d] msg:[%s]\n", result, (char*)p_if->src_info->msg.msg);
 			THM_LOG_I ("clear_timeout\n");
-			p_if->pfn_clear_timeout();
+			p_if->clear_timeout();
 			break;
 		case EN_THM_RSLT_REQ_TIMEOUT:
 			THM_LOG_E ("reqtimeout req_func00_thread_b");
 			THM_LOG_I ("clear_timeout\n");
-			p_if->pfn_clear_timeout();
+			p_if->clear_timeout();
 			break;
 		case EN_THM_RSLT_SEQ_TIMEOUT:
 			THM_LOG_E ("seqtimeout req_func00_thread_b");
@@ -292,8 +292,8 @@ static void func02 (threadmgr_if_t *p_if)
 
 		// スレッドBのfunc01にリクエスト 同期なのでここでリプライを待ちます
 		func01_thread_b();
-		EN_THM_RSLT en_rslt = p_if->src_info->en_rslt;
-		THM_LOG_I ("func01_thread_b return [%d] msg:[%s]\n", en_rslt, (char*)p_if->src_info->msg.msg);
+		EN_THM_RSLT result = p_if->src_info->result;
+		THM_LOG_I ("func01_thread_b return [%d] msg:[%s]\n", result, (char*)p_if->src_info->msg.msg);
 
 		n_sectid = SECTID_END;
 		en_act = EN_THM_ACT_CONTINUE;
@@ -301,7 +301,7 @@ static void func02 (threadmgr_if_t *p_if)
 
 	case SECTID_END:
 
-		p_if->pfn_reply (EN_THM_RSLT_SUCCESS, NULL, 0);
+		p_if->reply (EN_THM_RSLT_SUCCESS, NULL, 0);
 
 		n_sectid = THM_SECT_ID_INIT;
 		en_act = EN_THM_ACT_DONE;
@@ -311,7 +311,7 @@ static void func02 (threadmgr_if_t *p_if)
 		break;
 	}
 
-	p_if->pfn_set_sectid (n_sectid, en_act);
+	p_if->set_sectid (n_sectid, en_act);
 }
 
 static void func03 (threadmgr_if_t *p_if)
@@ -327,12 +327,12 @@ static void func03 (threadmgr_if_t *p_if)
 		SECTID_END,
 	};
 
-	n_sectid = p_if->pfn_get_sectid();
+	n_sectid = p_if->get_sectid();
 	THM_LOG_I ("n_sectid %d\n", n_sectid);
 
 	switch (n_sectid) {
 	case SECTID_ENTRY: {
-		p_if->pfn_enable_overwrite ();
+		p_if->enable_overwrite ();
 		n_sectid = SECTID_1;
 		en_act = EN_THM_ACT_CONTINUE;
 		} break;
@@ -352,9 +352,9 @@ static void func03 (threadmgr_if_t *p_if)
 			en_act = EN_THM_ACT_WAIT;
 
 		} else {
-			EN_THM_RSLT en_rslt = p_if->src_info->en_rslt;
-			THM_LOG_I ("req_func00Thread_b return [%d] msg:[%s]\n", en_rslt, (char*)p_if->src_info->msg.msg);
-			p_if->pfn_set_timeout (3000);
+			EN_THM_RSLT result = p_if->src_info->result;
+			THM_LOG_I ("req_func00Thread_b return [%d] msg:[%s]\n", result, (char*)p_if->src_info->msg.msg);
+			p_if->set_timeout (3000);
 			n_sectid = SECTID_3;
 			en_act = EN_THM_ACT_WAIT;
 		}
@@ -367,7 +367,7 @@ static void func03 (threadmgr_if_t *p_if)
 
 	case SECTID_END:
 
-		p_if->pfn_reply (EN_THM_RSLT_SUCCESS, NULL, 0);
+		p_if->reply (EN_THM_RSLT_SUCCESS, NULL, 0);
 
 		n_sectid = THM_SECT_ID_INIT;
 		en_act = EN_THM_ACT_DONE;
@@ -377,7 +377,7 @@ static void func03 (threadmgr_if_t *p_if)
 		break;
 	}
 
-	p_if->pfn_set_sectid (n_sectid, en_act);
+	p_if->set_sectid (n_sectid, en_act);
 }
 
 
@@ -385,25 +385,25 @@ static void func03 (threadmgr_if_t *p_if)
 
 void req_startup_thread_a (uint32_t *p_out_req_id)
 {
-	gp_if->pfn_request_async (EN_THREAD_A, EN_A_STARTUP, NULL, 0, p_out_req_id);
+	gp_if->request_async (EN_THREAD_A, EN_A_STARTUP, NULL, 0, p_out_req_id);
 }
 
 void req_func00_thread_a (char *psz_msg, uint32_t *p_out_req_id)
 {
-	gp_if->pfn_request_async (EN_THREAD_A, EN_A_FUNC_00, (uint8_t*)psz_msg, strlen(psz_msg), p_out_req_id);
+	gp_if->request_async (EN_THREAD_A, EN_A_FUNC_00, (uint8_t*)psz_msg, strlen(psz_msg), p_out_req_id);
 }
 
 void req_func01_thread_a (uint32_t *p_out_req_id)
 {
-	gp_if->pfn_request_async (EN_THREAD_A, EN_A_FUNC_01, NULL, 0, p_out_req_id);
+	gp_if->request_async (EN_THREAD_A, EN_A_FUNC_01, NULL, 0, p_out_req_id);
 }
 
 void req_func02_thread_a (char *psz_msg, uint32_t *p_out_req_id)
 {
-	gp_if->pfn_request_async (EN_THREAD_A, EN_A_FUNC_02, (uint8_t*)psz_msg, strlen(psz_msg), p_out_req_id);
+	gp_if->request_async (EN_THREAD_A, EN_A_FUNC_02, (uint8_t*)psz_msg, strlen(psz_msg), p_out_req_id);
 }
 
 void req_func03_thread_a (uint32_t *p_out_req_id)
 {
-	gp_if->pfn_request_async (EN_THREAD_A, EN_A_FUNC_03, NULL, 0, p_out_req_id);
+	gp_if->request_async (EN_THREAD_A, EN_A_FUNC_03, NULL, 0, p_out_req_id);
 }

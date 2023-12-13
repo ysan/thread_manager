@@ -30,29 +30,29 @@ int main( void )
 		exit (EXIT_FAILURE);
 	}
 
-	gp_if->pfn_create_external_cp();
+	gp_if->create_external_cp();
 
 
 	req_startup_thread_a(NULL);
-	res = gp_if-> pfn_receive_external();
+	res = gp_if-> receive_external();
 	if (res) {
-		THM_LOG_I ("dddddddddddddddddd res [%d][%s]", res->en_rslt, res->msg.msg);
+		THM_LOG_I ("dddddddddddddddddd res [%d][%s]", res->result, res->msg.msg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd res null");
 	}
 
 	req_startup_thread_b(NULL);
-	res = gp_if-> pfn_receive_external();
+	res = gp_if-> receive_external();
 	if (res) {
-		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->en_rslt, res->msg.msg);
+		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->result, res->msg.msg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd res null");
 	}
 
 	req_startup_thread_c(NULL);
-	res = gp_if-> pfn_receive_external();
+	res = gp_if-> receive_external();
 	if (res) {
-		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->en_rslt, res->msg.msg);
+		THM_LOG_I ("dddddddddddddddddd res [%d][%s]\n", res->result, res->msg.msg);
 	} else {
 		THM_LOG_E ("dddddddddddddddddd res null");
 	}
@@ -107,7 +107,7 @@ int main( void )
 	}
 
 
-	gp_if->pfn_destroy_external_cp();
+	gp_if->destroy_external_cp();
 
 	teardown_threadmgr();
 

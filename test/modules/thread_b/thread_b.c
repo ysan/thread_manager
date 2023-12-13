@@ -60,7 +60,7 @@ static void startup (threadmgr_if_t *p_if)
 		SECTID_ERR_END,
 	};
 
-	sectid = p_if->pfn_get_sectid();
+	sectid = p_if->get_sectid();
 	THM_LOG_I ("sectid %d\n", sectid);
 
 	switch (sectid) {
@@ -76,11 +76,11 @@ static void startup (threadmgr_if_t *p_if)
 		break;
 
 	case SECTID_WAIT_REG_NOTIFY_THC: {
-		EN_THM_RSLT en_rslt = p_if->src_info->en_rslt;
+		EN_THM_RSLT result = p_if->src_info->result;
 		gn_client_id = *(p_if->src_info->msg.msg);
-		THM_LOG_I ("return req_reg_notify_thread_c [%d] gn_client_id:[%d]\n", en_rslt, gn_client_id);
+		THM_LOG_I ("return req_reg_notify_thread_c [%d] gn_client_id:[%d]\n", result, gn_client_id);
 
-		if (en_rslt == EN_THM_RSLT_SUCCESS) {
+		if (result == EN_THM_RSLT_SUCCESS) {
 			sectid = SECTID_END;
 			en_act = EN_THM_ACT_CONTINUE;
 		} else {
@@ -91,13 +91,13 @@ static void startup (threadmgr_if_t *p_if)
 		} break;
 
 	case SECTID_END:
-		p_if->pfn_reply (EN_THM_RSLT_SUCCESS, NULL, 0);
+		p_if->reply (EN_THM_RSLT_SUCCESS, NULL, 0);
 		sectid = 0;
 		en_act = EN_THM_ACT_DONE;
 		break;
 
 	case SECTID_ERR_END:
-		p_if->pfn_reply (EN_THM_RSLT_ERROR, NULL, 0);
+		p_if->reply (EN_THM_RSLT_ERROR, NULL, 0);
 		sectid = 0;
 		en_act = EN_THM_ACT_DONE;
 		break;
@@ -106,7 +106,7 @@ static void startup (threadmgr_if_t *p_if)
 		break;
 	}
 
-	p_if->pfn_set_sectid (sectid, en_act);
+	p_if->set_sectid (sectid, en_act);
 }
 
 static void func00 (threadmgr_if_t *p_if)
@@ -118,18 +118,18 @@ static void func00 (threadmgr_if_t *p_if)
 		SECTID_END,
 	};
 
-	sectid = p_if->pfn_get_sectid();
+	sectid = p_if->get_sectid();
 	THM_LOG_I ("sectid %d\n", sectid);
 
 	THM_LOG_I ("execute. sleep 2sec.\n");
 	sleep (2);
 
 	char *msg = "thread_b func00 end.";
-	p_if->pfn_reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
+	p_if->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
 
 	sectid = 0;
 	en_act = EN_THM_ACT_DONE;
-	p_if->pfn_set_sectid (sectid, en_act);
+	p_if->set_sectid (sectid, en_act);
 }
 
 static void func01 (threadmgr_if_t *p_if)
@@ -142,15 +142,15 @@ static void func01 (threadmgr_if_t *p_if)
 		SECTID_ERR_END,
 	};
 
-	sectid = p_if->pfn_get_sectid();
+	sectid = p_if->get_sectid();
 	THM_LOG_I ("sectid %d\n", sectid);
 
 	char *msg = "thread_b func01 end. -- sync --";
-	p_if->pfn_reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
+	p_if->reply (EN_THM_RSLT_SUCCESS, (uint8_t*)msg, strlen(msg));
 
 	sectid = 0;
 	en_act = EN_THM_ACT_DONE;
-	p_if->pfn_set_sectid (sectid, en_act);
+	p_if->set_sectid (sectid, en_act);
 }
 
 static void func02 (threadmgr_if_t *p_if)
@@ -165,7 +165,7 @@ static void func02 (threadmgr_if_t *p_if)
 		SECTID_ERR_END,
 	};
 
-	sectid = p_if->pfn_get_sectid();
+	sectid = p_if->get_sectid();
 	THM_LOG_I ("sectid %d\n", sectid);
 
 	switch (sectid) {
@@ -181,15 +181,15 @@ static void func02 (threadmgr_if_t *p_if)
 		break;
 
 	case SECTID_WAIT_FUNC00_THREAD_C: {
-		EN_THM_RSLT en_rslt = p_if->src_info->en_rslt;
-		switch ((int)en_rslt) {
+		EN_THM_RSLT result = p_if->src_info->result;
+		switch ((int)result) {
 		case EN_THM_RSLT_SUCCESS:
-			THM_LOG_I ("return success req_func00_thread_c [%d] msg:[%s]\n", en_rslt, (char*)p_if->src_info->msg.msg);
+			THM_LOG_I ("return success req_func00_thread_c [%d] msg:[%s]\n", result, (char*)p_if->src_info->msg.msg);
 			sectid = SECTID_END;
 			en_act = EN_THM_ACT_CONTINUE;
 			break;
 		case EN_THM_RSLT_ERROR:
-			THM_LOG_E ("return error req_func00_thread_c [%d] msg:[%s]\n", en_rslt, (char*)p_if->src_info->msg.msg);
+			THM_LOG_E ("return error req_func00_thread_c [%d] msg:[%s]\n", result, (char*)p_if->src_info->msg.msg);
 			sectid = SECTID_ERR_END;
 			en_act = EN_THM_ACT_CONTINUE;
 			break;
@@ -203,13 +203,13 @@ static void func02 (threadmgr_if_t *p_if)
 		} break;
 
 	case SECTID_END:
-		p_if->pfn_reply (EN_THM_RSLT_SUCCESS, NULL, 0);
+		p_if->reply (EN_THM_RSLT_SUCCESS, NULL, 0);
 		sectid = 0;
 		en_act = EN_THM_ACT_DONE;
 		break;
 
 	case SECTID_ERR_END:
-		p_if->pfn_reply (EN_THM_RSLT_ERROR, NULL, 0);
+		p_if->reply (EN_THM_RSLT_ERROR, NULL, 0);
 		sectid = 0;
 		en_act = EN_THM_ACT_DONE;
 		break;
@@ -218,7 +218,7 @@ static void func02 (threadmgr_if_t *p_if)
 		break;
 	}
 
-	p_if->pfn_set_sectid (sectid, en_act);
+	p_if->set_sectid (sectid, en_act);
 }
 
 
@@ -227,20 +227,20 @@ static void func02 (threadmgr_if_t *p_if)
 
 void req_startup_thread_b (uint32_t *p_out_req_id)
 {
-	gp_if->pfn_request_async (EN_THREAD_B, EN_B_STARTUP, NULL, 0, p_out_req_id);
+	gp_if->request_async (EN_THREAD_B, EN_B_STARTUP, NULL, 0, p_out_req_id);
 }
 
 void req_func00_thread_b (uint32_t *p_out_req_id)
 {
-	gp_if->pfn_request_async (EN_THREAD_B, EN_B_FUNC_00, NULL, 0, p_out_req_id);
+	gp_if->request_async (EN_THREAD_B, EN_B_FUNC_00, NULL, 0, p_out_req_id);
 }
 
 void func01_thread_b (void)
 {
-	gp_if->pfn_request_sync (EN_THREAD_B, EN_B_FUNC_01, NULL, 0);
+	gp_if->request_sync (EN_THREAD_B, EN_B_FUNC_01, NULL, 0);
 }
 
 void req_func02_thread_b (uint32_t *p_out_req_id)
 {
-	gp_if->pfn_request_async (EN_THREAD_B, EN_B_FUNC_02, NULL, 0, p_out_req_id);
+	gp_if->request_async (EN_THREAD_B, EN_B_FUNC_02, NULL, 0, p_out_req_id);
 }
