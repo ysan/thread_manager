@@ -8,7 +8,7 @@
 
 Asynchronous I/O communication framework during multi threads and section sequence manager.
 
-You can communicate threads N-to-N with patterns like request-reply and notify.
+Communicate threads N-to-N with patterns like request-reply and notify.
 
 <!--
 Generally, the number of callback functions that receive events increases in asynchronous processing, and the readability of the source code deteriorates. However, this framework improves the readability of the source code by enabling the description through a series of processing sequences.
@@ -49,14 +49,18 @@ Uninstall:
 -->
 <img src="https://github.com/ysan/thread_manager/blob/master/etc/big_picture.png" width="75%" height="75%">
 
+<!--
 ## About sequence
 
 The framework first receives queue, identifies the sequence from the sent queue, and calls that message as an argument to the corresponding sequence. After processing the called sequence, we return control to the framework and enter the next message wait. Sequence switching is done every 1 queue, and other sequences can not operate at all. since sequences on the same thread are always exclusive, exclusion control between sequences is not necessary.
+-->
 
 <!--
 ![about sequence](https://github.com/ysan/thread_manager/blob/master/etc/about_sequence.png)
 -->
+<!--
 <img src="https://github.com/ysan/thread_manager/blob/master/etc/about_sequence.png" width="75%" height="75%">
+-->
 
 ## How to use
 
