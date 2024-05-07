@@ -42,9 +42,9 @@ public:
 	};
 
 
-	bool req_startup (void) {
+	bool req_startup_sync (void) {
 		int sequence = static_cast<int>(sequence::startup);
-		return request_async (m_module_id, sequence);
+		return request_sync (m_module_id, sequence);
 	};
 
 	bool req_test_reg_notify (void) {

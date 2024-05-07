@@ -64,6 +64,9 @@ private:
 		section_id = p_if->get_section_id();
 		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
 
+		assert(std::string(p_if->get_sequence_name()) == std::string("startup"));
+		assert(p_if->get_sequence_idx() == 0);
+
 		const char *msg = "module_a startup end.";
 		p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(const_cast<char*>(msg)), strlen(msg)+1);
 
@@ -84,6 +87,9 @@ private:
 
 		section_id = p_if->get_section_id();
 		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
+
+		assert(std::string(p_if->get_sequence_name()) == std::string("test_reqrep"));
+		assert(p_if->get_sequence_idx() == 1);
 
 		switch (section_id) {
 		case SECTID_ENTRY:
@@ -152,6 +158,9 @@ private:
 
 		section_id = p_if->get_section_id();
 		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
+
+		assert(std::string(p_if->get_sequence_name()) == std::string("test_reqrep_notify"));
+		assert(p_if->get_sequence_idx() == 2);
 
 		switch (section_id) {
 		case SECTID_ENTRY:
@@ -405,6 +414,9 @@ private:
 		section_id = p_if->get_section_id();
 		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
 
+		assert(std::string(p_if->get_sequence_name()) == std::string("test_lock"));
+		assert(p_if->get_sequence_idx() == 3);
+
 		switch (section_id) {
 		case SECTID_ENTRY: {
 
@@ -471,6 +483,9 @@ private:
 		section_id = p_if->get_section_id();
 		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
 
+		assert(std::string(p_if->get_sequence_name()) == std::string("test_lock_intr"));
+		assert(p_if->get_sequence_idx() == 4);
+
 		m_lock_check << "intr.";
 
 		p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(const_cast<char*>(m_lock_check.str().c_str())), m_lock_check.str().length());
@@ -492,6 +507,9 @@ private:
 
 		section_id = p_if->get_section_id();
 		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
+
+		assert(std::string(p_if->get_sequence_name()) == std::string("test_overwrite"));
+		assert(p_if->get_sequence_idx() == 5);
 
 		switch (section_id) {
 		case SECTID_ENTRY: {
@@ -567,6 +585,8 @@ private:
 		section_id = p_if->get_section_id();
 		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
 
+		assert(std::string(p_if->get_sequence_name()) == std::string("test_destroy"));
+		assert(p_if->get_sequence_idx() == 6);
 
 		// dump
 //		kill (getpid(), SIGQUIT);

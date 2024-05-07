@@ -77,7 +77,7 @@ int main (void)
 		assert (s == std::string("module_b startup end."));
 	}
 	{
-		mod_c_extern-> req_startup ();
+		mod_c_extern-> req_startup_sync ();
 		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
 		assert (r.get_result() == threadmgr::result::success);
 		std::string s = reinterpret_cast<char*>(r.get_message().data());
