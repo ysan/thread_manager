@@ -6,7 +6,7 @@
        src="https://scan.coverity.com/projects/22807/badge.svg"/>
 </a>
 
-Asynchronous I/O communication framework during multi threads and section sequence manager.
+Asynchronous communication framework during multi threads and section sequence manager.
 
 Communicate threads N-to-N with patterns like request-reply and notify.
 
