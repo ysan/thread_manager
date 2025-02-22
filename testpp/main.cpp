@@ -158,6 +158,15 @@ int main (void)
 		assert (s == std::string("chchchchecked."));
 	}
 
+	// test request overflow
+	{
+		mod_a_extern->req_test_req_overflow ();
+		threadmgr::CSource& r = p_mgr->get_external_if()-> receive_external();
+		assert (r.get_result() == threadmgr::result::success);
+		bool ret = reinterpret_cast<bool*>(r.get_message().data());
+		assert (ret);
+	}
+
 	// dump
 	kill (getpid(), SIGQUIT);
 	sleep(5);

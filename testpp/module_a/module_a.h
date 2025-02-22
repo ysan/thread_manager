@@ -40,6 +40,7 @@ public:
 		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){test_lock(p_if);}, std::move("test_lock")});
 		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){test_lock_intr(p_if);}, std::move("test_lock_intr")});
 		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){test_overwrite(p_if);}, std::move("test_overwrite")});
+		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){test_req_overflow(p_if);}, std::move("test_req_overflow")});
 		sequences.push_back ({[&](threadmgr::CThreadMgrIf *p_if){test_destroy(p_if);}, std::move("test_destroy")});
 		set_sequences (sequences);
 	
@@ -574,6 +575,76 @@ private:
 		p_if->set_section_id (section_id, act);
 	}
 
+	void test_req_overflow (threadmgr::CThreadMgrIf *p_if) {
+		threadmgr::section_id::type section_id;
+		threadmgr::action act;
+		enum {
+			SECTID_ENTRY = threadmgr::section_id::init,
+			SECTID_REQ_ECHO02_THB,
+			SECTID_WAIT_ECHO02_THB,
+			SECTID_END,
+		};
+
+		section_id = p_if->get_section_id();
+		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
+
+		assert(std::string(p_if->get_sequence_name()) == std::string("test_req_overflow"));
+		assert(p_if->get_sequence_idx() == 6);
+
+		switch (section_id) {
+		case SECTID_ENTRY: {
+
+			section_id = SECTID_REQ_ECHO02_THB;
+			act = threadmgr::action::continue_;
+
+			m_overflowed = false;
+			}
+			break;
+
+		case SECTID_REQ_ECHO02_THB: {
+
+			// スレッドBのecho02にリクエスト
+			module_b_extern ex (get_external_if());
+			for (int i = 0; i < 20; ++ i) {
+				bool r = ex.req_echo02 ();
+				if (!r) {
+					THM_LOG_I ("req overflowed\n");
+					m_overflowed = true;
+					break;
+				}
+			}
+
+			section_id = SECTID_WAIT_ECHO02_THB;
+			act = threadmgr::action::wait;
+			}
+			break;
+
+		case SECTID_WAIT_ECHO02_THB: {
+			threadmgr::result rslt = p_if->get_source().get_result();
+			THM_LOG_I ("module_b::req_echo02 return [%d]\n", rslt);
+
+			assert (rslt == threadmgr::result::success);
+
+			section_id = SECTID_END;
+			act = threadmgr::action::continue_;
+
+			}
+			break;
+
+		case SECTID_END:
+			p_if->reply (threadmgr::result::success, reinterpret_cast<uint8_t*>(&m_overflowed), sizeof(m_overflowed));
+
+			section_id = threadmgr::section_id::init;
+			act = threadmgr::action::done;
+			break;
+
+		default:
+			break;
+		}
+
+		p_if->set_section_id (section_id, act);
+	}
+
 	void test_destroy (threadmgr::CThreadMgrIf *p_if) {
 		threadmgr::section_id::type section_id;
 		threadmgr::action act;
@@ -586,7 +657,7 @@ private:
 		THM_LOG_I ("%s section_id %d\n", __PRETTY_FUNCTION__, section_id);
 
 		assert(std::string(p_if->get_sequence_name()) == std::string("test_destroy"));
-		assert(p_if->get_sequence_idx() == 6);
+		assert(p_if->get_sequence_idx() == 7);
 
 		// dump
 //		kill (getpid(), SIGQUIT);
@@ -631,6 +702,7 @@ private:
 	uint32_t m_tmp_req_id;
 	uint8_t m_client_id;
 	bool m_is_notified;
+	bool m_overflowed;
 	std::stringstream m_lock_check;
 	std::stringstream m_ow_check;
 };

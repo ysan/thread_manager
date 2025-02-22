@@ -21,6 +21,7 @@ public:
 		test_lock,
 		test_lock_intr,
 		test_overwrite,
+		test_req_overflow,
 		test_destroy,
 	};
 
@@ -61,6 +62,11 @@ public:
 
 	bool req_test_overwrite (void) {
 		int sequence = static_cast<int>(sequence::test_overwrite);
+		return request_async (m_module_id, sequence);
+	};
+
+	bool req_test_req_overflow (void) {
+		int sequence = static_cast<int>(sequence::test_req_overflow);
 		return request_async (m_module_id, sequence);
 	};
 
